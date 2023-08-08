@@ -9,8 +9,8 @@ With TailAdmin Next.js, you get access to all the necessary dashboard UI compone
 TailAdmin utilizes the powerful features of **Next.js 13** and common features of Next.js such as server-side rendering (SSR), static site generation (SSG), and seamless API route integration. Combined with the advancements of **React 18** and the robustness of **TypeScript**, TailAdmin is the perfect solution to help get your project up and running quickly.
 
 ### [✨ Visit Website](https://tailadmin.com/)
-### [🚀 PRO Demo](https://react-demo.tailadmin.com/)
-### [🚀 FREE Demo](https://free-react-demo.tailadmin.com/)
+### [🚀 PRO Demo](https://nextjs-demo.tailadmin.com/)
+### [🚀 FREE Demo](https://nextjs-free-demo.tailadmin.com/)
 
 ### TailAdmin Next.js PRO vs TailAdmin Next.js FREE Comparison 📊
 
@@ -44,7 +44,7 @@ ___
 ### [👉 TailAdmin HTML Version](https://github.com/TailAdmin/tailadmin-free-tailwind-dashboard-template)
 
 
-## Free Admin Dashboard Template for Next.js Built with Tailwind CSS, React 18 and TypeScript
+## Free Admin Dashboard Template for Next.js Built-with Tailwind CSS, React 18 and TypeScript
 TailAdmin Next.js is a free dashboard template, which uses Tailwind CSS, is a great starting point for dashboard UI. This template uses the Next.js JavaScript framework and the easy-to-use Tailwind CSS framework. The Tailwind CSS and Next.js Dashboard Template comes with ready-made components like navigation menus, charts, tables, and forms. These components can be easily adjusted and added to any Next.js web application.
 
 TailAdmin for Next.js provides all essential Next.js + Tailwind CSS UI components that can be copied and pasted directly into your dashboard projects. The range of components includes charts, graphs, navbars, tabs, buttons, cards, tables, profiles, forms, modals, app pages, calendars, web app example templates, and more, all coded for Next.js React and styled using Tailwind CSS.
