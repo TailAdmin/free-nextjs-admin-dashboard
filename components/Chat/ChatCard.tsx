@@ -1,7 +1,7 @@
 import Link from "next/link";
 import Image from "next/image";
 import { Chat } from "@/types/chat";
- 
+
 const chatData: Chat[] = [
   {
     avatar: "/images/user/user-01.png",
@@ -70,7 +70,9 @@ const ChatCard = () => {
             <div className="relative h-14 w-14 rounded-full">
               <Image src={chat.avatar} alt="User" width={57} height={56} />
               <span
-                className={`absolute right-0 bottom-0 h-3.5 w-3.5 rounded-full border-2 border-white bg-meta-${chat.dot}`}
+                className={`absolute right-0 bottom-0 h-3.5 w-3.5 rounded-full border-2 border-white ${
+                  chat.dot === 6 ? "bg-meta-6" : `bg-meta-${chat.dot}`
+                } `}
               ></span>
             </div>
 
