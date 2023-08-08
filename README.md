@@ -50,3 +50,9 @@ TailAdmin Next.js is a free dashboard template, which uses Tailwind CSS, is a gr
 TailAdmin for Next.js provides all essential Next.js + Tailwind CSS UI components that can be copied and pasted directly into your dashboard projects. The range of components includes charts, graphs, navbars, tabs, buttons, cards, tables, profiles, forms, modals, app pages, calendars, web app example templates, and more, all coded for Next.js React and styled using Tailwind CSS.
 
 If you're on the hunt for a top-quality Next.js-Tailwind Dashboard, Admin Panel Template, or UI Kit, TailAdmin is the perfect choice for you!
+
+### 📄 License
+TailAdmin Next.js Free is 100% free and open-source; feel free to use it with your personal and commercial projects.
+
+### 💜 Support
+If you like the template, please star this repository to inspire the team to create more stuff like this and reach more users like you!
