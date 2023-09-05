@@ -44,6 +44,36 @@ ___
 ### [👉 TailAdmin HTML Version](https://github.com/TailAdmin/tailadmin-free-tailwind-dashboard-template)
 
 
+## Installation
+
+Here are the steps you need to follow to install the dependencies.
+
+1. Download and extract the template from Next.js Templates.
+
+2. After that **cd** into the template directory then run this command to install all the dependencies
+
+```
+npm install
+```
+or
+
+```
+yarn install
+```
+
+3. Now run this command to start the developement server
+
+```
+npm run dev
+```
+
+or 
+
+```
+yarn dev
+```
+
+
 ## Free Admin Dashboard Template for Next.js Built-with Tailwind CSS, React 18 and TypeScript
 TailAdmin Next.js is a free dashboard template, which uses Tailwind CSS, is a great starting point for dashboard UI. This template uses the Next.js JavaScript framework and the easy-to-use Tailwind CSS framework. The Tailwind CSS and Next.js Dashboard Template comes with ready-made components like navigation menus, charts, tables, and forms. These components can be easily adjusted and added to any Next.js web application.
 
