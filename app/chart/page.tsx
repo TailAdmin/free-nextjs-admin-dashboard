@@ -1,4 +1,3 @@
-"use client";
 import Breadcrumb from "@/components/Breadcrumbs/Breadcrumb";
 import ChartFour from "@/components/Charts/ChartFour";
 import ChartOne from "@/components/Charts/ChartOne";
