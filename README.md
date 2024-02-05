@@ -86,3 +86,21 @@ TailAdmin Next.js Free is 100% free and open-source; feel free to use it with yo
 
 ### 💜 Support
 If you like the template, please star this repository to inspire the team to create more stuff like this and reach more users like you!
+
+
+## Update Logs
+
+### Version 1.2.0 - [Feb 05, 2024]
+
+#### Enhancements
+
+- **Enhancement 01:** Update Next.js into version 14
+- **Enhancement 02:** Integrate flatpickr in [Date Picker/Form Elements]
+- **Enhancement 03:** Change color after select an option [Select Element/Form Elements].
+- **Enhancement 04:** Make it functional [Multiselect Dropdown/Form Elements].
+- **Enhancement 05:** Make best value editable [Pricing Table One/Pricing Table].
+- **Enhancement 06:** Add Default Layout Component and make App/Layout more clean and use it in every pages.
+
+### Version 0.1.0 - Initial Release - [Aug 3, 2023]
+
+- Initial release of TailAdmin Next.
