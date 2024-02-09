@@ -204,8 +204,12 @@ const Sidebar = ({ sidebarOpen, setSidebarOpen }: SidebarProps) => {
               </SidebarLinkGroup>
               {/* <!-- Menu Item Dashboard --> */}
 
+<<<<<<< HEAD
               {/* <!-- Menu Item Calendar --> */}
               
+=======
+          
+>>>>>>> cce5832713dacf64aa781aed4d40ee384c309729
               {/* <!-- Menu Item Calendar --> */}
 
               {/* <!-- Menu Item Profile --> */}
