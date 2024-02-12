@@ -90,7 +90,16 @@ If you like the template, please star this repository to inspire the team to cre
 
 ## Update Logs
 
-### Version 1.2.0 - [Feb 05, 2024]
+### Version 1.3.1 - [Feb 12, 2024]
+
+#### Issues
+
+- **Issues 02:** Fix Misspelling issue [Default Layout/Layouts].
+
+#### Enhancements
+- **Enhancement 01:** Update style.css
+
+### Version 1.3.0 - [Feb 05, 2024]
 
 #### Enhancements
 

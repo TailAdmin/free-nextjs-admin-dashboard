@@ -142,9 +142,8 @@ span.flatpickr-weekday,
 }
 
 .flatpickr-day.inRange {
+    box-shadow: -5px 0 0 #f3f4f6, 5px 0 0 #f3f4f6 !important;
     @apply dark:!shadow-7;
-    box-shadow: -5px 0 0 #eff4fb,
-    5px 0 0 #eff4fb;
 }
 
 .flatpickr-day.inRange,
@@ -159,7 +158,7 @@ span.flatpickr-weekday,
 .flatpickr-day:focus,
 .flatpickr-day.prevMonthDay:focus,
 .flatpickr-day.nextMonthDay:focus {
-    @apply border-gray bg-gray dark:!border-meta-4 dark:!bg-meta-4;
+    @apply !border-[#F3F4F6] !bg-[#F3F4F6] dark:!border-meta-4 dark:!bg-meta-4;
 }
 
 .flatpickr-day.selected,
