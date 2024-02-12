@@ -1,19 +1,19 @@
 import React from "react";
-import FormElements from "@/components/FormElements";
+import TableOne from "@/components/Tables/TableOne";
 import { Metadata } from "next";
 import DefaultLayout from "@/components/Layouts/DefaultLaout";
 
 export const metadata: Metadata = {
-  title: "Form Elements |  فرصة",
+  title: "Job Locations |  فرصة",
   
 };
 
-const FormElementsPage = () => {
+const Table1Page = () => {
   return (
     <DefaultLayout>
-      <FormElements />
+      <TableOne />
     </DefaultLayout>
   );
 };
 
-export default FormElementsPage;
+export default Table1Page;

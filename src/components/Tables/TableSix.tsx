@@ -2,29 +2,13 @@ import { Package } from "@/types/package";
 
 const packageData: Package[] = [
   {
-    name: "Orange Software Department",
-    price: "IT Field",
-    invoiceDate: `Jan 13,2023`,
-    status: "Posted",
+    name: "Emna Khaladi",
+    price: "50543541",
+    invoiceDate: `emna@gmail.com`,
+    status: "Active",
   },
-  {
-    name: "SMU",
-    price: "Finance Field",
-    invoiceDate: `Jan 13,2023`,
-    status: "Retreived",
-  },
-  {
-    name: "SofiaTech",
-    price: "IT Field",
-    invoiceDate: `Jan 13,2023`,
-    status: "Retreived",
-  },
-  {
-    name: "Sopra Software",
-    price: "IT Field",
-    invoiceDate: `Jan 13,2023`,
-    status: "Posted",
-  },
+  
+  
 ];
 
 const TableThree = () => {
@@ -35,13 +19,13 @@ const TableThree = () => {
           <thead>
             <tr className="bg-gray-2 text-left dark:bg-meta-4">
               <th className="min-w-[220px] px-4 py-4 font-medium text-black dark:text-white xl:pl-11">
-                Company behind the Job Offer
+                Name
               </th>
               <th className="min-w-[150px] px-4 py-4 font-medium text-black dark:text-white">
-                Creation date
+                Email
               </th>
               <th className="min-w-[120px] px-4 py-4 font-medium text-black dark:text-white">
-                Category
+                Phone Number
               </th>
               <th className="min-w-[120px] px-4 py-4 font-medium text-black dark:text-white">
                 Status
@@ -75,9 +59,9 @@ const TableThree = () => {
                 <td className="border-b border-[#eee] px-4 py-5 dark:border-strokedark">
                   <p
                     className={`inline-flex rounded-full bg-opacity-10 px-3 py-1 text-sm font-medium ${
-                      packageItem.status === "Posted"
+                      packageItem.status === "Active"
                         ? "bg-success text-success"
-                        : packageItem.status === "Retreived"
+                        : packageItem.status === "Unactive"
                           ? "bg-danger text-danger"
                           : "bg-warning text-warning"
                     }`}

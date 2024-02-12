@@ -13,7 +13,7 @@ const SelectGroupOne: React.FC = () => {
     <div className="mb-4.5">
       <label className="mb-2.5 block text-black dark:text-white">
         {" "}
-        Subject{" "}
+        Select your Region{" "}
       </label>
 
       <div className="relative z-20 bg-transparent dark:bg-form-input">
@@ -28,16 +28,16 @@ const SelectGroupOne: React.FC = () => {
           }`}
         >
           <option value="" disabled className="text-body dark:text-bodydark">
-            Select your subject
+            Select your Region
           </option>
           <option value="USA" className="text-body dark:text-bodydark">
-            USA
+            Ben Arous
           </option>
           <option value="UK" className="text-body dark:text-bodydark">
-            UK
+            Rades
           </option>
           <option value="Canada" className="text-body dark:text-bodydark">
-            Canada
+            Lac 2
           </option>
         </select>
 
