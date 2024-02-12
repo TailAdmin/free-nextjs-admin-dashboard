@@ -6,8 +6,7 @@ import { Metadata } from "next";
 import DefaultLayout from "@/components/Layouts/DefaultLaout";
 //lina test
 export const metadata: Metadata = {
-  title: "Next.js SignIn Page | TailAdmin - Next.js Dashboard Template",
-  description: "This is Next.js Signin Page TailAdmin Dashboard Template",
+  title: "SignIn Page |  فرصة",
 };
 
 const SignIn: React.FC = () => {
