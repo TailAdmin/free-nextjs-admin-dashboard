@@ -1,28 +1,28 @@
-import { Package } from "@/types/package";
 
-const packageData: Package[] = [
+import { Package1 } from "@/types/package1";
+const packageData: Package1[] = [
   {
     name: "Orange Software Department",
-    price: "IT Field",
-    invoiceDate: `Jan 13,2023`,
+    category: "IT Field",
+    creationDate: `Jan 13,2023`,
     status: "Posted",
   },
   {
     name: "SMU",
-    price: "Finance Field",
-    invoiceDate: `Jan 13,2023`,
+    category: "Finance Field",
+    creationDate: `Jan 13,2023`,
     status: "Retreived",
   },
   {
     name: "SofiaTech",
-    price: "IT Field",
-    invoiceDate: `Jan 13,2023`,
+    category: "IT Field",
+    creationDate: `Jan 13,2023`,
     status: "Retreived",
   },
   {
     name: "Sopra Software",
-    price: "IT Field",
-    invoiceDate: `Jan 13,2023`,
+    category: "IT Field",
+    creationDate: `Jan 13,2023`,
     status: "Posted",
   },
 ];
@@ -62,12 +62,12 @@ const TableThree = () => {
                 </td>
                 <td className="border-b border-[#eee] px-4 py-5 dark:border-strokedark">
                   <p className="text-black dark:text-white">
-                    {packageItem.invoiceDate}
+                    {packageItem.creationDate}
                   </p>
                 </td>
                 <td className="border-b border-[#eee] px-4 py-5 pl-9 dark:border-strokedark xl:pl-11">
                   <h5 className="font-medium text-black dark:text-white">
-                  {packageItem.price}
+                  {packageItem.category}
                   </h5>
                   
                 </td>

@@ -3,8 +3,8 @@ import { Package } from "@/types/package";
 const packageData: Package[] = [
     {
         name: "Adam Saafi",
-        price: "12365478",
-        invoiceDate: `adam@gmail.com`,
+        phone: "12365478",
+        email: `adam@gmail.com`,
         status: "Unactive",
       },
   
@@ -46,12 +46,12 @@ const TableThree = () => {
                 </td>
                 <td className="border-b border-[#eee] px-4 py-5 dark:border-strokedark">
                   <p className="text-black dark:text-white">
-                    {packageItem.invoiceDate}
+                    {packageItem.email}
                   </p>
                 </td>
                 <td className="border-b border-[#eee] px-4 py-5 pl-9 dark:border-strokedark xl:pl-11">
                   <h5 className="font-medium text-black dark:text-white">
-                  {packageItem.price}
+                  {packageItem.phone}
                   </h5>
                   
                 </td>
