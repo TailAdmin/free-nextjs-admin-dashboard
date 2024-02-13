@@ -45,7 +45,6 @@ ___
 
 
 ## Installation
-
 Here are the steps you need to follow to install the dependencies.
 
 1. Download and extract the template from Next.js Templates.
