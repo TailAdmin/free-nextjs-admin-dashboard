@@ -66,12 +66,12 @@ const Sidebar = ({ sidebarOpen, setSidebarOpen }: SidebarProps) => {
       }`}
     >
       {/* <!-- SIDEBAR HEADER --> */}
-      <div className="flex items-center justify-between gap-2 px-6 py-5.5 lg:py-6.5">
+      <div className="flex justify-center items-center gap-2 px-6 pt-1 lg:pt-1">
         <Link href="/">
           <Image
-            width={176}
-            height={32}
-            src={"/images/logo/logo.svg"}
+            width={300}
+            height={10}
+            src={"/images/Logo.png"}
             alt="Logo"
             priority
           />
@@ -106,7 +106,7 @@ const Sidebar = ({ sidebarOpen, setSidebarOpen }: SidebarProps) => {
         <nav className="mt-5 px-4 py-4 lg:mt-9 lg:px-6">
           {/* <!-- Menu Group --> */}
           <div>
-            <h3 className="mb-4 ml-4 text-sm font-semibold text-bodydark2">
+            <h3 className="m1-2 ml-4 text-sm font-semibold text-bodydark2">
               MENU
             </h3>
 

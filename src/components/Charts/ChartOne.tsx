@@ -8,14 +8,14 @@ const options: ApexOptions = {
     position: "top",
     horizontalAlign: "left",
   },
-  colors: ["#3C50E0", "#80CAEE"],
+  colors: ["#266242", "#4B4B4B"],
   chart: {
     fontFamily: "Satoshi, sans-serif",
     height: 335,
     type: "area",
     dropShadow: {
       enabled: true,
-      color: "#623CEA14",
+      color: "#4B4B4B",
       top: 10,
       blur: 4,
       left: 0,
@@ -69,8 +69,8 @@ const options: ApexOptions = {
   },
   markers: {
     size: 4,
-    colors: "#fff",
-    strokeColors: ["#3056D3", "#80CAEE"],
+    colors: "#797979",
+    strokeColors: ["#797979", "#3A855D"],
     strokeWidth: 3,
     strokeOpacity: 0.9,
     strokeDashArray: 0,
