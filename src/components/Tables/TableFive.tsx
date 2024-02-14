@@ -1,22 +1,33 @@
-import { Package } from "@/types/package";
 
-const packageData: Package[] = [
-  {
-    name: "Emna Khaladi",
-    phone: "50543541",
-    email: `emna@gmail.com`,
-    status: "Active",
-  },
-  {
-    name: "Adam Saafi",
-    phone:"12365478",
-    email: `adam@gmail.com`,
-    status: "Unactive",
-  },
-  
-];
+import { useState, useEffect } from "react";
+import axios from "axios";
+import dynamic from 'next/dynamic';
+
+interface User {
+  name: string;
+  email: string;
+  phone: string;
+  status: string;
+}
 
 const TableThree = () => {
+  const url = "http://localhost:8000/users";
+  const [users, setUsers] = useState<User[]>([]);
+  
+  useEffect(() => {
+  axios
+  .get(url)
+  .then((res) => {
+  setUsers(res.data);
+  console.log(res);
+  })
+  .catch((err) => {
+  console.log(err);
+  });
+  }, []);
+
+
+
   return (
     <div className="rounded-sm border border-stroke bg-white px-5 pb-2.5 pt-6 shadow-default dark:border-strokedark dark:bg-boxdark sm:px-7.5 xl:pb-1">
       <div className="max-w-full overflow-x-auto">
@@ -41,22 +52,22 @@ const TableThree = () => {
             </tr>
           </thead>
           <tbody>
-            {packageData.map((packageItem, key) => (
+            {users.map((item, key) => (
               <tr key={key}>
                 <td className="border-b border-[#eee] px-4 py-5 pl-9 dark:border-strokedark xl:pl-11">
                   <h5 className="font-medium text-black dark:text-white">
-                    {packageItem.name}
+                    {item.name}
                   </h5>
                   
                 </td>
                 <td className="border-b border-[#eee] px-4 py-5 dark:border-strokedark">
                   <p className="text-black dark:text-white">
-                    {packageItem.email}
+                    {item.email}
                   </p>
                 </td>
                 <td className="border-b border-[#eee] px-4 py-5 pl-9 dark:border-strokedark xl:pl-11">
                   <h5 className="font-medium text-black dark:text-white">
-                  {packageItem.phone}
+                  {item.phone}
                   </h5>
                   
                 </td>
@@ -64,14 +75,14 @@ const TableThree = () => {
                 <td className="border-b border-[#eee] px-4 py-5 dark:border-strokedark">
                   <p
                     className={`inline-flex rounded-full bg-opacity-10 px-3 py-1 text-sm font-medium ${
-                      packageItem.status === "Active"
+                      item.status === "Active"
                         ? "bg-success text-success"
-                        : packageItem.status === "Unactive"
+                        : item.status === "Unactive"
                           ? "bg-danger text-danger"
                           : "bg-warning text-warning"
                     }`}
                   >
-                    {packageItem.status}
+                    {item.status}
                   </p>
                 </td>
                 <td className="border-b border-[#eee] px-4 py-5 dark:border-strokedark">
@@ -152,4 +163,6 @@ const TableThree = () => {
   );
 };
 
-export default TableThree;
+export default dynamic(() => Promise.resolve(TableThree), {
+  ssr: false,
+});
