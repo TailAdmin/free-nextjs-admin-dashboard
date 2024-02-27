@@ -46,6 +46,23 @@ export async function updateSeeker(seekerName, email, phone, status) {
   return result;
 }
 
+export async function getOffers() {
+  const [rows] = await pool.query("SELECT * FROM offers");
+  return rows;
+}
+export async function deleteOffer(offerName) {
+  const [result] = await pool.query("DELETE FROM offers WHERE name = ?", [offerName]);
+  return result;
+}
+export async function updateOffer(offerName, creationDate, category, status) {
+  const [result] = await pool.query("UPDATE offers SET  creationDate=?, category=?, status=?  WHERE name=?", [ creationDate,category,status, offerName]);
+  return result;
+}
+export async function postOffer(name, creationDate, category, status) {
+  const [result] = await pool.query("INSERT INTO offers (name, creationDate, category, status) VALUES (?, ?, ?, ?)", [name, creationDate,category, status]);
+  return result;
+}
 const users = await getUsers();
 const providers = await getProviders();
+const offers = await getOffers();
 const seekers= await getSeekers();
