@@ -1,20 +1,137 @@
-import { Package } from "@/types/package";
 
-const packageData: Package[] = [
-  {
-    name: "Emna Khaladi",
-    phone: "50543541",
-    email: `emna@gmail.com`,
-    status: "Active",
-  },
-  
-  
-];
+import { useState, useEffect } from "react";
+import axios from "axios";
+import dynamic from 'next/dynamic';
+
+interface Provider {
+  name: string;
+  email: string;
+  phone: string;
+  status: string;
+}
 
 const TableThree = () => {
+  const url = "http://localhost:8000/providers";
+  const [providers, setproviders] = useState<Provider[]>([]);
+  const [editingRow, setEditingRow] = useState<number | null>(null);
+  const [editedEmail, setEditedEmail] = useState("");
+  const [editedPhone, setEditedPhone] = useState("");
+  const [editedStatus, setEditedStatus] = useState("");
+
+   // New states for pop-up
+   const [isAddUserPopupOpen, setAddUserPopupOpen] = useState(false);
+   const [newUserName, setNewUserName] = useState("");
+   const [newUserEmail, setNewUserEmail] = useState("");
+   const [newUserPhone, setNewUserPhone] = useState("");
+   const [newUserStatus, setNewUserStatus] = useState("");
+
+  useEffect(() => {
+  axios
+  .get(url)
+  .then((res) => {
+  setproviders(res.data);
+  console.log(res);
+  })
+  .catch((err) => {
+  console.log(err);
+  });
+  }, []);
+
+  const handleDeleteProvider = async (providerName: string) => {
+    try {
+      // Make a DELETE request to the server using the name
+      await axios.delete(`http://localhost:8000/providers/${encodeURIComponent(providerName)}`);
+      // Update the local state to remove the deleted provider
+      setproviders((prevProviders) => prevProviders.filter((provider) => provider.name !== providerName));
+    } catch (error) {
+      console.error(error);
+    }
+  };
+  const handleEditClick = (index: number) => {
+    setEditingRow(index);
+   
+    setEditedEmail(providers[index].email);
+    setEditedPhone(providers[index].phone);
+    setEditedStatus(providers[index].status);
+  };
+
+  const handleSaveClick = async (index: number) => {
+    // Save the edited data to the server 
+    try {
+      // Make a PUT request to update the provider data on the server
+      await axios.put(`http://localhost:8000/providers/${encodeURIComponent(providers[index].name)}`, {
+        
+        email: editedEmail,
+        phone: editedPhone,
+        status: editedStatus,
+      });
+  
+      // Update the local state with the edited values
+      setproviders((prevProviders) =>
+        prevProviders.map((provider, i) =>
+          i === index
+            ? {
+                ...provider,
+                
+                email: editedEmail,
+                phone: editedPhone,
+                status: editedStatus,
+              }
+            : provider
+        )
+      );
+  
+      setEditingRow(null); // Reset editing state after saving
+    } catch (error) {
+      console.error(error);
+    }
+  };
+
+// Function to handle opening the pop-up
+const handleOpenPopup = () => {
+  setAddUserPopupOpen(true);
+};
+
+// Function to handle closing the pop-up
+const handleClosePopup = () => {
+  setAddUserPopupOpen(false);
+  // Reset input fields when closing the pop-up
+  setNewUserName("");
+  setNewUserEmail("");
+  setNewUserPhone("");
+  setNewUserStatus("");
+};
+
+// Function to handle adding a new user
+const handleAddUser = async () => {
+  try {
+    // Make a POST request to add a new user to the server
+    await axios.post("http://localhost:8000/providers", {
+      name: newUserName,
+      email: newUserEmail,
+      phone: newUserPhone,
+      status: newUserStatus,
+    });
+    
+    // Refresh the list of providers
+    const res = await axios.get(url);
+    setproviders(res.data);
+
+    // Close the pop-up
+    handleClosePopup();
+  } catch (error) {
+    console.error(error);
+  }
+};
+
   return (
     <div className="rounded-sm border border-stroke bg-white px-5 pb-2.5 pt-6 shadow-default dark:border-strokedark dark:bg-boxdark sm:px-7.5 xl:pb-1">
       <div className="max-w-full overflow-x-auto">
+      <div className="flex justify-end mb-4">
+      <button onClick={handleOpenPopup} className="mb-4 bg-primary text-white px-4 py-2 rounded">
+        Add New User
+      </button>
+      </div>
         <table className="w-full table-auto">
           <thead>
             <tr className="bg-gray-2 text-left dark:bg-meta-4">
@@ -36,50 +153,135 @@ const TableThree = () => {
             </tr>
           </thead>
           <tbody>
-            {packageData.map((packageItem, key) => (
+            {providers.map((item, key) => (
               <tr key={key}>
-                <td className="border-b border-[#eee] px-4 py-5 pl-9 dark:border-strokedark xl:pl-11">
+                  <td className="border-b border-[#eee] px-4 py-5 pl-9 dark:border-strokedark xl:pl-11">
                   <h5 className="font-medium text-black dark:text-white">
-                    {packageItem.name}
+                    {item.name}
                   </h5>
                   
                 </td>
-                <td className="border-b border-[#eee] px-4 py-5 dark:border-strokedark">
-                  <p className="text-black dark:text-white">
-                    {packageItem.email}
-                  </p>
-                </td>
-                <td className="border-b border-[#eee] px-4 py-5 pl-9 dark:border-strokedark xl:pl-11">
-                  <h5 className="font-medium text-black dark:text-white">
-                  {packageItem.phone}
-                  </h5>
-                  
-                </td>
+               <td className="border-b border-[#eee] px-4 py-5 dark:border-strokedark">
+        {editingRow === key ? (
+          <input
+            type="text"
+            value={editedEmail}
+            onChange={(e) => setEditedEmail(e.target.value)}
+          />
+        ) : (
+          <h5 className="font-medium text-black dark:text-white">{item.email}</h5>
+        )}
+      </td>
+      <td className="border-b border-[#eee] px-4 py-5 pl-9 dark:border-strokedark xl:pl-11">
+        {editingRow === key ? (
+          <input
+            type="text"
+            value={editedPhone}
+            onChange={(e) => setEditedPhone(e.target.value)}
+          />
+        ) : (
+          <h5 className="font-medium text-black dark:text-white">{item.phone}</h5>
+        )}
+      </td>
+               
                 
-                <td className="border-b border-[#eee] px-4 py-5 dark:border-strokedark">
-                  <p
-                    className={`inline-flex rounded-full bg-opacity-10 px-3 py-1 text-sm font-medium ${
-                      packageItem.status === "Active"
-                        ? "bg-success text-success"
-                        : packageItem.status === "Unactive"
-                          ? "bg-danger text-danger"
-                          : "bg-warning text-warning"
-                    }`}
-                  >
-                    {packageItem.status}
-                  </p>
-                </td>
+      <td className="border-b border-[#eee] px-4 py-5 dark:border-strokedark">
+  {editingRow === key ? (
+    <select
+      value={editedStatus}
+      onChange={(e) => setEditedStatus(e.target.value)}
+    >
+      <option value="Active">Active</option>
+      <option value="Unactive">Unactive</option>
+    </select>
+  ) : (
+    <p
+      className={`inline-flex rounded-full bg-opacity-10 px-3 py-1 text-sm font-medium ${
+        item.status === "Active"
+          ? "bg-success text-success"
+          : item.status === "Unactive"
+          ? "bg-danger text-danger"
+          : "bg-warning text-warning"
+      }`}
+    >
+      {item.status}
+    </p>
+  )}
+</td>
+{isAddUserPopupOpen && (
+          <div className="fixed inset-0 z-50 flex items-center justify-center">
+            <div className="bg-white p-6 rounded-md shadow-md">
+              <h2 className="text-lg font-semibold mb-4">Add New User</h2>
+              <div className="mb-4">
+                <label className="block text-sm font-medium text-gray-700">Name</label>
+                <input
+                  type="text"
+                  value={newUserName}
+                  onChange={(e) => setNewUserName(e.target.value)}
+                  className="border p-2 w-full"
+                />
+              </div>
+              <div className="mb-4">
+                <label className="block text-sm font-medium text-gray-700">Email</label>
+                <input
+                  type="text"
+                  value={newUserEmail}
+                  onChange={(e) => setNewUserEmail(e.target.value)}
+                  className="border p-2 w-full"
+                />
+              </div>
+              <div className="mb-4">
+                <label className="block text-sm font-medium text-gray-700">Phone</label>
+                <input
+                  type="text"
+                  value={newUserPhone}
+                  onChange={(e) => setNewUserPhone(e.target.value)}
+                  className="border p-2 w-full"
+                />
+              </div>
+              <div className="mb-4">
+  <label className="block text-sm font-medium text-gray-700">Status</label>
+  <select
+    value={newUserStatus}
+    onChange={(e) => setNewUserStatus(e.target.value)}
+    className="border p-2 w-full"
+  >
+    <option value="">Select Status</option>
+    <option value="Active">Active</option>
+    <option value="Unactive">Unactive</option>
+  </select>
+</div>
+              <div className="flex justify-end">
+                <button onClick={handleClosePopup} className="mr-2 bg-gray-300 px-4 py-2 rounded">
+                  Cancel
+                </button>
+                <button onClick={handleAddUser} className="bg-primary text-white px-4 py-2 rounded">
+                  Add User
+                </button>
+              </div>
+            </div>
+          </div>
+        )}
                 <td className="border-b border-[#eee] px-4 py-5 dark:border-strokedark">
                   <div className="flex items-center space-x-3.5">
-                    <button className="hover:text-primary">
-                      <svg
-                        className="fill-current"
-                        width="18"
-                        height="18"
-                        viewBox="0 0 18 18"
-                        fill="none"
-                        xmlns="http://www.w3.org/2000/svg"
-                      >
+                  {editingRow === key ? (
+                      <>
+                        <button onClick={() => handleSaveClick(key)} className="hover:text-primary">
+                          Save
+                        </button>
+                        {/* ... (other buttons) */}
+                      </>
+                    ) : (
+                      <button onClick={() => handleEditClick(key)} className="hover:text-primary">
+                        {/* Edit icon SVG goes here */}
+                        <svg
+                          className="fill-current"
+                          width="18"
+                          height="18"
+                          viewBox="0 0 18 18"
+                          fill="none"
+                          xmlns="http://www.w3.org/2000/svg"
+                        >
                         <path
                           d="M8.99981 14.8219C3.43106 14.8219 0.674805 9.50624 0.562305 9.28124C0.47793 9.11249 0.47793 8.88749 0.562305 8.71874C0.674805 8.49374 3.43106 3.20624 8.99981 3.20624C14.5686 3.20624 17.3248 8.49374 17.4373 8.71874C17.5217 8.88749 17.5217 9.11249 17.4373 9.28124C17.3248 9.50624 14.5686 14.8219 8.99981 14.8219ZM1.85605 8.99999C2.4748 10.0406 4.89356 13.5562 8.99981 13.5562C13.1061 13.5562 15.5248 10.0406 16.1436 8.99999C15.5248 7.95936 13.1061 4.44374 8.99981 4.44374C4.89356 4.44374 2.4748 7.95936 1.85605 8.99999Z"
                           fill=""
@@ -90,7 +292,8 @@ const TableThree = () => {
                         />
                       </svg>
                     </button>
-                    <button className="hover:text-primary">
+                    )}
+                    <button className="hover:text-primary" onClick={() => handleDeleteProvider(item.name)}>
                       <svg
                         className="fill-current"
                         width="18"
@@ -147,4 +350,6 @@ const TableThree = () => {
   );
 };
 
-export default TableThree;
+export default dynamic(() => Promise.resolve(TableThree), {
+  ssr: false,
+});
