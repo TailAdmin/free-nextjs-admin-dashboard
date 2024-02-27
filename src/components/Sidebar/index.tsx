@@ -422,7 +422,7 @@ const Sidebar = ({ sidebarOpen, setSidebarOpen }: SidebarProps) => {
                               Job Locations
                             </Link>
                           </li>
-                          {/* <li>
+                          {<li>
                             <Link
                               href="/tables/table-4"
                               className={`group relative flex items-center gap-2.5 rounded-md px-4 font-medium text-bodydark2 duration-300 ease-in-out hover:text-white ${
@@ -432,7 +432,7 @@ const Sidebar = ({ sidebarOpen, setSidebarOpen }: SidebarProps) => {
                             >
                               Total Users
                             </Link>
-                          </li> */}
+                          </li> }
                           <li>
                             <Link
                               href="/tables/table-2"

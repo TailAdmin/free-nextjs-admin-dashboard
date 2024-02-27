@@ -13,6 +13,10 @@ import { getOffers } from './db.mjs';
 import { deleteOffer } from './db.mjs';
 import { updateOffer } from './db.mjs';
 import { postOffer } from './db.mjs';
+import { getLocations } from './db.mjs';
+import { deleteLocation } from './db.mjs';
+import { updateLocation } from './db.mjs';
+import { postLocation } from './db.mjs';
 const app = express();
 
 app.use(cors());
@@ -148,6 +152,49 @@ app.post('/offers', async (req, res) => {
   try {
     // Call the postProvider function to add a new provider
     await postOffer(name, creationDate, category, status);
+    res.status(201).json({ message: 'offer added successfully' });
+  } catch (error) {
+    console.error(error);
+    res.status(500).json({ error: 'Internal Server Error' });
+  }
+});
+//locations table
+app.get('/locations', async (req, res) => {
+  const locations = await getLocations();
+  res.json(locations);
+});
+app.delete('/locations/:idl', async (req, res) => {
+  const locationName = req.params.idl;
+  try {
+    // Call the deleteProvider function to delete the provider by name
+    await deleteLocation(locationName);
+    res.status(204).send(); // Successfully deleted, send a 204 No Content status
+  } catch (error) {
+    console.error(error);
+    res.status(500).json({ error: 'Internal Server Error' });
+  }
+});
+app.put('/locations/:idl', async (req, res) => {
+  const locationName = req.params.idl;
+  const position  = req.body.position;
+  const location  = req.body.location;
+  const company = req.body.company;
+  const matches = req.body.matches;
+  try {
+    
+    await updateLocation(locationName, position,location, company, matches);
+
+    res.status(200).json({ message: 'location updated successfully' });
+  } catch (error) {
+    console.error(error);
+    res.status(500).json({ error: 'Internal Server Error' });
+  }
+});
+app.post('/locations', async (req, res) => {
+  const { position, location, company, matches } = req.body;
+  try {
+    // Call the postProvider function to add a new provider
+    await postLocation(position, location, company, matches);
     res.status(201).json({ message: 'offer added successfully' });
   } catch (error) {
     console.error(error);

@@ -62,7 +62,24 @@ export async function postOffer(name, creationDate, category, status) {
   const [result] = await pool.query("INSERT INTO offers (name, creationDate, category, status) VALUES (?, ?, ?, ?)", [name, creationDate,category, status]);
   return result;
 }
+export async function getLocations() {
+  const [rows] = await pool.query("SELECT * FROM locations");
+  return rows;
+}
+export async function deleteLocation(locationName) {
+  const [result] = await pool.query("DELETE FROM locations WHERE idl = ?", [locationName]);
+  return result;
+}
+export async function updateLocation(locationName, position, location, company, matches) {
+  const [result] = await pool.query("UPDATE locations SET  position=?, location=?, company=?, matches=?  WHERE idl=?", [ position, location, company, matches, locationName]);
+  return result;
+}
+export async function postLocation(position, location, company, matches) {
+  const [result] = await pool.query("INSERT INTO locations ( position, location, company, matches) VALUES (?, ?, ?, ?)", [position, location, company, matches]);
+  return result;
+}
 const users = await getUsers();
 const providers = await getProviders();
 const offers = await getOffers();
 const seekers= await getSeekers();
+const locations = await getLocations();
