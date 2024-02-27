@@ -9,7 +9,7 @@ const pool = mysql.createPool({
 }).promise()
 
 export default async function getUsers() {
-  const [rows] = await pool.query("SELECT * FROM users")
+  const [rows] = await pool.query("SELECT * FROM seekers UNION SELECT * FROM providers")
   return rows
 }
 export async function postProvider(name, email, phone, status) {
