@@ -1,6 +1,6 @@
 export type BRAND = {
-  logo: string;
-  jobOffer: string;
+  
+  position: string;
   location: string;
   company: string;
   matches: number;

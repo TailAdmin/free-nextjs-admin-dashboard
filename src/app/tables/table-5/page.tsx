@@ -1,18 +1,21 @@
+'use client'
 import React from "react";
 import TableThree from "@/components/Tables/TableThree";
-import { Metadata } from "next";
-import DefaultLayout from "@/components/Layouts/DefaultLaout";
 
-export const metadata: Metadata = {
-  title: "Job Offers' List |  فرصة",
-  
-};
+import DefaultLayout from "@/components/Layouts/DefaultLaout";
+import Head from "next/head";
+
 
 const Table1Page = () => {
   return (
+    <><Head>
+    <title>Job Offers | فرصة </title>
+    {/* Any other head elements like meta tags */}
+  </Head>
     <DefaultLayout>
       <TableThree />
     </DefaultLayout>
+    </>
   );
 };
 
