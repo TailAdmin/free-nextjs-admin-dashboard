@@ -69,7 +69,7 @@ const Sidebar = ({ sidebarOpen, setSidebarOpen }: SidebarProps) => {
       <div className="flex justify-center items-center gap-2 px-6 pt-1 lg:pt-1">
         <Link href="/">
           <Image
-            width={300}
+            width={200}
             height={10}
             src={"/images/Logo.png"}
             alt="Logo"

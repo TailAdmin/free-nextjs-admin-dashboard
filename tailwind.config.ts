@@ -22,33 +22,33 @@ const config: Config = {
       colors: {
         current: "currentColor",
         transparent: "transparent",
-        white: "#F1F0EC",
-        black: "#19422C",
-        red: "#760715",
-        "black-2": "#010101",
-        body: "#19422C",
-        bodydark: "#DDD9CB",
-        bodydark1: "#DDD9CB",
-        bodydark2: "#DDD9CB",
-        primary: "#2F704D",
-        secondary: "#565B58",
-        stroke: "#DDD9CB",
-        gray: "#2F704D",
-        graydark: "#2F704D",
-        "gray-2": "#E6E4DD",
+        white: "#F1F0EC", //white boxes 
+        black: "#19422C", //sidebar light mode
+        red: "#D41515", //red
+        "black-2": "#D41515", //red
+        body: "#19422C", //ICONS 
+        bodydark: "#DDD9CB", //ICONS Dark mode
+        bodydark1: "#DDD9CB", //Side Bar Text Color 
+        bodydark2: "#DDD9CB", //Side Bar Header Text Color 
+        primary: "#2F704D", //Chart Total Users 
+        secondary: "#565B58", //Chart Total AI 
+        stroke: "#DDD9CB", //Borders of the BOXES
+        gray: "#3A855D", //notfication logo 
+        graydark: "#2F704D", // notfication logo dark mode
+        "gray-2": "#E6E4DD", //table header color
         "gray-3": "#FAFAFA",
-        whiten: "#DDD9CB",
+        whiten: "#DDD9CB", //Background Color
         whiter: "#DDD9CB",
-        boxdark: "#10301F",
-        "boxdark-2": "#4B4B4B",
-        strokedark: "#4B4B4B",
-        "form-strokedark": "#3A855D",
+        boxdark: "#0B2216", // Green of the Dark mode 
+        "boxdark-2": "#4B4B4B", //Background color of the dark mode
+        strokedark: "#4B4B4B", // Borders of the boxes of the dark mode
+        "form-strokedark": "#3A855D", //form text field borders 
         "form-input": "#10301F",
         "meta-1": "#DC3545",
-        "meta-2": "#DDD9CB",
-        "meta-3": "#3A855D",
-        "meta-4": "#266242",
-        "meta-5": "#3DA68D",
+        "meta-2": "#DDD9CB", //icons of stat
+        "meta-3": "#3A855D", // stat numbers up color
+        "meta-4": "#266242", //highlited of dark mode
+        "meta-5": "#D41515", // stat numbers down color
         "meta-6": "#FFBA00",
         "meta-7": "#FF6766",
         "meta-8": "#F0950C",
