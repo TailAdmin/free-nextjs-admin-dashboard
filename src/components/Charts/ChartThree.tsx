@@ -130,7 +130,7 @@ const ChartThree: React.FC = () => {
         </div>
         <div className="w-full px-8 sm:w-1/2">
           <div className="flex w-full items-center">
-            <span className="mr-2 block h-3 w-full max-w-3 rounded-full bg-[#6577F3]"></span>
+            <span className="mr-2 block h-3 w-full max-w-3 rounded-full bg-[#3A855D]"></span>
             <p className="flex w-full justify-between text-sm font-medium text-black dark:text-white">
               <span> Healthcare-Field </span>
               <span> 34% </span>
@@ -139,7 +139,7 @@ const ChartThree: React.FC = () => {
         </div>
         <div className="w-full px-8 sm:w-1/2">
           <div className="flex w-full items-center">
-            <span className="mr-2 block h-3 w-full max-w-3 rounded-full bg-[#8FD0EF]"></span>
+            <span className="mr-2 block h-3 w-full max-w-3 rounded-full bg-[#565B58]"></span>
             <p className="flex w-full justify-between text-sm font-medium text-black dark:text-white">
               <span> Finance </span>
               <span> 45% </span>
@@ -148,7 +148,7 @@ const ChartThree: React.FC = () => {
         </div>
         <div className="w-full px-8 sm:w-1/2">
           <div className="flex w-full items-center">
-            <span className="mr-2 block h-3 w-full max-w-3 rounded-full bg-[#0FADCF]"></span>
+            <span className="mr-2 block h-3 w-full max-w-3 rounded-full bg-[#3DA68D]"></span>
             <p className="flex w-full justify-between text-sm font-medium text-black dark:text-white">
               <span> Accountant </span>
               <span> 12% </span>

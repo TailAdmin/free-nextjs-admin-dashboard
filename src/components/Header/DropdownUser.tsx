@@ -39,29 +39,37 @@ const DropdownUser = () => {
       <Link
         ref={trigger}
         onClick={() => setDropdownOpen(!dropdownOpen)}
-        className="flex items-center gap-4"
+        className="flex items-center gap-1"
         href="#"
       >
         <span className="hidden text-right lg:block">
           <span className="block text-sm font-medium text-black dark:text-white">
-          Danish Heilium
+          Fatma Alzahra
           </span>
           <span className="block text-xs">Admin</span>
         </span>
 
-        <span className="h-12 w-12 rounded-full">
-          <Image
-            width={112}
-            height={112}
-            src={"/images/user/user-01.png"}
-            style={{
-              width: "auto",
-              height: "auto",
-            }}
-            alt="User"
-          />
+        {/* <span className="h-12 w-12 rounded-full flex items-center justify-center bg-gray-200">
+          <svg
+            xmlns="http://www.w3.org/2000/svg"
+            fill="none"
+            viewBox="0 0 24 24"
+            strokeWidth={1.5}
+            stroke="currentColor"
+            className="w-6 h-6"
+          >
+            <path
+              strokeLinecap="round"
+              strokeLinejoin="round"
+              d="M15.75 9a3.75 3.75 0 11-7.5 0 3.75 3.75 0 017.5 0zM18 18.75v-.583a5.662 5.662 0 00-1.658-4.007A11.955 11.955 0 0012 12c-1.993 0-3.864.487-5.342 1.16A5.662 5.662 0 005 18.167v.583M21 18.75V18a6 6 0 10-12 0v.75"
+            />
+          </svg>
+        </span> */}
+        <span className="flex items-center justify-center h-12 w-12 rounded-full overflow-hidden bg-gray-200">
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 448 512" className="w-6 h-6">
+            <path fill="currentColor" d="M313.6 304c-28.7 0-42.5 16-89.6 16s-60.9-16-89.6-16C60.2 304 0 364.2 0 440v20c0 30.9 25.1 56 56 56h336c30.9 0 56-25.1 56-56v-20c0-75.8-60.2-136-134.4-136zM224 256c70.7 0 128-57.3 128-128S294.7 0 224 0 96 57.3 96 128s57.3 128 128 128z"/>
+          </svg>
         </span>
-
         <svg
           className="hidden fill-current sm:block"
           width="12"

@@ -3,6 +3,7 @@ import React from "react";
 import ChartOne from "../Charts/ChartOne";
 import ChartThree from "../Charts/ChartThree";
 import TableOne from "../Tables/TableOne";
+import TableThree from "../Tables/TableThree";
 import CardDataStats from "../CardDataStats";
 import MapOne from "../Maps/MapOne";
 /*hey*/ 
@@ -12,7 +13,7 @@ const ECommerce: React.FC = () => {
     <>
       <div className="grid grid-cols-1 gap-4 md:grid-cols-2 md:gap-6 xl:grid-cols-4 2xl:gap-7.5">
         
-        <CardDataStats title="Job Locations" total="" rate="" levelUp>
+        <CardDataStats title="Job Locations" total="" rate="5.6%" levelUp>
         <svg
   className="fill-primary dark:fill-white"
   width="22"
@@ -88,12 +89,16 @@ const ECommerce: React.FC = () => {
       </div>
 
       <div className="mt-4 grid grid-cols-12 gap-4 md:mt-6 md:gap-6 2xl:mt-7.5 2xl:gap-7.5">
+        
         <ChartOne />
        
         <ChartThree />
-        <MapOne />
-        <div className="col-span-12 xl:col-span-8">
+        {/* <MapOne /> Add Tunisia Map */}
+        <div className="col-span-12">
           <TableOne />
+        </div>
+        <div className="col-span-12">
+          <TableThree />
         </div>
       </div>
     </>

@@ -13,9 +13,9 @@ export const metadata: Metadata = {
 const FormLayout = () => {
   return (
     <DefaultLayout>
-      <Breadcrumb pageName="FormLayout" />
+      <Breadcrumb pageName="Forms" />
 
-      <div className="grid grid-cols-1 gap-9 sm:grid-cols-2">
+      <div className="flex justify-center items-center min-h-screen">
         <div className="flex flex-col gap-9">
           {/* <!-- Contact Form --> */}
           <div className="rounded-sm border border-stroke bg-white shadow-default dark:border-strokedark dark:bg-boxdark">
@@ -85,7 +85,7 @@ const FormLayout = () => {
                   ></textarea>
                 </div>
 
-                <button className="flex w-full justify-center rounded bg-primary p-3 font-medium text-gray hover:bg-opacity-90">
+                <button className="flex w-full justify-center rounded bg-primary p-3 font-medium text-whiten hover:bg-opacity-90">
                   Send Message
                 </button>
               </div>
