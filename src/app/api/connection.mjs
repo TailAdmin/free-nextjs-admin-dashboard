@@ -6,7 +6,9 @@ import { deleteUser } from './db.mjs';
 import { updateUser } from './db.mjs';
 import { postUser } from './db.mjs';
 import { getJoblisting } from './db.mjs';
-// import { deleteSeeker } from './db.mjs';
+
+import { deleteJoblisting } from './db.mjs';
+
 import { updateJoblisting } from './db.mjs';
 import { postJoblisting } from './db.mjs';
 // import { getOffers } from './db.mjs';
@@ -80,29 +82,35 @@ app.post('/users', async (req, res) => {
    res.json(joblisting);
  });
 
-// app.delete('/seekers/:name', async (req, res) => {
-//   const seekerName = req.params.name;
-//   try {
+
+app.delete('/joblisting/:jobid', async (req, res) => {
+  const seekerName = req.params.jobid;
+  try {
     
-//     await deleteSeeker(seekerName);
-//     res.status(204).send(); // Successfully deleted, send a 204 No Content status
-//   } catch (error) {
-//     console.error(error);
-//     res.status(500).json({ error: 'Internal Server Error' });
-//   }
-// });
+    await deleteJoblisting(seekerName);
+    res.status(204).send(); // Successfully deleted, send a 204 No Content status
+  } catch (error) {
+    console.error(error);
+    res.status(500).json({ error: 'Internal Server Error' });
+  }
+});
+
 
  app.put('/joblisting/:jobid', async (req, res) => {
    const seekerName = req.params.jobid;
    const position  = req.body.position;
    const labels = req.body.labels;
    const company = req.body.company;
+
+   const location = req.body.location;
    const creationdate = req.body.creationdate;
    const status = req.body.status;
    const nbreapplicants = req.body.nbreapplicants;
+   const description = req.body.description;
    try {
     
-     await updateJoblisting(seekerName,  position, labels,company, creationdate, status, nbreapplicants);
+     await updateJoblisting(seekerName,  position, labels,company, location, creationdate, status, nbreapplicants, description);
+
 
      res.status(200).json({ message: 'Job offer updated successfully' });
   } catch (error) {
@@ -111,10 +119,13 @@ app.post('/users', async (req, res) => {
    }
  });
  app.post('/joblisting', async (req, res) => {
-const { providerid, position, labels,company,location,creationdate, status, nbreapplicants } = req.body;
+
+const { providerid, position, labels,company,location,creationdate, status, nbreapplicants, description } = req.body;
 try {
  // Call the postProvider function to add a new provider
- await postJoblisting(providerid, position, labels,company,location,creationdate, status, nbreapplicants);
+ await postJoblisting(providerid, position, labels,company,location,creationdate, status, nbreapplicants, description);
+
+
  res.status(201).json({ message: 'Job offer added successfully' });
 } catch (error) {
 console.error(error);

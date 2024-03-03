@@ -3,33 +3,41 @@ import { useState, useEffect } from "react";
 import axios from "axios";
 import dynamic from 'next/dynamic';
 
-interface Provider {
-  name: string;
+interface User {
+  userid:number;
+  fname: string;
+  lname: string;
   email: string;
   phone: string;
   status: string;
+  type: string;
 }
 
 const TableThree = () => {
-  const url = "http://localhost:8000/providers";
-  const [providers, setproviders] = useState<Provider[]>([]);
+  const url = "http://localhost:8000/users";
+  const [users, setusers] = useState<User[]>([]);
   const [editingRow, setEditingRow] = useState<number | null>(null);
+  const [editedFname, setEditedFname] = useState("");
+  const [editedLname, setEditedLname] = useState("");
   const [editedEmail, setEditedEmail] = useState("");
   const [editedPhone, setEditedPhone] = useState("");
   const [editedStatus, setEditedStatus] = useState("");
+  const [editedType, setEditedType] = useState("");
 
    // New states for pop-up
    const [isAddUserPopupOpen, setAddUserPopupOpen] = useState(false);
-   const [newUserName, setNewUserName] = useState("");
+   const [newUserFname, setNewUserFname] = useState("");
+   const [newUserLname, setNewUserLname] = useState("");
    const [newUserEmail, setNewUserEmail] = useState("");
    const [newUserPhone, setNewUserPhone] = useState("");
    const [newUserStatus, setNewUserStatus] = useState("");
+   const [newUserType, setNewUserType] = useState("");
 
   useEffect(() => {
   axios
   .get(url)
   .then((res) => {
-  setproviders(res.data);
+  setusers(res.data);
   console.log(res);
   })
   .catch((err) => {
@@ -37,47 +45,53 @@ const TableThree = () => {
   });
   }, []);
 
-  const handleDeleteProvider = async (providerName: string) => {
+  const handleDeleteUser = async (providerName: number) => {
     try {
       // Make a DELETE request to the server using the name
-      await axios.delete(`http://localhost:8000/providers/${encodeURIComponent(providerName)}`);
+      await axios.delete(`http://localhost:8000/users/${encodeURIComponent(providerName)}`);
       // Update the local state to remove the deleted provider
-      setproviders((prevProviders) => prevProviders.filter((provider) => provider.name !== providerName));
+      setusers((prevUsers) => prevUsers.filter((user) => user.userid !== providerName));
     } catch (error) {
       console.error(error);
     }
   };
   const handleEditClick = (index: number) => {
     setEditingRow(index);
-   
-    setEditedEmail(providers[index].email);
-    setEditedPhone(providers[index].phone);
-    setEditedStatus(providers[index].status);
+    setEditedFname(users[index].fname);
+    setEditedLname(users[index].lname);
+    setEditedEmail(users[index].email);
+    setEditedPhone(users[index].phone);
+    setEditedStatus(users[index].status);
+    setEditedType(users[index].type);
   };
 
   const handleSaveClick = async (index: number) => {
     // Save the edited data to the server 
     try {
       // Make a PUT request to update the provider data on the server
-      await axios.put(`http://localhost:8000/providers/${encodeURIComponent(providers[index].name)}`, {
-        
+      await axios.put(`http://localhost:8000/users/${encodeURIComponent(users[index].userid)}`, {
+        fname: editedFname,
+        lname: editedLname,
         email: editedEmail,
         phone: editedPhone,
         status: editedStatus,
+        type: editedType,
       });
   
       // Update the local state with the edited values
-      setproviders((prevProviders) =>
-        prevProviders.map((provider, i) =>
+      setusers((prevUsers) =>
+        prevUsers.map((user, i) =>
           i === index
             ? {
-                ...provider,
-                
+                ...user,
+                fname: editedFname,
+                lname: editedLname,
                 email: editedEmail,
                 phone: editedPhone,
                 status: editedStatus,
+                type: editedType,
               }
-            : provider
+            : user
         )
       );
   
@@ -96,26 +110,30 @@ const handleOpenPopup = () => {
 const handleClosePopup = () => {
   setAddUserPopupOpen(false);
   // Reset input fields when closing the pop-up
-  setNewUserName("");
+  setNewUserFname("");
+  setNewUserLname("");
   setNewUserEmail("");
   setNewUserPhone("");
   setNewUserStatus("");
+  setNewUserType("");
 };
 
 // Function to handle adding a new user
 const handleAddUser = async () => {
   try {
     // Make a POST request to add a new user to the server
-    await axios.post("http://localhost:8000/providers", {
-      name: newUserName,
+    await axios.post("http://localhost:8000/users", {
+      fname: newUserFname,
+      lname: newUserLname,
       email: newUserEmail,
       phone: newUserPhone,
       status: newUserStatus,
+      type: newUserType,
     });
     
     // Refresh the list of providers
     const res = await axios.get(url);
-    setproviders(res.data);
+    setusers(res.data);
 
     // Close the pop-up
     handleClosePopup();
@@ -129,19 +147,25 @@ const handleAddUser = async () => {
       <div className="max-w-full overflow-x-auto">
       <div className="flex justify-between items-center mb-6">
   <h4 className="text-xl font-semibold text-black dark:text-white">
-    Job Providers' List
+    Users' List
   </h4>
   <button onClick={handleOpenPopup} className="bg-primary text-white px-4 py-2 rounded">
-    Add New Job Provider
+    Add New User
   </button>
 </div>
         <table className="w-full table-auto">
           <thead>
             <tr className="bg-gray-2 text-left dark:bg-meta-4">
+            <th className="min-w-[220px] px-4 py-4 font-medium text-black dark:text-white xl:pl-11">
+                UserId
+              </th>
               <th className="min-w-[220px] px-4 py-4 font-medium text-black dark:text-white xl:pl-11">
-                Name
+                First Name
               </th>
               <th className="min-w-[150px] px-4 py-4 font-medium text-black dark:text-white">
+                Last Name
+              </th>
+              <th className="min-w-[120px] px-4 py-4 font-medium text-black dark:text-white">
                 Email
               </th>
               <th className="min-w-[120px] px-4 py-4 font-medium text-black dark:text-white">
@@ -150,21 +174,47 @@ const handleAddUser = async () => {
               <th className="min-w-[120px] px-4 py-4 font-medium text-black dark:text-white">
                 Status
               </th>
+              <th className="min-w-[120px] px-4 py-4 font-medium text-black dark:text-white">
+                Type
+              </th>
               <th className="px-4 py-4 font-medium text-black dark:text-white">
                 Actions
               </th>
             </tr>
           </thead>
           <tbody>
-            {providers.map((item, key) => (
+            {users.map((item, key) => (
               <tr key={key}>
-                  <td className="border-b border-[#eee] px-4 py-5 pl-9 dark:border-strokedark xl:pl-11">
+                 <td className="border-b border-[#eee] px-4 py-5 pl-9 dark:border-strokedark xl:pl-11">
                   <h5 className="font-medium text-black dark:text-white">
-                    {item.name}
+                    {item.userid}
                   </h5>
                   
                 </td>
+                  <td className="border-b border-[#eee] px-4 py-5 pl-9 dark:border-strokedark xl:pl-11">
+                  {editingRow === key ? (
+          <input
+            type="text"
+            value={editedFname}
+            onChange={(e) => setEditedFname(e.target.value)}
+          />
+        ) : (
+          <h5 className="font-medium text-black dark:text-white">{item.fname}</h5>
+        )}
+                  
+                </td>
                <td className="border-b border-[#eee] px-4 py-5 dark:border-strokedark">
+        {editingRow === key ? (
+          <input
+            type="text"
+            value={editedLname}
+            onChange={(e) => setEditedLname(e.target.value)}
+          />
+        ) : (
+          <h5 className="font-medium text-black dark:text-white">{item.lname}</h5>
+        )}
+      </td>
+      <td className="border-b border-[#eee] px-4 py-5 dark:border-strokedark">
         {editingRow === key ? (
           <input
             type="text"
@@ -195,19 +245,42 @@ const handleAddUser = async () => {
       onChange={(e) => setEditedStatus(e.target.value)}
     >
       <option value="Active">Active</option>
-      <option value="Unactive">Unactive</option>
+      <option value="Inactive">Inactive</option>
     </select>
   ) : (
     <p
       className={`inline-flex rounded-full bg-opacity-10 px-3 py-1 text-sm font-medium ${
         item.status === "Active"
           ? "bg-success text-success"
-          : item.status === "Unactive"
+          : item.status === "Inactive"
           ? "bg-danger text-danger"
           : "bg-warning text-warning"
       }`}
     >
       {item.status}
+    </p>
+  )}
+</td>
+<td className="border-b border-[#eee] px-4 py-5 dark:border-strokedark">
+  {editingRow === key ? (
+    <select
+      value={editedType}
+      onChange={(e) => setEditedType(e.target.value)}
+    >
+      <option value="Provider">Provider</option>
+      <option value="Seeker">Seeker</option>
+    </select>
+  ) : (
+    <p
+      className={`inline-flex rounded-full bg-opacity-10 px-3 py-1 text-sm font-medium ${
+        item.type === "Provider"
+          ? "bg-success text-success"
+          : item.status === "Seeker"
+          ? "bg-danger text-danger"
+          : "bg-warning text-warning"
+      }`}
+    >
+      {item.type}
     </p>
   )}
 </td>
@@ -219,8 +292,17 @@ const handleAddUser = async () => {
                 <label className="block text-sm font-medium text-gray-700">Name</label>
                 <input
                   type="text"
-                  value={newUserName}
-                  onChange={(e) => setNewUserName(e.target.value)}
+                  value={newUserFname}
+                  onChange={(e) => setNewUserFname(e.target.value)}
+                  className="border p-2 w-full"
+                />
+              </div>
+              <div className="mb-4">
+                <label className="block text-sm font-medium text-gray-700">Name</label>
+                <input
+                  type="text"
+                  value={newUserLname}
+                  onChange={(e) => setNewUserLname(e.target.value)}
                   className="border p-2 w-full"
                 />
               </div>
@@ -251,7 +333,19 @@ const handleAddUser = async () => {
   >
     <option value="">Select Status</option>
     <option value="Active">Active</option>
-    <option value="Unactive">Unactive</option>
+    <option value="Inactive">Inactive</option>
+  </select>
+</div>
+<div className="mb-4">
+  <label className="block text-sm font-medium text-gray-700">Type</label>
+  <select
+    value={newUserType}
+    onChange={(e) => setNewUserType(e.target.value)}
+    className="border p-2 w-full"
+  >
+    <option value="">Select Type</option>
+    <option value="Provider">Provider</option>
+    <option value="Seeker">Seeker</option>
   </select>
 </div>
               <div className="flex justify-end">
@@ -296,7 +390,7 @@ const handleAddUser = async () => {
                       </svg>
                     </button>
                     )}
-                    <button className="hover:text-primary" onClick={() => handleDeleteProvider(item.name)}>
+                    <button className="hover:text-primary" onClick={() => handleDeleteUser(item.userid)}>
                       <svg
                         className="fill-current"
                         width="18"
