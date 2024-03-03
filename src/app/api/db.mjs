@@ -29,20 +29,24 @@ export async function updateUser(userName,fname,lname, email, phone, status,type
   return result;
 }
 
+
  export async function postJoblisting(providerid, position, labels,company,location,creationdate, status, nbreapplicants, description) {
   const [result] = await pool.query("INSERT INTO joblisting (providerid, position, labels,company,location,creationdate, status, nbreapplicants, description) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)", [providerid, position, labels,company,location,creationdate, status, nbreapplicants, description]);
+
   return result;
  }
  export async function getJoblisting() {
    const [rows] = await pool.query("SELECT * FROM joblisting");
    return rows;
  }
+
  export async function deleteJoblisting(joblistName) {
    const [result] = await pool.query("DELETE FROM joblisting WHERE jobid = ?", [joblistName]);
    return result;
  }
  export async function updateJoblisting(joblistName, position, labels, company, location, creationdate, status, nbreapplicants, description) {
    const [result] = await pool.query("UPDATE joblisting SET  position=?, labels=?, company=?, location=?, creationdate=?, status=?, nbreapplicants=?, description=? WHERE jobid=?", [ position, labels,company,location, creationdate, status, nbreapplicants, description, joblistName]);
+
   return result;
  }
 
