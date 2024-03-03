@@ -37,12 +37,12 @@ export async function updateUser(userName,fname,lname, email, phone, status,type
    const [rows] = await pool.query("SELECT * FROM joblisting");
    return rows;
  }
- export async function deleteJoblisting(seekerName) {
-   const [result] = await pool.query("DELETE FROM joblisting WHERE jobid = ?", [seekerName]);
+ export async function deleteJoblisting(joblistName) {
+   const [result] = await pool.query("DELETE FROM joblisting WHERE jobid = ?", [joblistName]);
    return result;
  }
- export async function updateJoblisting(seekerName, position, labels, company, location, creationdate, status, nbreapplicants, description) {
-   const [result] = await pool.query("UPDATE joblisting SET  position=?, labels=?, company=?, location=?, creationdate=?, status=?, nbreapplicants=?, description=? WHERE jobid=?", [ position, labels,company,location, creationdate, status, nbreapplicants, description, seekerName]);
+ export async function updateJoblisting(joblistName, position, labels, company, location, creationdate, status, nbreapplicants, description) {
+   const [result] = await pool.query("UPDATE joblisting SET  position=?, labels=?, company=?, location=?, creationdate=?, status=?, nbreapplicants=?, description=? WHERE jobid=?", [ position, labels,company,location, creationdate, status, nbreapplicants, description, joblistName]);
   return result;
  }
 
