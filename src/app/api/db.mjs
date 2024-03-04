@@ -12,8 +12,8 @@ const pool = mysql.createPool({
 //   const [rows] = await pool.query("SELECT * FROM seekers UNION SELECT * FROM providers")
 //   return rows
 // }
-export async function postUser(fname,lname, email, phone, status,type) {
-  const [result] = await pool.query("INSERT INTO users (fname, lname, email, phone, status, type) VALUES (?, ?, ?, ?, ?,?)", [fname, lname, email, phone, status, type]);
+export async function postUser(fname,lname, email, phone, status,type, password) {
+  const [result] = await pool.query("INSERT INTO users (fname, lname, email, phone, status, type, password) VALUES (?, ?, ?, ?, ?,?, ?)", [fname, lname, email, phone, status, type, password]);
   return result;
 }
 export async function getUsers() {
@@ -24,8 +24,8 @@ export async function deleteUser(userName) {
   const [result] = await pool.query("DELETE FROM users WHERE userid = ?", [userName]);
   return result;
 }
-export async function updateUser(userName,fname,lname, email, phone, status,type) {
-  const [result] = await pool.query("UPDATE users SET  fname=?, lname=?, email=?, phone=?, status=?, type=?  WHERE userid=?", [fname, lname, email, phone, status, type, userName]);
+export async function updateUser(userName,fname,lname, email, phone, status,type, password) {
+  const [result] = await pool.query("UPDATE users SET  fname=?, lname=?, email=?, phone=?, status=?, type=?, password=?  WHERE userid=?", [fname, lname, email, phone, status, type,password, userName]);
   return result;
 }
 
@@ -90,6 +90,12 @@ export async function updateApplication(locationName, status) {
 export async function postApplication(userid,jobid,status) {
   const [result] = await pool.query("INSERT INTO application ( userid,jobid,status) VALUES (?, ?, ?)", [userid,jobid,status]);
   return result;
+}
+
+
+export async function getUserByEmail(email) {
+  const [result] = await pool.query('SELECT * FROM users WHERE email = ?', [email]);
+  return result[0]; // Assuming there's only one user with a given email
 }
 // const users = await getUsers();
 const users = await getUsers();

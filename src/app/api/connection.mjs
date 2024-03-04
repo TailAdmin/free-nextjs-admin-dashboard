@@ -13,6 +13,7 @@ import { postJoblisting } from './db.mjs';
 // import { deleteOffer } from './db.mjs';
 // import { updateOffer } from './db.mjs';
 // import { postOffer } from './db.mjs';
+import { getUserByEmail } from './db.mjs';
 import { getApplication } from './db.mjs';
 import { deleteApplication } from './db.mjs';
  import { updateApplication } from './db.mjs';
@@ -53,9 +54,10 @@ app.put('/users/:userid', async (req, res) => {
   const phone  = req.body.phone;
   const status = req.body.status;
   const type  = req.body.type;
+  const password  = req.body.password;
   try {
     
-    await updateUser(providerName, fname,lname,email,phone, status, type);
+    await updateUser(providerName, fname,lname,email,phone, status, type, password);
 
     res.status(200).json({ message: 'User updated successfully' });
   } catch (error) {
@@ -64,10 +66,10 @@ app.put('/users/:userid', async (req, res) => {
   }
 });
 app.post('/users', async (req, res) => {
-  const { fname, lname, email, phone, status, type } = req.body;
+  const { fname, lname, email, phone, status, type, password } = req.body;
   try {
     // Call the postProvider function to add a new provider
-    await postUser(fname, lname, email, phone, status, type);
+    await postUser(fname, lname, email, phone, status, type, password);
     res.status(201).json({ message: 'user added successfully' });
   } catch (error) {
     console.error(error);
@@ -207,6 +209,29 @@ app.post('/application', async (req, res) => {
     // Call the postProvider function to add a new provider
     await postApplication(userid,jobid,status);
     res.status(201).json({ message: 'application added successfully' });
+  } catch (error) {
+    console.error(error);
+    res.status(500).json({ error: 'Internal Server Error' });
+  }
+});
+
+app.post('/login', async (req, res) => {
+  const { email, password } = req.body;
+
+  try {
+    const user = await getUserByEmail(email);
+
+    if (!user) {
+      res.status(401).json({ message: 'Invalid credentials' });
+      return;
+    }
+
+    // Check if the provided password matches the stored password
+    if (password === user.password) {
+      res.status(200).json({ message: 'Logged in successfully' });
+    } else {
+      res.status(401).json({ message: 'Invalid credentials' });
+    }
   } catch (error) {
     console.error(error);
     res.status(500).json({ error: 'Internal Server Error' });
