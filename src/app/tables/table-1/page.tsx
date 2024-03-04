@@ -1,6 +1,7 @@
 'use client'
 import React from "react";
 import TableOne from "@/components/Tables/TableOne";
+import TableEight from "@/components/Tables/TableEight";
 import { Metadata } from "next";
 import DefaultLayout from "@/components/Layouts/DefaultLaout";
 import Head from "next/head";
@@ -9,13 +10,11 @@ import Head from "next/head";
 const Table1Page = () => {
   return (
     <>
-    <Head>
-    <title>Job Locations | فرصة </title>
-    {/* Any other head elements like meta tags */}
-    </Head>
+    
   
     <DefaultLayout>
       <TableOne />
+      <TableEight />
     </DefaultLayout>
     </>
   );

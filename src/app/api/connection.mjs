@@ -13,10 +13,11 @@ import { postJoblisting } from './db.mjs';
 // import { deleteOffer } from './db.mjs';
 // import { updateOffer } from './db.mjs';
 // import { postOffer } from './db.mjs';
-// import { getLocations } from './db.mjs';
-// import { deleteLocation } from './db.mjs';
-// import { updateLocation } from './db.mjs';
-// import { postLocation } from './db.mjs';
+import { getApplication } from './db.mjs';
+import { deleteApplication } from './db.mjs';
+ import { updateApplication } from './db.mjs';
+ import { getApp } from './db.mjs';
+import { postApplication } from './db.mjs';
 const app = express();
 
 app.use(cors());
@@ -167,48 +168,50 @@ console.error(error);
 //   }
 // });
 // //locations table
-// app.get('/locations', async (req, res) => {
-//   const locations = await getLocations();
-//   res.json(locations);
-// });
-// app.delete('/locations/:idl', async (req, res) => {
-//   const locationName = req.params.idl;
-//   try {
-//     // Call the deleteProvider function to delete the provider by name
-//     await deleteLocation(locationName);
-//     res.status(204).send(); // Successfully deleted, send a 204 No Content status
-//   } catch (error) {
-//     console.error(error);
-//     res.status(500).json({ error: 'Internal Server Error' });
-//   }
-// });
-// app.put('/locations/:idl', async (req, res) => {
-//   const locationName = req.params.idl;
-//   const position  = req.body.position;
-//   const location  = req.body.location;
-//   const company = req.body.company;
-//   const matches = req.body.matches;
-//   try {
+app.get('/application', async (req, res) => {
+  const application = await getApp();
+  res.json(application);
+});
+app.get('/application/summary', async (req, res) => {
+  const application = await getApplication();
+  res.json(application);
+});
+app.delete('/application/:applicationID', async (req, res) => {
+  const locationName = req.params.applicationID;
+  try {
+    // Call the deleteProvider function to delete the provider by name
+    await deleteApplication(locationName);
+    res.status(204).send(); // Successfully deleted, send a 204 No Content status
+  } catch (error) {
+    console.error(error);
+    res.status(500).json({ error: 'Internal Server Error' });
+  }
+});
+app.put('/application/:applicationID', async (req, res) => {
+  const locationName = req.params.applicationID;
+  const status  = req.body.status;
+  
+  try {
     
-//     await updateLocation(locationName, position,location, company, matches);
+    await updateApplication(locationName, status);
 
-//     res.status(200).json({ message: 'location updated successfully' });
-//   } catch (error) {
-//     console.error(error);
-//     res.status(500).json({ error: 'Internal Server Error' });
-//   }
-// });
-// app.post('/locations', async (req, res) => {
-//   const { position, location, company, matches } = req.body;
-//   try {
-//     // Call the postProvider function to add a new provider
-//     await postLocation(position, location, company, matches);
-//     res.status(201).json({ message: 'offer added successfully' });
-//   } catch (error) {
-//     console.error(error);
-//     res.status(500).json({ error: 'Internal Server Error' });
-//   }
-// });
+    res.status(200).json({ message: 'application updated successfully' });
+  } catch (error) {
+    console.error(error);
+    res.status(500).json({ error: 'Internal Server Error' });
+  }
+});
+app.post('/application', async (req, res) => {
+  const { userid,jobid,status } = req.body;
+  try {
+    // Call the postProvider function to add a new provider
+    await postApplication(userid,jobid,status);
+    res.status(201).json({ message: 'application added successfully' });
+  } catch (error) {
+    console.error(error);
+    res.status(500).json({ error: 'Internal Server Error' });
+  }
+});
 // Start the server
 app.listen(8000, () => {
   console.log('Server is running on http://localhost:8000');

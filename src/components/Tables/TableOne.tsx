@@ -3,46 +3,43 @@ import axios from "axios";
 import dynamic from 'next/dynamic';
 
 interface Location {
-  idl:number;
-  position: string;
-  location: string;
-  company: string;
-  matches: number;
+  applicationID:number;
+  userid: number;
+  jobid: number;
+  status: string;
+
 }
 
 const TableOne = () => {
-  const url = "http://localhost:8000/locations";
-  const [locations, setlocations] = useState<Location[]>([]);
+  const url = "http://localhost:8000/application";
+  const [application, setApplication] = useState<Location[]>([]);
   const [editingRow, setEditingRow] = useState<number | null>(null);
-  const [editedPosition, setEditedPosition] = useState("");
-  const [editedLocation, setEditedLocation] = useState("");
-  const [editedCompany, setEditedCompany] = useState("");
-  const [editedMatches, setEditedMatches] = useState(0);
+  const [editedStatus, setEditedStatus] = useState("");
 
    // New states for pop-up
    const [isAddUserPopupOpen, setAddUserPopupOpen] = useState(false);
-   const [newUserPosition, setNewUserPosition] = useState("");
-   const [newUserLocation, setNewUserLocation] = useState("");
-   const [newUserCompany, setNewUserCompany] = useState("");
-   const [newUserMatches, setNewUserMatches] = useState(0);
+   const [newUserUserid, setNewUserUserid] = useState("");
+   const [newUserJobid, setNewUserJobid] = useState("");
+   const [newUserStatus, setNewUserStatus] = useState("");
+   
 
   useEffect(() => {
     axios
     .get(url)
     .then((res) => {
-    setlocations(res.data);
+    setApplication(res.data);
     console.log(res);
     })
     .catch((err) => {
     console.log(err);
     });
     }, []);
-    const handleDeleteLocation = async (locationName: number) => {
+    const handleDeleteApplication = async (locationName: number) => {
       try {
         // Make a DELETE request to the server using the name
-        await axios.delete(`http://localhost:8000/locations/${encodeURIComponent(locationName)}`);
+        await axios.delete(`http://localhost:8000/application/${encodeURIComponent(locationName)}`);
         // Update the local state to remove the deleted provider
-        setlocations((prevLocations) => prevLocations.filter((location) => location.idl !== locationName));
+        setApplication((prevApplication) => prevApplication.filter((application) => application.applicationID !== locationName));
       } catch (error) {
         console.error(error);
       }
@@ -50,37 +47,28 @@ const TableOne = () => {
     const handleEditClick = (index: number) => {
       setEditingRow(index);
      
-      setEditedPosition(locations[index].position);
-      setEditedLocation(locations[index].location);
-      setEditedCompany(locations[index].company);
-      setEditedMatches(locations[index].matches);
+      setEditedStatus(application[index].status);
     };
   
     const handleSaveClick = async (index: number) => {
       // Save the edited data to the server 
       try {
         // Make a PUT request to update the provider data on the server
-        await axios.put(`http://localhost:8000/locations/${encodeURIComponent(locations[index].idl)}`, {
+        await axios.put(`http://localhost:8000/application/${encodeURIComponent(application[index].applicationID)}`, {
           
-          position: editedPosition,
-          location: editedLocation,
-          company: editedCompany,
-          matches: editedMatches,
+          status: editedStatus,
         });
     
         // Update the local state with the edited values
-        setlocations((prevLocations) =>
-          prevLocations.map((location, i) =>
+        setApplication((prevApplication) =>
+          prevApplication.map((application, i) =>
             i === index
               ? {
-                  ...location,
+                  ...application,
                   
-                  position: editedPosition,
-                  location: editedLocation,
-                  company: editedCompany,
-                  matches: editedMatches,
+                  status: editedStatus,
                 }
-              : location
+              : application
           )
         );
     
@@ -98,26 +86,24 @@ const handleOpenPopup = () => {
 const handleClosePopup = () => {
   setAddUserPopupOpen(false);
   // Reset input fields when closing the pop-up
-  setNewUserPosition("");
-  setNewUserLocation("");
-  setNewUserCompany("");
-  setNewUserMatches(0);
+  setNewUserUserid("");
+  setNewUserJobid("");
+  setNewUserStatus("");
 };
 
 // Function to handle adding a new user
 const handleAddUser = async () => {
   try {
     // Make a POST request to add a new user to the server
-    await axios.post("http://localhost:8000/locations", {
-      position: newUserPosition,
-      location: newUserLocation,
-      company: newUserCompany,
-      matches: newUserMatches,
+    await axios.post("http://localhost:8000/application", {
+      userid: newUserUserid,
+      jobid: newUserJobid,
+      status: newUserStatus
     });
     
     // Refresh the list of providers
     const res = await axios.get(url);
-    setlocations(res.data);
+    setApplication(res.data);
 
     // Close the pop-up
     handleClosePopup();
@@ -130,26 +116,26 @@ const handleAddUser = async () => {
         <div className="max-w-full overflow-x-auto">
         <div className="flex justify-between items-center mb-6">
   <h4 className="text-xl font-semibold text-black dark:text-white">
-    Job Location's List
+    Application's Summury List
   </h4>
   <button onClick={handleOpenPopup} className="bg-primary text-white px-4 py-2 rounded">
-    Add New Job location
+    Add New Application
   </button>
 </div>
           <table className="w-full table-auto">
             <thead>
               <tr className="bg-gray-2 text-left dark:bg-meta-4">
                 <th className="min-w-[220px] px-4 py-4 font-medium text-black dark:text-white xl:pl-11">
-                  Job Position
+                  Application ID
                 </th>
                 <th className="min-w-[150px] px-4 py-4 font-medium text-black dark:text-white">
-                  Location
+                  User ID
                 </th>
                 <th className="min-w-[120px] px-4 py-4 font-medium text-black dark:text-white">
-                  Company
+                  Job ID
                 </th>
                 <th className="min-w-[120px] px-4 py-4 font-medium text-black dark:text-white">
-                  Number of Matches
+                  Status
                 </th>
                 <th className="px-4 py-4 font-medium text-black dark:text-white">
                   Actions
@@ -157,92 +143,88 @@ const handleAddUser = async () => {
               </tr>
             </thead>
             <tbody>
-              {locations.map((item, key) => (
+              {application.map((item, key) => (
                 <tr key={key}>
+                  <td className="border-b border-[#eee] px-4 py-5 pl-9 dark:border-strokedark xl:pl-11">
+                  <h5 className="font-medium text-black dark:text-white">
+                    {item.applicationID}
+                  </h5>
+                  
+                </td>
+                <td className="border-b border-[#eee] px-4 py-5 pl-9 dark:border-strokedark xl:pl-11">
+                  <h5 className="font-medium text-black dark:text-white">
+                    {item.userid}
+                  </h5>
+                  
+                </td>
+                <td className="border-b border-[#eee] px-4 py-5 pl-9 dark:border-strokedark xl:pl-11">
+                  <h5 className="font-medium text-black dark:text-white">
+                    {item.jobid}
+                  </h5>
+                  
+                </td>
+                
                   <td className="border-b border-[#eee] px-4 py-5 dark:border-strokedark">
-        {editingRow === key ? (
-          <input
-            type="text"
-            value={editedPosition}
-            onChange={(e) => setEditedPosition(e.target.value)}
-          />
-        ) : (
-          <h5 className="font-medium text-black dark:text-white">{item.position}</h5>
-        )}
+                  {editingRow === key ? (
+    <select
+      value={editedStatus}
+      onChange={(e) => setEditedStatus(e.target.value)}
+    >
+      <option value="Accepted">Accepted</option>
+      <option value="Refused">Refused</option>
+      <option value="Pending">Pending</option>
+    </select>
+  ) : (
+    <p
+      className={`inline-flex rounded-full bg-opacity-10 px-3 py-1 text-sm font-medium ${
+        item.status === "Accepted"
+          ? "bg-success text-success"
+          : item.status === "Refused"
+          ? "bg-danger text-danger"
+          : "bg-warning text-warning"
+      }`}
+    >
+      {item.status}
+    </p>
+  )}
       </td>
-      <td className="border-b border-[#eee] px-4 py-5 dark:border-strokedark">
-        {editingRow === key ? (
-          <input
-            type="text"
-            value={editedLocation}
-            onChange={(e) => setEditedLocation(e.target.value)}
-          />
-        ) : (
-          <h5 className="font-medium text-black dark:text-white">{item.location}</h5>
-        )}
-      </td>
-      <td className="border-b border-[#eee] px-4 py-5 dark:border-strokedark">
-        {editingRow === key ? (
-          <input
-            type="text"
-            value={editedCompany}
-            onChange={(e) => setEditedCompany(e.target.value)}
-          />
-        ) : (
-          <h5 className="font-medium text-black dark:text-white">{item.company}</h5>
-        )}
-      </td>
-      <td className="border-b border-[#eee] px-4 py-5 dark:border-strokedark">
-        {editingRow === key ? (
-          <input
-            type="text"
-            value={editedMatches.toString()} // Ensure the value is a string
-            onChange={(e) => setEditedMatches(parseInt(e.target.value, 10) || 0)}
-          />
-        ) : (
-          <h5 className="font-medium text-black dark:text-white">{item.matches}</h5>
-        )}
-      </td>
+     
       {isAddUserPopupOpen && (
           <div className="fixed inset-0 z-50 flex items-center justify-center" >
             <div className="bg-white p-6 rounded-md shadow-md">
               <h2 className="text-lg font-semibold mb-4">Add New User</h2>
               <div className="mb-4">
-                <label className="block text-sm font-medium text-gray-700">Position</label>
+                <label className="block text-sm font-medium text-gray-700">User ID</label>
                 <input
                   type="text"
-                  value={newUserPosition}
-                  onChange={(e) => setNewUserPosition(e.target.value)}
+                  value={newUserUserid}
+                  onChange={(e) => setNewUserUserid(e.target.value)}
                   className="border p-2 w-full"
                 />
               </div>
               <div className="mb-4">
-                <label className="block text-sm font-medium text-gray-700">Location</label>
+                <label className="block text-sm font-medium text-gray-700">Job ID</label>
                 <input
                   type="text"
-                  value={newUserLocation}
-                  onChange={(e) => setNewUserLocation(e.target.value)}
+                  value={newUserJobid}
+                  onChange={(e) => setNewUserJobid(e.target.value)}
                   className="border p-2 w-full"
                 />
               </div>
               <div className="mb-4">
-                <label className="block text-sm font-medium text-gray-700">Company</label>
-                <input
-                  type="text"
-                  value={newUserCompany}
-                  onChange={(e) => setNewUserCompany(e.target.value)}
-                  className="border p-2 w-full"
-                />
-              </div>
-              <div className="mb-4">
-                <label className="block text-sm font-medium text-gray-700">Company</label>
-                <input
-                  type="number"
-                  value={newUserMatches.toString()} // Ensure the value is a string
-                  onChange={(e) => setNewUserMatches(parseInt(e.target.value, 10) || 0)}
-                  className="border p-2 w-full"
-                />
-              </div>
+  <label className="block text-sm font-medium text-gray-700">Status</label>
+  <select
+    value={newUserStatus}
+    onChange={(e) => setNewUserStatus(e.target.value)}
+    className="border p-2 w-full"
+  >
+    <option value="">Select Status</option>
+    <option value="Accepted">Accepted</option>
+    <option value="Refused">Refused</option>
+    <option value="Pending">Pending</option>
+  </select>
+</div>
+              
               <div className="flex justify-end">
                 <button onClick={handleClosePopup} className="mr-2 bg-gray-300 px-4 py-2 rounded">
                   Cancel
@@ -285,7 +267,7 @@ const handleAddUser = async () => {
                       </svg>
                     </button>
                     )}
-                      <button className="hover:text-primary" onClick={() => handleDeleteLocation(item.idl)}>
+                      <button className="hover:text-primary" onClick={() => handleDeleteApplication(item.applicationID)}>
                         <svg
                           className="fill-current"
                           width="18"
