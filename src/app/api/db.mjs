@@ -62,22 +62,35 @@ export async function updateUser(userName,fname,lname, email, phone, status,type
 //   const [result] = await pool.query("INSERT INTO offers (name, creationDate, category, status) VALUES (?, ?, ?, ?)", [name, creationDate,category, status]);
 //   return result;
 // }
-// export async function getLocations() {
-//   const [rows] = await pool.query("SELECT * FROM locations");
-//   return rows;
-// }
-// export async function deleteLocation(locationName) {
-//   const [result] = await pool.query("DELETE FROM locations WHERE idl = ?", [locationName]);
-//   return result;
-// }
-// export async function updateLocation(locationName, position, location, company, matches) {
-//   const [result] = await pool.query("UPDATE locations SET  position=?, location=?, company=?, matches=?  WHERE idl=?", [ position, location, company, matches, locationName]);
-//   return result;
-// }
-// export async function postLocation(position, location, company, matches) {
-//   const [result] = await pool.query("INSERT INTO locations ( position, location, company, matches) VALUES (?, ?, ?, ?)", [position, location, company, matches]);
-//   return result;
-// }
+export async function getApp() {
+     const [rows] = await pool.query("SELECT * FROM application");
+     return rows;
+   }
+export async function getApplication() {
+  try {
+    const [rows] = await pool.query("SELECT userid, GROUP_CONCAT(jobid) AS job_application_id FROM application GROUP BY userid");
+    const formattedRows = rows.map(row => ({
+      userid: row.userid,
+      jobid: row.job_application_id ? row.job_application_id.split(',').map(Number) : []
+    }));
+    return formattedRows;
+  } catch (error) {
+    console.error('Error in getApplicationSummary:', error);
+    throw error;
+  }
+}
+export async function deleteApplication(locationName) {
+  const [result] = await pool.query("DELETE FROM application WHERE applicationID = ?", [locationName]);
+  return result;
+}
+export async function updateApplication(locationName, status) {
+  const [result] = await pool.query("UPDATE application SET  status=?  WHERE applicationID=?", [ status, locationName]);
+  return result;
+}
+export async function postApplication(userid,jobid,status) {
+  const [result] = await pool.query("INSERT INTO application ( userid,jobid,status) VALUES (?, ?, ?)", [userid,jobid,status]);
+  return result;
+}
 // const users = await getUsers();
 const users = await getUsers();
 // const offers = await getOffers();
