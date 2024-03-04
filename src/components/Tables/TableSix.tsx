@@ -11,6 +11,7 @@ interface User {
   phone: string;
   status: string;
   type: string;
+  password: string;
 }
 
 const TableThree = () => {
@@ -23,7 +24,7 @@ const TableThree = () => {
   const [editedPhone, setEditedPhone] = useState("");
   const [editedStatus, setEditedStatus] = useState("");
   const [editedType, setEditedType] = useState("");
-
+  const [editedPassword, setEditedPassword] = useState("");
    // New states for pop-up
    const [isAddUserPopupOpen, setAddUserPopupOpen] = useState(false);
    const [newUserFname, setNewUserFname] = useState("");
@@ -32,7 +33,7 @@ const TableThree = () => {
    const [newUserPhone, setNewUserPhone] = useState("");
    const [newUserStatus, setNewUserStatus] = useState("");
    const [newUserType, setNewUserType] = useState("");
-
+   const [newUserPassword, setNewUserPassword] = useState("");
   useEffect(() => {
   axios
   .get(url)
@@ -63,6 +64,7 @@ const TableThree = () => {
     setEditedPhone(users[index].phone);
     setEditedStatus(users[index].status);
     setEditedType(users[index].type);
+    setEditedPassword(users[index].password);
   };
 
   const handleSaveClick = async (index: number) => {
@@ -76,6 +78,7 @@ const TableThree = () => {
         phone: editedPhone,
         status: editedStatus,
         type: editedType,
+        password: editedPassword,
       });
   
       // Update the local state with the edited values
@@ -90,6 +93,7 @@ const TableThree = () => {
                 phone: editedPhone,
                 status: editedStatus,
                 type: editedType,
+                password: editedPassword,
               }
             : user
         )
@@ -116,6 +120,7 @@ const handleClosePopup = () => {
   setNewUserPhone("");
   setNewUserStatus("");
   setNewUserType("");
+  setNewUserPassword("");
 };
 
 // Function to handle adding a new user
@@ -129,6 +134,7 @@ const handleAddUser = async () => {
       phone: newUserPhone,
       status: newUserStatus,
       type: newUserType,
+      password: newUserPassword,
     });
     
     // Refresh the list of providers
@@ -176,6 +182,9 @@ const handleAddUser = async () => {
               </th>
               <th className="min-w-[120px] px-4 py-4 font-medium text-black dark:text-white">
                 Type
+              </th>
+              <th className="min-w-[120px] px-4 py-4 font-medium text-black dark:text-white">
+                Password
               </th>
               <th className="px-4 py-4 font-medium text-black dark:text-white">
                 Actions
@@ -284,12 +293,23 @@ const handleAddUser = async () => {
     </p>
   )}
 </td>
+<td className="border-b border-[#eee] px-4 py-5 dark:border-strokedark">
+        {editingRow === key ? (
+          <input
+            type="text"
+            value={editedPassword}
+            onChange={(e) => setEditedPassword(e.target.value)}
+          />
+        ) : (
+          <h5 className="font-medium text-black dark:text-white">{item.password}</h5>
+        )}
+      </td>
 {isAddUserPopupOpen && (
           <div className="fixed inset-0 z-50 flex items-center justify-center">
-            <div className="bg-white p-6 rounded-md shadow-md">
+            <div className="bg-white p-6 rounded-md shadow-md max-h-[80vh] overflow-y-auto">
               <h2 className="text-lg font-semibold mb-4">Add New User</h2>
               <div className="mb-4">
-                <label className="block text-sm font-medium text-gray-700">Name</label>
+                <label className="block text-sm font-medium text-gray-700">first Name</label>
                 <input
                   type="text"
                   value={newUserFname}
@@ -298,7 +318,7 @@ const handleAddUser = async () => {
                 />
               </div>
               <div className="mb-4">
-                <label className="block text-sm font-medium text-gray-700">Name</label>
+                <label className="block text-sm font-medium text-gray-700">last Name</label>
                 <input
                   type="text"
                   value={newUserLname}
@@ -348,6 +368,15 @@ const handleAddUser = async () => {
     <option value="Seeker">Seeker</option>
   </select>
 </div>
+<div className="mb-4">
+                <label className="block text-sm font-medium text-gray-700">Password</label>
+                <input
+                  type="text"
+                  value={newUserPassword}
+                  onChange={(e) => setNewUserPassword(e.target.value)}
+                  className="border p-2 w-full"
+                />
+              </div>
               <div className="flex justify-end">
                 <button onClick={handleClosePopup} className="mr-2 bg-gray-300 px-4 py-2 rounded">
                   Cancel
