@@ -19,7 +19,7 @@ export function HotelImageUploader({ fieldChange, mediaUrl }: propTypes) {
         setFile(acceptedFiles)
         fieldChange(acceptedFiles)
         setFileUrls(acceptedFiles.map(file => URL.createObjectURL(file)))
-    }, [])
+    }, [file])
 
     const { getRootProps, getInputProps } = useDropzone({
         onDrop,
@@ -34,8 +34,7 @@ export function HotelImageUploader({ fieldChange, mediaUrl }: propTypes) {
             <input {...getInputProps()} className='cursor-pointer' />
             {
                 fileUrls.map((fileUrl, index) => (
-
-                    <div className='flex flex-col gap-3'>
+                    <div key={index} className='flex flex-col gap-3'>
                         <Image
                             src={fileUrl}
                             alt='image'

@@ -75,7 +75,7 @@ const Header = (props: {
               <input
                 type="text"
                 placeholder="Type to search..."
-                className="w-full bg-transparent rounded pl-6 py-2 border  font-medium focus:outline-none w-full"
+                className="bg-transparent rounded pl-6 py-2 border  font-medium focus:outline-none w-full"
               />
             </div>
           </div>
