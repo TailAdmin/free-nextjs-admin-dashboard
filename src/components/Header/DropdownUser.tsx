@@ -1,9 +1,17 @@
-import { useEffect, useRef, useState } from "react";
+"use client"
+import React, { useState, useEffect, useRef } from "react";
+import { useRouter } from "next/navigation";
+import { toast } from "sonner";
 import Link from "next/link";
 import Image from "next/image";
+import Avatar from "react-avatar";
 
 const DropdownUser = () => {
   const [dropdownOpen, setDropdownOpen] = useState(false);
+  const router = useRouter();
+  const userId = "66015c8f8dfd0daff4571cf5"; // Assuming userId is provided as a query parameter
+
+  const [userData, setUserData] = useState<any>({});
 
   const trigger = useRef<any>(null);
   const dropdown = useRef<any>(null);
@@ -25,6 +33,7 @@ const DropdownUser = () => {
   });
 
   // close if the esc key is pressed
+
   useEffect(() => {
     const keyHandler = ({ keyCode }: KeyboardEvent) => {
       if (!dropdownOpen || keyCode !== 27) return;
@@ -33,6 +42,38 @@ const DropdownUser = () => {
     document.addEventListener("keydown", keyHandler);
     return () => document.removeEventListener("keydown", keyHandler);
   });
+
+
+  useEffect(() => {
+    const fetchUserDetails = async () => {
+      try {
+        // Replace 'your_bearer_token' with your actual bearer token
+        const bearerToken = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VyIjoibmVoZW1pYWgxMjNAZ21haWwuY29tIiwicm9sZSI6ImFkbWluIiwiaWF0IjoxNzExMzY1MjYzLCJleHAiOjE3MTM5NTcyNjN9.-zO1QD0zwiNPxQQ-oBEwuSZqKclwgmWQSB856PJR4VQ';
+
+        const response = await fetch(`https://flexstay-backend.onrender.com/api/user/${userId}`, {
+          headers: {
+            'Authorization': `Bearer ${bearerToken}`,
+            'Content-Type': 'application/json' // Add other headers as needed
+          }
+        });
+
+        if (response.ok) {
+          const data = await response.json();
+          setUserData(data);
+        } else {
+          const errorData = await response.json();
+          toast.error(errorData.message || "Failed to fetch user details");
+        }
+      } catch (error) {
+        console.error("Error occurred:", error);
+        toast.error("Failed to fetch user details");
+      }
+    };
+
+    if (userId) {
+      fetchUserDetails();
+    }
+  }, [userId]);
 
   return (
     <div className="relative">
@@ -44,21 +85,17 @@ const DropdownUser = () => {
       >
         <span className="hidden text-right lg:block">
           <span className="block text-sm font-medium text-black dark:text-white">
-            Thomas Anree
+            {userData.firstName}
           </span>
-          <span className="block text-xs">UX Designer</span>
+          <span className="block text-xs">{userData.lastName}</span>
         </span>
 
         <span className="h-12 w-12 rounded-full">
-          <Image
-            width={112}
-            height={112}
-            src={"/images/user/user-01.png"}
-            style={{
-              width: "auto",
-              height: "auto",
-            }}
-            alt="User"
+          <Avatar
+            color="#5064ae"
+            size="50"
+            round={true}
+            name={`${userData.firstName} ${userData.lastName}`}
           />
         </span>
 
@@ -84,9 +121,8 @@ const DropdownUser = () => {
         ref={dropdown}
         onFocus={() => setDropdownOpen(true)}
         onBlur={() => setDropdownOpen(false)}
-        className={`absolute right-0 mt-4 flex w-62.5 flex-col rounded-sm border border-stroke bg-white shadow-default dark:border-strokedark dark:bg-boxdark ${
-          dropdownOpen === true ? "block" : "hidden"
-        }`}
+        className={`absolute right-0 mt-4 flex w-62.5 flex-col rounded-sm border border-stroke bg-white shadow-default dark:border-strokedark dark:bg-boxdark ${dropdownOpen === true ? "block" : "hidden"
+          }`}
       >
         <ul className="flex flex-col gap-5 border-b border-stroke px-6 py-7.5 dark:border-strokedark">
           <li>
@@ -161,7 +197,7 @@ const DropdownUser = () => {
             </Link>
           </li>
         </ul>
-        <button className="flex items-center gap-3.5 px-6 py-4 text-sm font-medium duration-300 ease-in-out hover:text-primary lg:text-base">
+        <button className="flex items-center gap-3.5 px-6 py-4 text-sm font-medium duration-300 ease-in-out hover:text-primary text-danger lg:text-base">
           <svg
             className="fill-current"
             width="22"
