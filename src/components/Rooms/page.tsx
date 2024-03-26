@@ -18,7 +18,8 @@ import {
     DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import { IoMdAdd } from "react-icons/io";
-import { DrawerDemo } from "./create-room";
+import { CreateRoom } from "./create-room";
+import { UpdateRoom } from "./update-room";
 
 interface RoomCards {
     RoomCard: any[];
@@ -26,7 +27,6 @@ interface RoomCards {
 
 export default function RoomsPage({ RoomCard }: RoomCards) {
     const [searchQuery, setSearchQuery] = useState<string>("");
-    const [state, setState] = useState("")
 
     const filteredRoomCards = RoomCard.filter(
         (card) =>
@@ -74,11 +74,11 @@ export default function RoomsPage({ RoomCard }: RoomCards) {
                                     align="end"
                                     className=" max-w-sm  rounded bg-white"
                                 >
-                                    <DrawerDemo  setState={() => setState("")} Trigger={<h1
+                                    <UpdateRoom  Trigger={<h1
                                         className=" hover:bg-gray-3 text-sm text-center md:cursor-pointer"
                                     >
                                         edit
-                                    </h1>} Title="Edit Room" description="Make changes to thi room" />
+                                    </h1>} />
                                     <DropdownMenuRadioItem
                                         value="right"
                                         className=" hover:bg-gray-3 md:cursor-pointer"
@@ -144,8 +144,7 @@ export default function RoomsPage({ RoomCard }: RoomCards) {
                         <span> No rooms found</span>
                     </div>
                 )}
-                <DrawerDemo
-                setState={() => setState("")}
+                <CreateRoom
                     Trigger={
                         <Button
                             size={"icon"}
@@ -154,8 +153,6 @@ export default function RoomsPage({ RoomCard }: RoomCards) {
                             <IoMdAdd size={25} />
                         </Button>
                     }
-                    Title={"Create a room"}
-                    description="Lets get started"
                 />
             </div>
         </section>

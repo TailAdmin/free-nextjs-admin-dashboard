@@ -9,6 +9,7 @@ import { IoCashOutline } from "react-icons/io5";
 import { DataTableDemo, Payment } from "../Booking-table/Table";
 
 
+
 const ECommerce: React.FC = () => {
   const CardData = [
     { title: "Total Bookings", counts: "$45,2K", icon: <IoDuplicateOutline size={25} />, rate: "0.2%" },

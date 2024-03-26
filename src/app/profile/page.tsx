@@ -6,41 +6,42 @@ import React, { useState, useEffect, useRef } from "react";
 import { useRouter } from "next/navigation";
 import { toast } from "sonner";
 import Avatar from "react-avatar";
+import { Button } from "@/components/ui/button";
 
 
 const Profile = () => {
-  const router = useRouter();
-  const userId = "66015c8f8dfd0daff4571cf5";
-
   const [userData, setUserData] = useState<any>({});
-
-  const token = localStorage.getItem('token');
+  const userToken = localStorage.getItem("token")
+  const userId = localStorage.getItem("userId")
 
   useEffect(() => {
     const fetchUserDetails = async () => {
       try {
-        const response = await fetch('https://flexstay-backend.onrender.com/api/user', {
+        const response = await fetch(`https://flexstay-backend.onrender.com/api/user/${userId}`, {
           headers: {
-            'Authorization': `Bearer ${token}`,
+            'Authorization': `Bearer ${userToken}`,
             'Content-Type': 'application/json'
-          },
+          }
         });
+
         if (response.ok) {
-          const userData = await response.json();
-          setUserData(userData);
+          const data = await response.json();
+          setUserData(data);
         } else {
-          console.error('Failed to fetch user data');
+          const errorData = await response.json();
+          toast.error(errorData.message || "Failed to fetch user details");
+          console.log(errorData.message)
         }
       } catch (error) {
-        console.error('Error fetching user data:', error);
+        console.error("Error occurred:", error);
+        toast.error("Failed to fetch user details");
       }
     };
-  
-    if (token) {
+
+    if (userId) {
       fetchUserDetails();
     }
-  }, [token]);
-  
+  }, [userId]);
   return (
     <DefaultLayout>
       <div className="mx-auto max-w-242.5">
@@ -57,10 +58,17 @@ const Profile = () => {
             />
           </div>
         </div>
-            <div className="flex items-center">
+        <div className="flex flex-col">
+          <div className="flex flex-col w-full">
+          <h1 className="font-bold text-center text-xl">{userData.firstName} {userData.lastName}</h1>
+          <p className="text-center">{userData.email}</p>
+          <p className="text-center">Hi my name is Nehemiah, i am a software developer</p>
+          </div>
 
-              <h1 className="font-bold text-xl">{userData.firstName}, {userData.lastName}</h1>
-            </div>
+          <div className="flex items-center gap-x-3">
+            <Button>Rooms</Button>
+          </div>
+        </div>
       </div>
     </DefaultLayout>
   );

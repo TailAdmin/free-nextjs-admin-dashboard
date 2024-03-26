@@ -28,11 +28,12 @@ const SignIn: React.FC = () => {
         },
       );
       if (response.ok) {
-        const { token } = await response.json();
-        // Store token in local storage
-        localStorage.setItem('token', token);
+        const { token, _id } = await response.json();
+        // Store token and userId in local storage
+        localStorage.setItem("token", token);
+        localStorage.setItem("userId", _id);
+
         toast.success("Logged in successful");
-        // Redirect or perform other actions after successful login
         router.push('/profile');
       } else {
         const data = await response.json();

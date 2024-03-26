@@ -9,7 +9,7 @@ import Avatar from "react-avatar";
 const DropdownUser = () => {
   const [dropdownOpen, setDropdownOpen] = useState(false);
   const router = useRouter();
-  const userId = "66015c8f8dfd0daff4571cf5"; // Assuming userId is provided as a query parameter
+
 
   const [userData, setUserData] = useState<any>({});
 
@@ -42,14 +42,13 @@ const DropdownUser = () => {
     document.addEventListener("keydown", keyHandler);
     return () => document.removeEventListener("keydown", keyHandler);
   });
-
+  const userId = localStorage.getItem("userId")
 
   useEffect(() => {
     const fetchUserDetails = async () => {
       try {
         // Replace 'your_bearer_token' with your actual bearer token
-        const bearerToken = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VyIjoibmVoZW1pYWgxMjNAZ21haWwuY29tIiwicm9sZSI6ImFkbWluIiwiaWF0IjoxNzExMzY1MjYzLCJleHAiOjE3MTM5NTcyNjN9.-zO1QD0zwiNPxQQ-oBEwuSZqKclwgmWQSB856PJR4VQ';
-
+        const bearerToken = localStorage.getItem("token")
         const response = await fetch(`https://flexstay-backend.onrender.com/api/user/${userId}`, {
           headers: {
             'Authorization': `Bearer ${bearerToken}`,

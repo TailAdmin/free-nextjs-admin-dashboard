@@ -1,13 +1,12 @@
 import { FileWithPath, useDropzone } from 'react-dropzone'
 import Image from 'next/image'
 import { useCallback, useState } from 'react'
-import Placeholder from "../../public/images/icon/profile-placeholder.svg"
 import Photo from "../../public/images/icon/file-upload.svg"
-import { AspectRatio } from './ui/aspect-ratio'
+
 
 type propTypes = {
     fieldChange: (FILE: File[]) => void,
-    mediaUrl?: string,
+    mediaUrl?: { photo1: string, otherPhoto1: string } | undefined,
 }
 
 export function HotelImageUploader({ fieldChange, mediaUrl }: propTypes) {

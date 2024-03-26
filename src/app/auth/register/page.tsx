@@ -100,7 +100,7 @@ const SignUp: React.FC = () => {
                   type="text"
                   id="lastName"
                   name="lastName"
-				  disabled={isSubmitting}
+				           disabled={isSubmitting}
                   className="w-full rounded-md border px-3 py-2 text-sm shadow-sm focus:border-indigo-500 focus:outline-none focus:ring-indigo-500"
                 />
                 {errors.lastName && touched.lastName ? (
@@ -116,10 +116,10 @@ const SignUp: React.FC = () => {
                 </label>
                 <Field
                   type="tel"
-				  inputMode="numeric"
+				          inputMode="numeric"
                   id="phoneNumber"
                   name="phoneNumber"
-				  disabled={isSubmitting}
+				          disabled={isSubmitting}
                   className="w-full rounded-md border px-3 py-2 text-sm shadow-sm focus:border-indigo-500 focus:outline-none focus:ring-indigo-500"
                 />
                 {errors.phoneNumber && touched.phoneNumber ? (
