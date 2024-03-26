@@ -1,6 +1,5 @@
 'use client'
 import Breadcrumb from "@/components/Breadcrumbs/Breadcrumb";
-import { Metadata } from "next";
 import DefaultLayout from "@/components/Layouts/DefaultLayout";
 import React, { useState, useEffect, useRef } from "react";
 import { useRouter } from "next/navigation";
@@ -8,39 +7,41 @@ import { toast } from "sonner";
 import Avatar from "react-avatar";
 
 
-const Profile = () => {
+export function  Profile() {
   const router = useRouter();
   const userId = "66015c8f8dfd0daff4571cf5";
 
   const [userData, setUserData] = useState<any>({});
 
-  const token = localStorage.getItem('token');
-
   useEffect(() => {
     const fetchUserDetails = async () => {
       try {
-        const response = await fetch('https://flexstay-backend.onrender.com/api/user', {
+        const bearerToken = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VyIjoibmVoZW1pYWgxMjNAZ21haWwuY29tIiwicm9sZSI6ImFkbWluIiwiaWF0IjoxNzExMzY1MjYzLCJleHAiOjE3MTM5NTcyNjN9.-zO1QD0zwiNPxQQ-oBEwuSZqKclwgmWQSB856PJR4VQ';
+        const response = await fetch(`https://flexstay-backend.onrender.com/api/user/${userData._id}`, {
           headers: {
-            'Authorization': `Bearer ${token}`,
+            'Authorization': `Bearer ${userData.token}`,
             'Content-Type': 'application/json'
-          },
+          }
         });
+
         if (response.ok) {
-          const userData = await response.json();
-          setUserData(userData);
+          const data = await response.json();
+          setUserData(data);
         } else {
-          console.error('Failed to fetch user data');
+          const errorData = await response.json();
+          toast.error(errorData.message || "Failed to fetch user details");
+          console.log(errorData.message)
         }
       } catch (error) {
-        console.error('Error fetching user data:', error);
+        console.error("Error occurred:", error);
+        toast.error("Failed to fetch user details");
       }
     };
-  
-    if (token) {
+
+    if (userId) {
       fetchUserDetails();
     }
-  }, [token]);
-  
+  }, [userId]);
   return (
     <DefaultLayout>
       <div className="mx-auto max-w-242.5">
@@ -66,4 +67,3 @@ const Profile = () => {
   );
 };
 
-export default Profile;

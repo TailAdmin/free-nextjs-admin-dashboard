@@ -72,7 +72,7 @@ export default function RoomsPage({ RoomCard }: RoomCards) {
                                 </DropdownMenuTrigger>
                                 <DropdownMenuContent
                                     align="end"
-                                    className=" max-w-sm  bg-white"
+                                    className=" max-w-sm  rounded bg-white"
                                 >
                                     <DrawerDemo  setState={() => setState("")} Trigger={<h1
                                         className=" hover:bg-gray-3 text-sm text-center md:cursor-pointer"

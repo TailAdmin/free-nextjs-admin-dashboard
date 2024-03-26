@@ -43,7 +43,7 @@ export function DrawerDemo({ Trigger, Title, description, setState }: ChangestoR
                 <DrawerTrigger asChild>
                     {Trigger}
                 </DrawerTrigger>
-                <DrawerContent className="bg-white">
+                <DrawerContent className="bg-white px-4">
                     <div className="mx-auto w-full max-w-sm">
                         <DrawerHeader>
                             <div className="py-5">
@@ -73,7 +73,7 @@ export function DrawerDemo({ Trigger, Title, description, setState }: ChangestoR
                     <SheetTrigger asChild>
                         {Trigger}
                     </SheetTrigger>
-                    <SheetContent side="right" className="w-[400px] z-[9999] sm:w-[540px] bg-white" >
+                    <SheetContent side="right" className="w-[400px] z-[9999] sm:w-[540px] px-2 bg-white" >
                         <SheetHeader>
                             <SheetTitle>{Title}</SheetTitle>
                             <SheetDescription>

@@ -28,8 +28,12 @@ const SignIn: React.FC = () => {
         },
       );
       if (response.ok) {
+        const { token } = await response.json();
+        // Store token in local storage
+        localStorage.setItem('token', token);
         toast.success("Logged in successful");
-        router.push("/");
+        // Redirect or perform other actions after successful login
+        router.push('/profile');
       } else {
         const data = await response.json();
         toast.error(data.message || " Something went wrong");
@@ -38,6 +42,7 @@ const SignIn: React.FC = () => {
       console.error("Error occurred:", error);
     }
   };
+  
 
   return (
     <div className="dark:bg-gray-950 flex min-h-screen items-center justify-center px-4">
