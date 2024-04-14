@@ -5,15 +5,15 @@ const pool = mysql.createPool({
     host: 'localhost',
     user: 'root',
     password: 'MindYourBusiness',
-    database: 'fursadashs',
+    database: 'fursadashs1',
 }).promise()
 
 // export default async function getUsers() {
 //   const [rows] = await pool.query("SELECT * FROM seekers UNION SELECT * FROM providers")
 //   return rows
 // }
-export async function postUser(fname,lname, email, phone, status,type, password) {
-  const [result] = await pool.query("INSERT INTO users (fname, lname, email, phone, status, type, password) VALUES (?, ?, ?, ?, ?,?, ?)", [fname, lname, email, phone, status, type, password]);
+export async function postUser(fname,lname,age, email, phone, city, linkedinurl,title ,bio, password) {
+  const [result] = await pool.query("INSERT INTO users (fname,lname,age, email, phone, city, linkedinurl,title ,bio, password) VALUES (?, ?, ?, ?, ?,?, ?,?,?,?)", [fname,lname,age, email, phone, city, linkedinurl,title ,bio, password]);
   return result;
 }
 export async function getUsers() {
@@ -24,15 +24,16 @@ export async function deleteUser(userName) {
   const [result] = await pool.query("DELETE FROM users WHERE userid = ?", [userName]);
   return result;
 }
-export async function updateUser(userName,fname,lname, email, phone, status,type, password) {
-  const [result] = await pool.query("UPDATE users SET  fname=?, lname=?, email=?, phone=?, status=?, type=?, password=?  WHERE userid=?", [fname, lname, email, phone, status, type,password, userName]);
+export async function updateUser(userName,fname,lname,age, email, phone, city, linkedinurl,title ,bio, password) {
+  const [result] = await pool.query("UPDATE users SET  fname=?, lname=?, age= ?, email=?, phone=?, city=?, linkedinurl=?, title=?, bio=?, password=?  WHERE userid=?", [fname,lname,age, email, phone, city, linkedinurl,title ,bio, password, userName]);
   return result;
 }
 
- export async function postJoblisting(providerid, position, labels,company,location,creationdate, status, nbreapplicants, description) {
-  const [result] = await pool.query("INSERT INTO joblisting (providerid, position, labels,company,location,creationdate, status, nbreapplicants, description) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)", [providerid, position, labels,company,location,creationdate, status, nbreapplicants, description]);
+ export async function postJoblisting(companyid, role, title,city,country,created_at, salary,application_deadline,type, description,experience_level) {
+  const [result] = await pool.query("INSERT INTO joblisting (companyid, role, title,city,country,created_at, salary,application_deadline,type, description,experience_level) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)", [companyid, role, title,city,country,created_at, salary,application_deadline,type, description,experience_level]);
   return result;
  }
+
  export async function getJoblisting() {
    const [rows] = await pool.query("SELECT * FROM joblisting");
    return rows;
@@ -41,10 +42,19 @@ export async function updateUser(userName,fname,lname, email, phone, status,type
    const [result] = await pool.query("DELETE FROM joblisting WHERE jobid = ?", [joblistName]);
    return result;
  }
- export async function updateJoblisting(joblistName, position, labels, company, location, creationdate, status, nbreapplicants, description) {
-   const [result] = await pool.query("UPDATE joblisting SET  position=?, labels=?, company=?, location=?, creationdate=?, status=?, nbreapplicants=?, description=? WHERE jobid=?", [ position, labels,company,location, creationdate, status, nbreapplicants, description, joblistName]);
+ export async function updateJoblisting(joblistName, companyid, role, title, city, country, created_at, salary, application_deadline, type, description, experience_level) {
+  // Convert the provided string to a Date object
+  const createdAtDate = new Date(created_at);
+  
+  // Format the Date object as a MySQL-compatible datetime string
+  const formattedCreatedAt = createdAtDate.toISOString().slice(0, 19).replace('T', ' ');
+
+  // Use the formatted datetime string in the SQL query
+  const [result] = await pool.query("UPDATE joblisting SET companyid=?, role=?, title=?, city=?, country=?, created_at=?, salary=?, application_deadline=?, type=?, description=?, experience_level=? WHERE jobid=?", [companyid, role, title, city, country, formattedCreatedAt, salary, application_deadline, type, description, experience_level, joblistName]);
+  
   return result;
- }
+}
+
 
 // export async function getOffers() {
 //   const [rows] = await pool.query("SELECT * FROM offers");
@@ -89,6 +99,28 @@ export async function updateApplication(locationName, status) {
 }
 export async function postApplication(userid,jobid,status) {
   const [result] = await pool.query("INSERT INTO application ( userid,jobid,status) VALUES (?, ?, ?)", [userid,jobid,status]);
+  return result;
+}
+export async function postCompany(companyName, industry, description, city, country, remote, hrEmail, hrPhone, websiteLink) {
+  // Convert 'True' and 'False' strings to boolean values
+  const remoteValue = remote === 'True' ? 1 : 0;
+  
+  const [result] = await pool.query("INSERT INTO company (company_name, industry, description, city, country, remote, hr_email, hr_phone, website_link) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)", [companyName, industry, description, city, country, remoteValue, hrEmail, hrPhone, websiteLink]);
+  return result;
+}
+
+export async function getCompanies() {
+  const [rows] = await pool.query("SELECT * FROM company");
+  return rows;
+}
+
+export async function deleteCompany(companyId) {
+  const [result] = await pool.query("DELETE FROM company WHERE companyid = ?", [companyId]);
+  return result;
+}
+
+export async function updateCompany(companyId, companyName, industry, description, city, country, remote, hrEmail, hrPhone, websiteLink) {
+  const [result] = await pool.query("UPDATE company SET company_name=?, industry=?, description=?, city=?, country=?, remote=?, hr_email=?, hr_phone=?, website_link=? WHERE companyid=?", [companyName, industry, description, city, country, remote, hrEmail, hrPhone, websiteLink, companyId]);
   return result;
 }
 

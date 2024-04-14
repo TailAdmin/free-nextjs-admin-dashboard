@@ -5,40 +5,48 @@ import dynamic from 'next/dynamic';
 
 interface Joblisting {
   jobid:number;
-  providerid:number;
-  position: string;
-  labels: string;
-  company: string;
-  location: string;
-  creationdate: string;
-  status: string;
-  nbreapplicants: string;
+  companyid:number;
+  role: string;
+  title: string;
+  city: string;
+  country: string;                       
+  created_at: Date;
+  salary: string;
+  application_deadline: string;
+  type:string;
   description:string;
+  experience_level:string;
+
 }
 
 const TableThree = () => {
   const url = "http://localhost:8000/joblisting";
   const [joblisting, setjoblisting] = useState<Joblisting[]>([]);
   const [editingRow, setEditingRow] = useState<number | null>(null);
-  const [editedPosition, setEditedPosition] = useState("");
-  const [editedLabels, setEditedLabels] = useState("");
-  const [editedCompany, setEditedCompany] = useState("");
-  const [editedLocation, setEditedLocation] = useState("");
-  const [editedCreationdate, setEditedCreationdate] = useState("");
-  const [editedStatus, setEditedStatus] = useState("");
-  const [editedNbreapplicants, setEditedNbreapplicants] = useState("");
+  const [editedCompanyid, setEditedCompanyid] = useState<number>(0);
+  const [editedRole, setEditedRole] = useState("");
+  const [editedTitle, setEditedTitle] = useState("");
+  const [editedCity, setEditedCity] = useState("");
+  const [editedCountry, setEditedCountry] = useState("");
+  const [editedCreated_at, setEditedCreated_at] = useState<Date | null>(null);
+  const [editedSalary, setEditedSalary] = useState("");
+  const [editedApplication_deadline, setEditedApplication_deadline] = useState("");
+  const [editedType, setEditedType] = useState("");
   const [editedDescription, setEditedDescription] = useState("");
+  const [editedExperience_level, setEditedExperience_level] = useState("");
    // New states for pop-up
    const [isAddUserPopupOpen, setAddUserPopupOpen] = useState(false);
-   const [newUserProviderid, setNewUserProviderid] = useState("");
-   const [newUserPosition, setNewUserPosition] = useState("");
-   const [newUserLabels, setNewUserLabels] = useState("");
-   const [newUserCompany, setNewUserCompany] = useState("");
-   const [newUserLocation, setNewUserLocation] = useState("");
-   const [newUserCreationdate, setNewUserCreationdate] = useState("");
-   const [newUserStatus, setNewUserStatus] = useState("");
-   const [newUserNbreapplicants, setNewUserNbreapplicants] = useState("");
+   const [newUserCompanyid, setNewUserCompanyid] = useState<number>(0);
+   const [newUserRole, setNewUserRole] = useState("");
+   const [newUserTitle, setNewUserTitle] = useState("");
+   const [newUserCity, setNewUserCity] = useState("");
+   const [newUserCountry, setNewUserCountry] = useState("");
+   const [newUserCreated_at, setNewUserCreated_at] = useState<Date | null>(null);
+   const [newUserSalary, setNewUserSalary] = useState("");
+   const [newUserApplication_deadline, setNewUserApplication_deadline] = useState("");
+   const [newUserType, setNewUserType] = useState("");
    const [newUserDescription, setNewUserDescription] = useState("");
+   const [newUserExperience_level, setNewUserExperience_level] = useState("");
   useEffect(() => {
   axios
   .get(url)
@@ -64,14 +72,17 @@ const TableThree = () => {
   const handleEditClick = (index: number) => {
     setEditingRow(index);
    
-    setEditedPosition(joblisting[index].position);
-    setEditedLabels(joblisting[index].labels);
-    setEditedCompany(joblisting[index].company);
-    setEditedLocation(joblisting[index].location);
-    setEditedCreationdate(joblisting[index].creationdate);
-    setEditedStatus(joblisting[index].status);
-    setEditedNbreapplicants(joblisting[index].nbreapplicants);
+    setEditedCompanyid(joblisting[index].companyid);
+    setEditedRole(joblisting[index].role);
+    setEditedTitle(joblisting[index].title);
+    setEditedCity(joblisting[index].city);
+    setEditedCountry(joblisting[index].country);
+    setEditedCreated_at(joblisting[index].created_at);
+    setEditedSalary(joblisting[index].salary);
+    setEditedApplication_deadline(joblisting[index].application_deadline);
+    setEditedType(joblisting[index].type);
     setEditedDescription(joblisting[index].description);
+    setEditedExperience_level(joblisting[index].experience_level);
   };
 
   const handleSaveClick = async (index: number) => {
@@ -80,14 +91,17 @@ const TableThree = () => {
       // Make a PUT request to update the provider data on the server
       await axios.put(`http://localhost:8000/joblisting/${encodeURIComponent(joblisting[index].jobid)}`, {
         
-        position: editedPosition,
-        Labels: editedLabels,
-        company: editedCompany,
-        location: editedLocation,
-        creationdate: editedCreationdate,
-        status: editedStatus,
-        nbreapplicants: editedNbreapplicants,
+        companyid: editedCompanyid,
+        role: editedRole,
+        title: editedTitle,
+        city: editedCity,
+        country: editedCountry,
+        created_at: editedCreated_at,
+        salary: editedSalary,
+        application_deadline: editedApplication_deadline,
+        type: editedType,
         description: editedDescription,
+        experience_level: editedExperience_level,
       });
   
       // Update the local state with the edited values
@@ -96,20 +110,22 @@ const TableThree = () => {
           i === index
             ? {
                 ...joblisting,
-                
-                position: editedPosition,
-        Labels: editedLabels,
-        company: editedCompany,
-        location: editedLocation,
-        creationdate: editedCreationdate,
-        status: editedStatus,
-        nbreapplicants: editedNbreapplicants,
-        descriptions: editedDescription,
+                companyid: editedCompanyid,
+                role: editedRole,
+                title: editedTitle,
+                city: editedCity,
+                country: editedCountry,
+                created_at: editedCreated_at as Date,
+                salary: editedSalary,
+                application_deadline: editedApplication_deadline,
+                type: editedType,
+                description: editedDescription,
+                experience_level: editedExperience_level,
               }
             : joblisting
         )
       );
-  
+      
       setEditingRow(null); // Reset editing state after saving
     } catch (error) {
       console.error(error);
@@ -125,15 +141,17 @@ const handleOpenPopup = () => {
 const handleClosePopup = () => {
   setAddUserPopupOpen(false);
   // Reset input fields when closing the pop-up
-  setNewUserPosition("");
-  setNewUserProviderid("");
-  setNewUserLabels("");
-  setNewUserCompany("");
-  setNewUserLocation("");
-  setNewUserCreationdate("");
-  setNewUserStatus("");
-  setNewUserNbreapplicants("");
+  setNewUserCompanyid(0);
+  setNewUserRole("");
+  setNewUserTitle("");
+  setNewUserCity("");
+  setNewUserCountry("");
+  setNewUserCreated_at(null);
+  setNewUserSalary("");
+  setNewUserApplication_deadline("");
+  setNewUserType("");
   setNewUserDescription("");
+  setNewUserExperience_level("");
 };
 
 // Function to handle adding a new user
@@ -141,15 +159,17 @@ const handleAddUser = async () => {
   try {
     // Make a POST request to add a new user to the server
     await axios.post("http://localhost:8000/joblisting", {
-      providerid:newUserProviderid,
-      position: newUserPosition,
-      labels: newUserLabels,
-      company: newUserCompany,
-      location: newUserLocation,
-      creationdate: newUserCreationdate,
-      status: newUserStatus,
-      nbreapplicants: newUserNbreapplicants,
+      companyid:newUserCompanyid,
+      role: newUserRole,
+      title: newUserTitle,
+      city: newUserCity,
+      country: newUserCountry,
+      created_at: newUserCreated_at,
+      salary: newUserSalary,
+      application_deadline: newUserApplication_deadline,
+      type: newUserType,
       description: newUserDescription,
+      experience_level: newUserExperience_level,
     });
     
     // Refresh the list of providers
@@ -182,34 +202,38 @@ const handleAddUser = async () => {
                 Jobid
               </th>
               <th className="min-w-[220px] px-4 py-4 font-medium text-black dark:text-white xl:pl-11">
-                Providerid
+                companyid
               </th>
               <th className="min-w-[150px] px-4 py-4 font-medium text-black dark:text-white">
-                Position
+                role
               </th>
               <th className="min-w-[120px] px-4 py-4 font-medium text-black dark:text-white">
-                Labels
+                title
               </th>
               <th className="min-w-[120px] px-4 py-4 font-medium text-black dark:text-white">
-                Company
+                City
               </th>
               <th className="min-w-[120px] px-4 py-4 font-medium text-black dark:text-white">
-                Location
+                country
               </th>
               <th className="min-w-[120px] px-4 py-4 font-medium text-black dark:text-white">
-                Creation Date
+                Created At
+              </th>
+  
+              <th className="min-w-[120px] px-4 py-4 font-medium text-black dark:text-white">
+                Salary
               </th>
               <th className="min-w-[120px] px-4 py-4 font-medium text-black dark:text-white">
-                Status
+                Application Deadline
               </th>
               <th className="min-w-[120px] px-4 py-4 font-medium text-black dark:text-white">
-                Nbre of Applicants
+                Type
               </th>
               <th className="min-w-[120px] px-4 py-4 font-medium text-black dark:text-white">
                 Description
               </th>
-              <th className="px-4 py-4 font-medium text-black dark:text-white">
-                Actions
+              <th className="min-w-[120px] px-4 py-4 font-medium text-black dark:text-white">
+                Experience Level
               </th>
             </tr>
           </thead>
@@ -224,7 +248,7 @@ const handleAddUser = async () => {
                 </td>
                   <td className="border-b border-[#eee] px-4 py-5 pl-9 dark:border-strokedark xl:pl-11">
                   <h5 className="font-medium text-black dark:text-white">
-                    {item.providerid}
+                    {item.companyid}
                   </h5>
                   
                 </td>
@@ -232,89 +256,92 @@ const handleAddUser = async () => {
         {editingRow === key ? (
           <input
             type="text"
-            value={editedPosition}
-            onChange={(e) => setEditedPosition(e.target.value)}
+            value={editedRole}
+            onChange={(e) => setEditedRole(e.target.value)}
           />
         ) : (
-          <h5 className="font-medium text-black dark:text-white">{item.position}</h5>
+          <h5 className="font-medium text-black dark:text-white">{item.role}</h5>
         )}
       </td>
       <td className="border-b border-[#eee] px-4 py-5 pl-9 dark:border-strokedark xl:pl-11">
         {editingRow === key ? (
           <input
             type="text"
-            value={editedLabels}
-            onChange={(e) => setEditedLabels(e.target.value)}
+            value={editedTitle}
+            onChange={(e) => setEditedTitle(e.target.value)}
           />
         ) : (
-          <h5 className="font-medium text-black dark:text-white">{item.labels}</h5>
+          <h5 className="font-medium text-black dark:text-white">{item.title}</h5>
         )}
       </td>
       <td className="border-b border-[#eee] px-4 py-5 pl-9 dark:border-strokedark xl:pl-11">
         {editingRow === key ? (
           <input
             type="text"
-            value={editedCompany}
-            onChange={(e) => setEditedCompany(e.target.value)}
+            value={editedCity}
+            onChange={(e) => setEditedCity(e.target.value)}
           />
         ) : (
-          <h5 className="font-medium text-black dark:text-white">{item.company}</h5>
+          <h5 className="font-medium text-black dark:text-white">{item.city}</h5>
         )}
       </td>     
       <td className="border-b border-[#eee] px-4 py-5 pl-9 dark:border-strokedark xl:pl-11">
         {editingRow === key ? (
           <input
             type="text"
-            value={editedLocation}
-            onChange={(e) => setEditedLocation(e.target.value)}
+            value={editedCountry}
+            onChange={(e) => setEditedCountry(e.target.value)}
           />
         ) : (
-          <h5 className="font-medium text-black dark:text-white">{item.location}</h5>
+          <h5 className="font-medium text-black dark:text-white">{item.country}</h5>
         )}
       </td>      
       <td className="border-b border-[#eee] px-4 py-5 pl-9 dark:border-strokedark xl:pl-11">
-        {editingRow === key ? (
-          <input
-            type="text"
-            value={editedCreationdate}
-            onChange={(e) => setEditedCreationdate(e.target.value)}
-          />
-        ) : (
-          <h5 className="font-medium text-black dark:text-white">{item.creationdate}</h5>
-        )}
-      </td>
-      <td className="border-b border-[#eee] px-4 py-5 dark:border-strokedark">
   {editingRow === key ? (
-    <select
-      value={editedStatus}
-      onChange={(e) => setEditedStatus(e.target.value)}
-    >
-      <option value="Posted">Posted</option>
-      <option value="Retreived">Retreived</option>
-    </select>
+    
+
+    <input
+    type="date" // Assuming you only need the date part
+    value={newUserCreated_at ? newUserCreated_at.toISOString().split('T')[0] : ''} // Convert Date to string
+    onChange={(e) => setNewUserCreated_at(new Date(e.target.value))}
+    className="border p-2 w-full"
+  />
+  
   ) : (
-    <p
-      className={`inline-flex rounded-full bg-opacity-10 px-3 py-1 text-sm font-medium ${
-        item.status === "Posted"
-          ? "bg-success text-success"
-          : item.status === "Retreived"
-          ? "bg-danger text-danger"
-          : "bg-warning text-warning"
-      }`}
-    >
-      {item.status}
-    </p>
+    <h5 className="font-medium text-black dark:text-white">{item.created_at.toLocaleString()}</h5>
   )}
 </td>
 <td className="border-b border-[#eee] px-4 py-5 pl-9 dark:border-strokedark xl:pl-11">
         {editingRow === key ? (
           <input
             type="text"
-            value={editedNbreapplicants}
-            onChange={(e) => setEditedNbreapplicants(e.target.value)}
+            value={editedSalary}
+            onChange={(e) => setEditedSalary(e.target.value)}
           />
         ) : (
-          <h5 className="font-medium text-black dark:text-white">{item.nbreapplicants}</h5>
+          <h5 className="font-medium text-black dark:text-white">{item.salary}</h5>
+        )}
+      </td> 
+<td className="border-b border-[#eee] px-4 py-5 pl-9 dark:border-strokedark xl:pl-11">
+        {editingRow === key ? (
+          <input
+            type="text"
+            value={editedApplication_deadline}
+            onChange={(e) => setEditedApplication_deadline(e.target.value)}
+          />
+        ) : (
+          <h5 className="font-medium text-black dark:text-white">{item.application_deadline}</h5>
+        )}
+      </td> 
+      <td className="border-b border-[#eee] px-4 py-5 pl-9 dark:border-strokedark xl:pl-11">
+        {editingRow === key ? (
+          <input
+            type="text"
+            value={editedType}
+            onChange={(e) => setEditedType(e.target.value)}
+          />
+        ) : (
+          <h5 className="font-medium text-black dark:text-white">{item.type}</h5>
         )}
       </td>  
       <td className="border-b border-[#eee] px-4 py-5 pl-9 dark:border-strokedark xl:pl-11">
@@ -328,82 +355,99 @@ const handleAddUser = async () => {
           <h5 className="font-medium text-black dark:text-white">{item.description}</h5>
         )}
       </td> 
+      <td className="border-b border-[#eee] px-4 py-5 pl-9 dark:border-strokedark xl:pl-11">
+        {editingRow === key ? (
+          <input
+            type="text"
+            value={editedExperience_level}
+            onChange={(e) => setEditedExperience_level(e.target.value)}
+          />
+        ) : (
+          <h5 className="font-medium text-black dark:text-white">{item.experience_level}</h5>
+        )}
+      </td> 
 {isAddUserPopupOpen && (
           <div className="fixed inset-0 z-50 flex items-center justify-center overflow-y-auto" >
             <div className="bg-white p-6 rounded-md shadow-md max-h-[80vh] overflow-y-auto">
               <h2 className="text-lg font-semibold mb-4">Add New Job Offer</h2>
               <div className="mb-4">
-                <label className="block text-sm font-medium text-gray-700">Providerid</label>
+                <label className="block text-sm font-medium text-gray-700">Companyid</label>
                 <input
-                  type="text"
-                  value={newUserProviderid}
-                  onChange={(e) => setNewUserProviderid(e.target.value)}
+                  type="number"
+                  value={newUserCompanyid}
+                  onChange={(e) => setNewUserCompanyid(parseInt(e.target.value))}
                   className="border p-2 w-full"
                 />
               </div>
               <div className="mb-4">
-                <label className="block text-sm font-medium text-gray-700">Position</label>
+                <label className="block text-sm font-medium text-gray-700">Role</label>
                 <input
                   type="text"
-                  value={newUserPosition}
-                  onChange={(e) => setNewUserPosition(e.target.value)}
+                  value={newUserRole}
+                  onChange={(e) => setNewUserRole(e.target.value)}
                   className="border p-2 w-full"
                 />
               </div>
               <div className="mb-4">
-                <label className="block text-sm font-medium text-gray-700">Labels</label>
+                <label className="block text-sm font-medium text-gray-700">Title</label>
                 <input
                   type="text"
-                  value={newUserLabels}
-                  onChange={(e) => setNewUserLabels(e.target.value)}
+                  value={newUserTitle}
+                  onChange={(e) => setNewUserTitle(e.target.value)}
                   className="border p-2 w-full"
                 />
               </div>
               <div className="mb-4">
-                <label className="block text-sm font-medium text-gray-700">Company</label>
+                <label className="block text-sm font-medium text-gray-700">City</label>
                 <input
                   type="text"
-                  value={newUserCompany}
-                  onChange={(e) => setNewUserCompany(e.target.value)}
+                  value={newUserCity}
+                  onChange={(e) => setNewUserCity(e.target.value)}
                   className="border p-2 w-full"
                 />
               </div>
               <div className="mb-4">
-                <label className="block text-sm font-medium text-gray-700">Location</label>
+                <label className="block text-sm font-medium text-gray-700">Country</label>
                 <input
                   type="text"
-                  value={newUserLocation}
-                  onChange={(e) => setNewUserLocation(e.target.value)}
+                  value={newUserCountry}
+                  onChange={(e) => setNewUserCountry(e.target.value)}
                   className="border p-2 w-full"
                 />
               </div>
               <div className="mb-4">
                 <label className="block text-sm font-medium text-gray-700">Creation Date</label>
                 <input
+                type="date" // Assuming you only need the date part
+                value={newUserCreated_at ? newUserCreated_at.toISOString().split('T')[0] : ''} // Convert Date to string
+                onChange={(e) => setNewUserCreated_at(new Date(e.target.value))}
+                className="border p-2 w-full"
+                />
+              </div>
+              <div className="mb-4">
+                <label className="block text-sm font-medium text-gray-700">Salary</label>
+                <input
                   type="text"
-                  value={newUserCreationdate}
-                  onChange={(e) => setNewUserCreationdate(e.target.value)}
+                  value={newUserSalary}
+                  onChange={(e) => setNewUserSalary(e.target.value)}
                   className="border p-2 w-full"
                 />
               </div>
               <div className="mb-4">
-  <label className="block text-sm font-medium text-gray-700">Status</label>
-  <select
-    value={newUserStatus}
-    onChange={(e) => setNewUserStatus(e.target.value)}
-    className="border p-2 w-full"
-  >
-    <option value="">Select Status</option>
-    <option value="Posted">Posted</option>
-    <option value="Retreived">Retreived</option>
-  </select>
-</div>
-<div className="mb-4">
-                <label className="block text-sm font-medium text-gray-700">Nbre of applications</label>
+                <label className="block text-sm font-medium text-gray-700">Application Deadline</label>
                 <input
                   type="text"
-                  value={newUserNbreapplicants}
-                  onChange={(e) => setNewUserNbreapplicants(e.target.value)}
+                  value={newUserApplication_deadline}
+                  onChange={(e) => setNewUserApplication_deadline(e.target.value)}
+                  className="border p-2 w-full"
+                />
+              </div>
+              <div className="mb-4">
+                <label className="block text-sm font-medium text-gray-700">Type</label>
+                <input
+                  type="text"
+                  value={newUserType}
+                  onChange={(e) => setNewUserType(e.target.value)}
                   className="border p-2 w-full"
                 />
               </div>
@@ -416,12 +460,22 @@ const handleAddUser = async () => {
                   className="border p-2 w-full"
                 />
               </div>
+              <div className="mb-4">
+                <label className="block text-sm font-medium text-gray-700">Experience Level</label>
+                <input
+                  type="text"
+                  value={newUserExperience_level}
+                  onChange={(e) => setNewUserExperience_level(e.target.value)}
+                  className="border p-2 w-full"
+                />
+              </div>
+
               <div className="flex justify-end">
                 <button onClick={handleClosePopup} className="mr-2 bg-gray-300 px-4 py-2 rounded">
                   Cancel
                 </button>
                 <button onClick={handleAddUser} className="bg-primary text-white px-4 py-2 rounded">
-                  Add User
+                  Add Job Offer
                 </button>
               </div>
             </div>
