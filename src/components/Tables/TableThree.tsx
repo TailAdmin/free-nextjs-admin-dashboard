@@ -3,85 +3,116 @@ import { useState, useEffect } from "react";
 import axios from "axios";
 import dynamic from 'next/dynamic';
 
-interface Offer {
-  name: string;
-  category: string;
-  creationDate: string;
-  status: string;
+interface Company {
+  companyid: number;
+  company_name: string;
+  industry: string;
+  description: string;
+  city: string;
+  country: string;
+  remote: boolean;
+  hr_email: string;
+  hr_phone: string;
+  website_link: string;
 }
 
 
+
 const TableThree = () => {
-  const url = "http://localhost:8000/offers";
-  const [offers, setoffers] = useState<Offer[]>([]);
+  const url = "http://localhost:8000/company";
+  const [companies, setCompanies] = useState<Company[]>([]);
   const [editingRow, setEditingRow] = useState<number | null>(null);
-  const [editedCategory, setEditedCategory] = useState("");
-  const [editedcreationDate, setEditedcreationDate] = useState("");
-  const [editedStatus, setEditedStatus] = useState("");
+  const [editedIndustry, setEditedIndustry] = useState("");
+  const [editedDescription, setEditedDescription] = useState("");
+  const [editedCity, setEditedCity] = useState("");
+  const [editedCountry, setEditedCountry] = useState("");
+  const [editedRemote, setEditedRemote] = useState(false);
+  const [editedHREmail, setEditedHREmail] = useState("");
+  const [editedHRPhone, setEditedHRPhone] = useState("");
+  const [editedWebsiteLink, setEditedWebsiteLink] = useState("");
+  const [editedCompanyName, setEditedCompanyName] = useState("");
 // New states for pop-up
 const [isAddUserPopupOpen, setAddUserPopupOpen] = useState(false);
-const [newUserName, setNewUserName] = useState("");
-const [newUserCategory, setNewUserCategory] = useState("");
-const [newUsercreationDate, setNewUsercreationDate] = useState("");
-const [newUserStatus, setNewUserStatus] = useState("");
-
-  useEffect(() => {
-    axios
+const [newUserCompanyName, setNewUserCompanyName] = useState("");
+const [newUserIndustry, setNewUserIndustry] = useState("");
+const [newUserDescription, setNewUserDescription] = useState("");
+const [newUserCity, setNewUserCity] = useState("");
+const [newUserCountry, setNewUserCountry] = useState("");
+const [newUserRemote, setNewUserRemote] = useState("");
+const [newUserHREmail, setNewUserHREmail] = useState("");
+const [newUserHRPhone, setNewUserHRPhone] = useState("");
+const [newUserWebsiteLink, setNewUserWebsiteLink] = useState("");
+useEffect(() => {
+  axios
     .get(url)
     .then((res) => {
-    setoffers(res.data);
-    console.log(res);
+      setCompanies(res.data);
+      console.log(res);
     })
     .catch((err) => {
-    console.log(err);
+      console.log(err);
     });
-    }, []);
+}, []);
 
-    const handleDeleteOffer = async (offerName: string) => {
-      try {
-        // Make a DELETE request to the server using the name
-        await axios.delete(`http://localhost:8000/offers/${encodeURIComponent(offerName)}`);
-        // Update the local state to remove the deleted provider
-        setoffers((prevOffers) => prevOffers.filter((offer) => offer.name !== offerName));
-      } catch (error) {
-        console.error(error);
-      }
-    };
+
+const handleDeleteCompany = async (companyId: number) => {
+  try {
+    await axios.delete(`http://localhost:8000/company/${companyId}`);
+    setCompanies((prevCompanies) => prevCompanies.filter((company) => company.companyid !== companyId));
+  } catch (error) {
+    console.error(error);
+  }
+};
     const handleEditClick = (index: number) => {
       setEditingRow(index);
      
-      setEditedCategory(offers[index].category);
-      setEditedcreationDate(offers[index].creationDate);
-      setEditedStatus(offers[index].status);
+      const company = companies[index];
+      setEditedCompanyName(company.company_name);
+      setEditedIndustry(company.industry);
+      setEditedDescription(company.description);
+      setEditedCity(company.city);
+      setEditedCountry(company.country);
+      setEditedRemote(company.remote);
+      setEditedHREmail(company.hr_email);
+      setEditedHRPhone(company.hr_phone);
+      setEditedWebsiteLink(company.website_link);
     };
   
     const handleSaveClick = async (index: number) => {
-      // Save the edited data to the server 
       try {
-        // Make a PUT request to update the provider data on the server
-        await axios.put(`http://localhost:8000/offers/${encodeURIComponent(offers[index].name)}`, {
-          
-          category: editedCategory,
-          creationDate: editedcreationDate,
-          status: editedStatus,
+        const companyId = companies[index].companyid;
+        await axios.put(`http://localhost:8000/company/${companyId}`, {
+          company_name: editedCompanyName,  
+          industry: editedIndustry,
+          description: editedDescription,
+          city: editedCity,
+          country: editedCountry,
+          remote: editedRemote,
+          hr_email: editedHREmail,
+          hr_phone: editedHRPhone,
+          website_link: editedWebsiteLink,
         });
     
-        // Update the local state with the edited values
-        setoffers((prevOffers) =>
-          prevOffers.map((offer, i) =>
+        setCompanies((prevCompanies) =>
+          prevCompanies.map((company, i) =>
             i === index
               ? {
-                  ...offer,
-                  
-                  category: editedCategory,
-                  creationDate: editedcreationDate,
-                  status: editedStatus,
+                  ...company,
+                  company_name: editedCompanyName,  
+                  industry: editedIndustry,
+                  description: editedDescription,
+                  city: editedCity,
+                  country: editedCountry,
+                  remote: editedRemote,
+                  hr_email: editedHREmail,
+                  hr_phone: editedHRPhone,
+                  website_link: editedWebsiteLink,
                 }
-              : offer
+              : company
           )
         );
     
-        setEditingRow(null); // Reset editing state after saving
+        setEditingRow(null);
       } catch (error) {
         console.error(error);
       }
@@ -94,27 +125,36 @@ const handleOpenPopup = () => {
 // Function to handle closing the pop-up
 const handleClosePopup = () => {
   setAddUserPopupOpen(false);
-  // Reset input fields when closing the pop-up
-  setNewUserName("");
-  setNewUserCategory("");
-  setNewUsercreationDate("");
-  setNewUserStatus("");
+  setNewUserCompanyName("");
+  setNewUserIndustry("");
+  setNewUserDescription("");
+  setNewUserCity("");
+  setNewUserCountry("");
+  setNewUserRemote("");
+  setNewUserHREmail("");
+  setNewUserHRPhone("");
+  setNewUserWebsiteLink("");
 };
 
 // Function to handle adding a new user
 const handleAddUser = async () => {
   try {
     // Make a POST request to add a new user to the server
-    await axios.post("http://localhost:8000/offers", {
-      name: newUserName,
-      category: newUserCategory,
-      creationDate: newUsercreationDate,
-      status: newUserStatus,
+    await axios.post("http://localhost:8000/company", {
+      companyName: newUserCompanyName,  
+      industry: newUserIndustry,
+      description: newUserDescription,
+      city: newUserCity,
+      country: newUserCountry,
+      remote: newUserRemote,
+      hrEmail: newUserHREmail,
+      hrPhone: newUserHRPhone,
+      websiteLink: newUserWebsiteLink,
     });
     
     // Refresh the list of providers
     const res = await axios.get(url);
-    setoffers(res.data);
+    setCompanies(res.data);
 
     // Close the pop-up
     handleClosePopup();
@@ -127,26 +167,41 @@ const handleAddUser = async () => {
       <div className="max-w-full overflow-x-auto">
       <div className="flex justify-between items-center mb-6">
   <h4 className="text-xl font-semibold text-black dark:text-white">
-    Job Offers' List
+    Companies' List
   </h4>
   <button onClick={handleOpenPopup} className="bg-primary text-white px-4 py-2 rounded">
-    Add New Job Offer
+    Add New Company
   </button>
 </div>
         <table className="w-full table-auto">
           <thead>
             <tr className="bg-gray-2 text-left dark:bg-meta-4">
               <th className="min-w-[220px] px-4 py-4 font-medium text-black dark:text-white xl:pl-11">
-                Company 
+                Company Name
               </th>
               <th className="min-w-[150px] px-4 py-4 font-medium text-black dark:text-white">
-                Creation date
+                Industry
               </th>
               <th className="min-w-[120px] px-4 py-4 font-medium text-black dark:text-white">
-                Category
+                Descripion
               </th>
               <th className="min-w-[120px] px-4 py-4 font-medium text-black dark:text-white">
-                Status
+                City
+              </th>
+              <th className="min-w-[120px] px-4 py-4 font-medium text-black dark:text-white">
+                Country
+              </th>
+              <th className="min-w-[120px] px-4 py-4 font-medium text-black dark:text-white">
+                Remote
+              </th>
+              <th className="min-w-[120px] px-4 py-4 font-medium text-black dark:text-white">
+                HR Email
+              </th>
+              <th className="min-w-[120px] px-4 py-4 font-medium text-black dark:text-white">
+                HR Phone
+              </th>
+              <th className="min-w-[120px] px-4 py-4 font-medium text-black dark:text-white">
+                Website Link
               </th>
               <th className="px-4 py-4 font-medium text-black dark:text-white">
                 Actions
@@ -154,11 +209,11 @@ const handleAddUser = async () => {
             </tr>
           </thead>
           <tbody>
-            {offers.map((item, key) => (
+            {companies.map((item, key) => (
               <tr key={key}>
                 <td className="border-b border-[#eee] px-4 py-5 pl-9 dark:border-strokedark xl:pl-11">
                   <h5 className="font-medium text-black dark:text-white">
-                    {item.name}
+                    {item.company_name}
                   </h5>
                   
                 </td>
@@ -166,97 +221,186 @@ const handleAddUser = async () => {
         {editingRow === key ? (
           <input
             type="text"
-            value={editedcreationDate}
-            onChange={(e) => setEditedcreationDate(e.target.value)}
+            value={editedIndustry}
+            onChange={(e) => setEditedIndustry(e.target.value)}
           />
         ) : (
-          <h5 className="font-medium text-black dark:text-white">{item.creationDate}</h5>
+          <h5 className="font-medium text-black dark:text-white">{item.industry}</h5>
         )}
       </td>
       <td className="border-b border-[#eee] px-4 py-5 pl-9 dark:border-strokedark xl:pl-11">
         {editingRow === key ? (
           <input
             type="text"
-            value={editedCategory}
-            onChange={(e) => setEditedCategory(e.target.value)}
+            value={editedDescription}
+            onChange={(e) => setEditedDescription(e.target.value)}
           />
         ) : (
-          <h5 className="font-medium text-black dark:text-white">{item.category}</h5>
+          <h5 className="font-medium text-black dark:text-white">{item.description}</h5>
         )}
       </td>
-                
-      <td className="border-b border-[#eee] px-4 py-5 dark:border-strokedark">
-  {editingRow === key ? (
-    <select
-      value={editedStatus}
-      onChange={(e) => setEditedStatus(e.target.value)}
-    >
-      <option value="Posted">Posted</option>
-      <option value="Retreived">Retreived</option>
-    </select>
-  ) : (
-    <p
-      className={`inline-flex rounded-full bg-opacity-10 px-3 py-1 text-sm font-medium ${
-        item.status === "Posted"
-          ? "bg-success text-success"
-          : item.status === "Retreived"
-          ? "bg-danger text-danger"
-          : "bg-warning text-warning"
-      }`}
-    >
-      {item.status}
-    </p>
-  )}
-</td>
+      <td className="border-b border-[#eee] px-4 py-5 pl-9 dark:border-strokedark xl:pl-11">
+        {editingRow === key ? (
+          <input
+            type="text"
+            value={editedCity}
+            onChange={(e) => setEditedCity(e.target.value)}
+          />
+        ) : (
+          <h5 className="font-medium text-black dark:text-white">{item.city}</h5>
+        )}
+      </td>  
+      <td className="border-b border-[#eee] px-4 py-5 pl-9 dark:border-strokedark xl:pl-11">
+        {editingRow === key ? (
+          <input
+            type="text"
+            value={editedCountry}
+            onChange={(e) => setEditedCountry(e.target.value)}
+          />
+        ) : (
+          <h5 className="font-medium text-black dark:text-white">{item.country}</h5>
+        )}
+      </td>    
+      <td className="border-b border-[#eee] px-4 py-5 pl-9 dark:border-strokedark xl:pl-11">
+        {editingRow === key ? (
+          <select
+            value={editedRemote ? "true" : "false"} // Convert boolean to string
+            onChange={(e) => setEditedRemote(e.target.value === "true")} // Convert string to boolean
+          >
+            <option value="true">True</option>
+            <option value="false">False</option>
+          </select>
+        ) : (
+          <h5 className="font-medium text-black dark:text-white">{item.remote ? "True" : "False"}</h5>
+        )}
+      </td>
+      <td className="border-b border-[#eee] px-4 py-5 pl-9 dark:border-strokedark xl:pl-11">
+        {editingRow === key ? (
+          <input
+            type="text"
+            value={editedHREmail}
+            onChange={(e) => setEditedHREmail(e.target.value)}
+          />
+        ) : (
+          <h5 className="font-medium text-black dark:text-white">{item.hr_email}</h5>
+        )}
+      </td>  
+      <td className="border-b border-[#eee] px-4 py-5 pl-9 dark:border-strokedark xl:pl-11">
+        {editingRow === key ? (
+          <input
+            type="text"
+            value={editedHRPhone}
+            onChange={(e) => setEditedHRPhone(e.target.value)}
+          />
+        ) : (
+          <h5 className="font-medium text-black dark:text-white">{item.hr_phone}</h5>
+        )}
+      </td>  
+      <td className="border-b border-[#eee] px-4 py-5 pl-9 dark:border-strokedark xl:pl-11">
+        {editingRow === key ? (
+          <input
+            type="text"
+            value={editedWebsiteLink}
+            onChange={(e) => setEditedWebsiteLink(e.target.value)}
+          />
+        ) : (
+          <h5 className="font-medium text-black dark:text-white">{item.website_link}</h5>
+        )}
+      </td> 
 {isAddUserPopupOpen && (
-          <div className="fixed inset-0 z-50 flex items-center justify-center" >
-            <div className="bg-white p-6 rounded-md shadow-md">
-              <h2 className="text-lg font-semibold mb-4">Add New User</h2>
+             <div className="fixed inset-0 z-50 flex items-center justify-center overflow-y-auto" >
+             <div className="bg-white p-6 rounded-md shadow-md max-h-[80vh] overflow-y-auto">
+              <h2 className="text-lg font-semibold mb-4">Add New Company</h2>
               <div className="mb-4">
                 <label className="block text-sm font-medium text-gray-700">Company Name</label>
                 <input
                   type="text"
-                  value={newUserName}
-                  onChange={(e) => setNewUserName(e.target.value)}
+                  value={newUserCompanyName}
+                  onChange={(e) => setNewUserCompanyName(e.target.value)}
                   className="border p-2 w-full"
                 />
               </div>
               <div className="mb-4">
-                <label className="block text-sm font-medium text-gray-700">Category</label>
+                <label className="block text-sm font-medium text-gray-700">Industry</label>
                 <input
                   type="text"
-                  value={newUserCategory}
-                  onChange={(e) => setNewUserCategory(e.target.value)}
+                  value={newUserIndustry}
+                  onChange={(e) => setNewUserIndustry(e.target.value)}
                   className="border p-2 w-full"
                 />
               </div>
               <div className="mb-4">
-                <label className="block text-sm font-medium text-gray-700">creation date</label>
+                <label className="block text-sm font-medium text-gray-700">Description</label>
                 <input
                   type="text"
-                  value={newUsercreationDate}
-                  onChange={(e) => setNewUsercreationDate(e.target.value)}
+                  value={newUserDescription}
+                  onChange={(e) => setNewUserDescription(e.target.value)}
                   className="border p-2 w-full"
                 />
               </div>
               <div className="mb-4">
-  <label className="block text-sm font-medium text-gray-700">Status</label>
+                <label className="block text-sm font-medium text-gray-700">City</label>
+                <input
+                  type="text"
+                  value={newUserCity}
+                  onChange={(e) => setNewUserCity(e.target.value)}
+                  className="border p-2 w-full"
+                />
+              </div>
+              <div className="mb-4">
+                <label className="block text-sm font-medium text-gray-700">Country</label>
+                <input
+                  type="text"
+                  value={newUserCountry}
+                  onChange={(e) => setNewUserCountry(e.target.value)}
+                  className="border p-2 w-full"
+                />
+              </div>
+              <div className="mb-4">
+  <label className="block text-sm font-medium text-gray-700">Remote</label>
   <select
-    value={newUserStatus}
-    onChange={(e) => setNewUserStatus(e.target.value)}
+    value={newUserRemote}
+    onChange={(e) => setNewUserRemote(e.target.value)}
     className="border p-2 w-full"
   >
     <option value="">Select Status</option>
-    <option value="Posted">Posted</option>
-    <option value="Retreived">Retreived</option>
+    <option value="True">True</option>
+    <option value="False">False</option>
   </select>
 </div>
+            <div className="mb-4">
+                <label className="block text-sm font-medium text-gray-700">HR Email</label>
+                <input
+                  type="text"
+                  value={newUserHREmail}
+                  onChange={(e) => setNewUserHREmail(e.target.value)}
+                  className="border p-2 w-full"
+                />
+              </div>
+              <div className="mb-4">
+                <label className="block text-sm font-medium text-gray-700">HR Phone</label>
+                <input
+                  type="text"
+                  value={newUserHRPhone}
+                  onChange={(e) => setNewUserHRPhone(e.target.value)}
+                  className="border p-2 w-full"
+                />
+              </div>
+              <div className="mb-4">
+                <label className="block text-sm font-medium text-gray-700">Website Link</label>
+                <input
+                  type="text"
+                  value={newUserWebsiteLink}
+                  onChange={(e) => setNewUserWebsiteLink(e.target.value)}
+                  className="border p-2 w-full"
+                />
+              </div>
               <div className="flex justify-end">
                 <button onClick={handleClosePopup} className="mr-2 bg-gray-300 px-4 py-2 rounded">
                   Cancel
                 </button>
                 <button onClick={handleAddUser} className="bg-primary text-white px-4 py-2 rounded">
-                  Add User
+                  Add Company
                 </button>
               </div>
             </div>
@@ -293,7 +437,7 @@ const handleAddUser = async () => {
                       </svg>
                     </button>
                     )}
-                    <button className="hover:text-primary" onClick={() => handleDeleteOffer(item.name)}>
+                    <button className="hover:text-primary" onClick={() => handleDeleteCompany(item.companyid)}>
                       <svg
                         className="fill-current"
                         width="18"

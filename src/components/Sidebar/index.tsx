@@ -408,7 +408,7 @@ const Sidebar = ({ sidebarOpen, setSidebarOpen }: SidebarProps) => {
                                 "text-white"
                               }`}
                             >
-                              Job Offers' List
+                              Companies' List
                             </Link>
                           </li>
                           <li>

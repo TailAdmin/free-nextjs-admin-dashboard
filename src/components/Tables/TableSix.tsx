@@ -7,11 +7,14 @@ interface User {
   userid:number;
   fname: string;
   lname: string;
+  age: string;
   email: string;
   phone: string;
-  status: string;
-  type: string;
-  password: string;
+  city: string;
+  linkedinurl: string;
+  title: string;
+  bio: string;
+  password:string;
 }
 
 const TableThree = () => {
@@ -20,10 +23,13 @@ const TableThree = () => {
   const [editingRow, setEditingRow] = useState<number | null>(null);
   const [editedFname, setEditedFname] = useState("");
   const [editedLname, setEditedLname] = useState("");
+  const [editedAge, setEditedAge] = useState("");
   const [editedEmail, setEditedEmail] = useState("");
+  const [editedCity, setEditedCity] = useState("");
   const [editedPhone, setEditedPhone] = useState("");
-  const [editedStatus, setEditedStatus] = useState("");
-  const [editedType, setEditedType] = useState("");
+  const [editedLinkedinurl, setEditedLinkedinurl] = useState("");
+  const [editedTitle, setEditedTitle] = useState("");
+  const [editedBio, setEditedBio] = useState("");
   const [editedPassword, setEditedPassword] = useState("");
    // New states for pop-up
    const [isAddUserPopupOpen, setAddUserPopupOpen] = useState(false);
@@ -31,8 +37,11 @@ const TableThree = () => {
    const [newUserLname, setNewUserLname] = useState("");
    const [newUserEmail, setNewUserEmail] = useState("");
    const [newUserPhone, setNewUserPhone] = useState("");
-   const [newUserStatus, setNewUserStatus] = useState("");
-   const [newUserType, setNewUserType] = useState("");
+   const [newUserAge, setNewUserAge] = useState("");
+   const [newUserCity, setNewUserCity] = useState("");
+   const [newUserLinkedinurl, setNewUserLinkedinurl] = useState("");
+   const [newUserTitle, setNewUserTitle] = useState("");
+   const [newUserBio, setNewUserBio] = useState("");
    const [newUserPassword, setNewUserPassword] = useState("");
   useEffect(() => {
   axios
@@ -60,10 +69,13 @@ const TableThree = () => {
     setEditingRow(index);
     setEditedFname(users[index].fname);
     setEditedLname(users[index].lname);
+    setEditedAge(users[index].age);
     setEditedEmail(users[index].email);
     setEditedPhone(users[index].phone);
-    setEditedStatus(users[index].status);
-    setEditedType(users[index].type);
+    setEditedCity(users[index].city);
+    setEditedLinkedinurl(users[index].linkedinurl);
+    setEditedTitle(users[index].title);
+    setEditedBio(users[index].bio);
     setEditedPassword(users[index].password);
   };
 
@@ -74,10 +86,13 @@ const TableThree = () => {
       await axios.put(`http://localhost:8000/users/${encodeURIComponent(users[index].userid)}`, {
         fname: editedFname,
         lname: editedLname,
+        age:editedAge,
         email: editedEmail,
         phone: editedPhone,
-        status: editedStatus,
-        type: editedType,
+        city: editedCity,
+        linkedinurl:editedLinkedinurl,
+        title: editedTitle,
+        bio: editedBio,
         password: editedPassword,
       });
   
@@ -89,10 +104,13 @@ const TableThree = () => {
                 ...user,
                 fname: editedFname,
                 lname: editedLname,
+                age:editedAge,
                 email: editedEmail,
                 phone: editedPhone,
-                status: editedStatus,
-                type: editedType,
+                city: editedCity,
+                linkedinurl:editedLinkedinurl,
+                title: editedTitle,
+                bio: editedBio,
                 password: editedPassword,
               }
             : user
@@ -116,10 +134,13 @@ const handleClosePopup = () => {
   // Reset input fields when closing the pop-up
   setNewUserFname("");
   setNewUserLname("");
+  setNewUserAge("");
   setNewUserEmail("");
   setNewUserPhone("");
-  setNewUserStatus("");
-  setNewUserType("");
+  setNewUserCity("");
+  setNewUserLinkedinurl("");
+  setNewUserTitle("");
+  setNewUserBio("");
   setNewUserPassword("");
 };
 
@@ -130,10 +151,13 @@ const handleAddUser = async () => {
     await axios.post("http://localhost:8000/users", {
       fname: newUserFname,
       lname: newUserLname,
+      age:newUserAge,
       email: newUserEmail,
       phone: newUserPhone,
-      status: newUserStatus,
-      type: newUserType,
+      city: newUserCity,
+      linkedinurl: newUserLinkedinurl,
+      title:newUserTitle,
+      bio:newUserBio,
       password: newUserPassword,
     });
     
@@ -171,6 +195,9 @@ const handleAddUser = async () => {
               <th className="min-w-[150px] px-4 py-4 font-medium text-black dark:text-white">
                 Last Name
               </th>
+              <th className="min-w-[150px] px-4 py-4 font-medium text-black dark:text-white">
+                Age
+              </th>
               <th className="min-w-[120px] px-4 py-4 font-medium text-black dark:text-white">
                 Email
               </th>
@@ -178,17 +205,21 @@ const handleAddUser = async () => {
                 Phone Number
               </th>
               <th className="min-w-[120px] px-4 py-4 font-medium text-black dark:text-white">
-                Status
+                City
               </th>
               <th className="min-w-[120px] px-4 py-4 font-medium text-black dark:text-white">
-                Type
+              Linkedin URL
+              </th>
+              <th className="min-w-[120px] px-4 py-4 font-medium text-black dark:text-white">
+              Title
+              </th>
+              <th className="min-w-[120px] px-4 py-4 font-medium text-black dark:text-white">
+              Bio
               </th>
               <th className="min-w-[120px] px-4 py-4 font-medium text-black dark:text-white">
                 Password
               </th>
-              <th className="px-4 py-4 font-medium text-black dark:text-white">
-                Actions
-              </th>
+              
             </tr>
           </thead>
           <tbody>
@@ -227,6 +258,17 @@ const handleAddUser = async () => {
         {editingRow === key ? (
           <input
             type="text"
+            value={editedAge}
+            onChange={(e) => setEditedAge(e.target.value)}
+          />
+        ) : (
+          <h5 className="font-medium text-black dark:text-white">{item.age}</h5>
+        )}
+      </td>
+      <td className="border-b border-[#eee] px-4 py-5 dark:border-strokedark">
+        {editingRow === key ? (
+          <input
+            type="text"
             value={editedEmail}
             onChange={(e) => setEditedEmail(e.target.value)}
           />
@@ -245,54 +287,50 @@ const handleAddUser = async () => {
           <h5 className="font-medium text-black dark:text-white">{item.phone}</h5>
         )}
       </td>
-               
-                
       <td className="border-b border-[#eee] px-4 py-5 dark:border-strokedark">
-  {editingRow === key ? (
-    <select
-      value={editedStatus}
-      onChange={(e) => setEditedStatus(e.target.value)}
-    >
-      <option value="Active">Active</option>
-      <option value="Inactive">Inactive</option>
-    </select>
-  ) : (
-    <p
-      className={`inline-flex rounded-full bg-opacity-10 px-3 py-1 text-sm font-medium ${
-        item.status === "Active"
-          ? "bg-success text-success"
-          : item.status === "Inactive"
-          ? "bg-danger text-danger"
-          : "bg-warning text-warning"
-      }`}
-    >
-      {item.status}
-    </p>
-  )}
-</td>
-<td className="border-b border-[#eee] px-4 py-5 dark:border-strokedark">
-  {editingRow === key ? (
-    <select
-      value={editedType}
-      onChange={(e) => setEditedType(e.target.value)}
-    >
-      <option value="Provider">Provider</option>
-      <option value="Seeker">Seeker</option>
-    </select>
-  ) : (
-    <p
-      className={`inline-flex rounded-full bg-opacity-10 px-3 py-1 text-sm font-medium ${
-        item.type === "Provider"
-          ? "bg-success text-success"
-          : item.status === "Seeker"
-          ? "bg-danger text-danger"
-          : "bg-warning text-warning"
-      }`}
-    >
-      {item.type}
-    </p>
-  )}
-</td>
+        {editingRow === key ? (
+          <input
+            type="text"
+            value={editedCity}
+            onChange={(e) => setEditedCity(e.target.value)}
+          />
+        ) : (
+          <h5 className="font-medium text-black dark:text-white">{item.city}</h5>
+        )}
+      </td>
+      <td className="border-b border-[#eee] px-4 py-5 dark:border-strokedark">
+        {editingRow === key ? (
+          <input
+            type="text"
+            value={editedLinkedinurl}
+            onChange={(e) => setEditedLinkedinurl(e.target.value)}
+          />
+        ) : (
+          <h5 className="font-medium text-black dark:text-white">{item.linkedinurl}</h5>
+        )}
+      </td>
+      <td className="border-b border-[#eee] px-4 py-5 dark:border-strokedark">
+        {editingRow === key ? (
+          <input
+            type="text"
+            value={editedTitle}
+            onChange={(e) => setEditedTitle(e.target.value)}
+          />
+        ) : (
+          <h5 className="font-medium text-black dark:text-white">{item.title}</h5>
+        )}
+      </td>
+      <td className="border-b border-[#eee] px-4 py-5 dark:border-strokedark">
+        {editingRow === key ? (
+          <input
+            type="text"
+            value={editedBio}
+            onChange={(e) => setEditedBio(e.target.value)}
+          />
+        ) : (
+          <h5 className="font-medium text-black dark:text-white">{item.bio}</h5>
+        )}
+      </td>
 <td className="border-b border-[#eee] px-4 py-5 dark:border-strokedark">
         {editingRow === key ? (
           <input
@@ -327,6 +365,15 @@ const handleAddUser = async () => {
                 />
               </div>
               <div className="mb-4">
+                <label className="block text-sm font-medium text-gray-700">Age</label>
+                <input
+                  type="text"
+                  value={newUserAge}
+                  onChange={(e) => setNewUserAge(e.target.value)}
+                  className="border p-2 w-full"
+                />
+              </div>
+              <div className="mb-4">
                 <label className="block text-sm font-medium text-gray-700">Email</label>
                 <input
                   type="text"
@@ -345,29 +392,41 @@ const handleAddUser = async () => {
                 />
               </div>
               <div className="mb-4">
-  <label className="block text-sm font-medium text-gray-700">Status</label>
-  <select
-    value={newUserStatus}
-    onChange={(e) => setNewUserStatus(e.target.value)}
-    className="border p-2 w-full"
-  >
-    <option value="">Select Status</option>
-    <option value="Active">Active</option>
-    <option value="Inactive">Inactive</option>
-  </select>
-</div>
-<div className="mb-4">
-  <label className="block text-sm font-medium text-gray-700">Type</label>
-  <select
-    value={newUserType}
-    onChange={(e) => setNewUserType(e.target.value)}
-    className="border p-2 w-full"
-  >
-    <option value="">Select Type</option>
-    <option value="Provider">Provider</option>
-    <option value="Seeker">Seeker</option>
-  </select>
-</div>
+                <label className="block text-sm font-medium text-gray-700">City</label>
+                <input
+                  type="text"
+                  value={newUserCity}
+                  onChange={(e) => setNewUserCity(e.target.value)}
+                  className="border p-2 w-full"
+                />
+              </div>
+              <div className="mb-4">
+                <label className="block text-sm font-medium text-gray-700">Linkedin URL</label>
+                <input
+                  type="text"
+                  value={newUserLinkedinurl}
+                  onChange={(e) => setNewUserLinkedinurl(e.target.value)}
+                  className="border p-2 w-full"
+                />
+              </div>
+              <div className="mb-4">
+                <label className="block text-sm font-medium text-gray-700">Title</label>
+                <input
+                  type="text"
+                  value={newUserTitle}
+                  onChange={(e) => setNewUserTitle(e.target.value)}
+                  className="border p-2 w-full"
+                />
+              </div>
+              <div className="mb-4">
+                <label className="block text-sm font-medium text-gray-700">Bio</label>
+                <input
+                  type="text"
+                  value={newUserBio}
+                  onChange={(e) => setNewUserBio(e.target.value)}
+                  className="border p-2 w-full"
+                />
+              </div>
 <div className="mb-4">
                 <label className="block text-sm font-medium text-gray-700">Password</label>
                 <input

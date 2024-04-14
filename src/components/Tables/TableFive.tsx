@@ -2,12 +2,16 @@
 import { useState, useEffect } from "react";
 import axios from "axios";
 import dynamic from 'next/dynamic';
-
 interface User {
-  name: string;
+  fname: string;
+  lname: string;
+  age: string;
   email: string;
   phone: string;
-  status: string;
+  city: string;
+  linkedinurl: string;
+  title: string;
+  bio: string;
 }
 
 const TableThree = () => {
@@ -35,19 +39,31 @@ const TableThree = () => {
           <thead>
             <tr className="bg-gray-2 text-left dark:bg-meta-4">
               <th className="min-w-[220px] px-4 py-4 font-medium text-black dark:text-white xl:pl-11">
-                Name
+                First Name
+              </th>
+              <th className="min-w-[220px] px-4 py-4 font-medium text-black dark:text-white xl:pl-11">
+                Last Name
+              </th>
+              <th className="min-w-[220px] px-4 py-4 font-medium text-black dark:text-white xl:pl-11">
+                Age
               </th>
               <th className="min-w-[150px] px-4 py-4 font-medium text-black dark:text-white">
                 Email
               </th>
-              <th className="min-w-[120px] px-4 py-4 font-medium text-black dark:text-white">
-                Phone Number
+              <th className="min-w-[220px] px-4 py-4 font-medium text-black dark:text-white xl:pl-11">
+                Phone
               </th>
               <th className="min-w-[120px] px-4 py-4 font-medium text-black dark:text-white">
-                Status
+                City
               </th>
-              <th className="px-4 py-4 font-medium text-black dark:text-white">
-                Actions
+              <th className="min-w-[120px] px-4 py-4 font-medium text-black dark:text-white">
+                linkedinurl
+              </th>
+              <th className="min-w-[120px] px-4 py-4 font-medium text-black dark:text-white">
+                title
+              </th>
+              <th className="min-w-[120px] px-4 py-4 font-medium text-black dark:text-white">
+                bio
               </th>
             </tr>
           </thead>
@@ -56,7 +72,19 @@ const TableThree = () => {
               <tr key={key}>
                 <td className="border-b border-[#eee] px-4 py-5 pl-9 dark:border-strokedark xl:pl-11">
                   <h5 className="font-medium text-black dark:text-white">
-                    {item.name}
+                    {item.fname}
+                  </h5>
+                  
+                </td>
+                <td className="border-b border-[#eee] px-4 py-5 pl-9 dark:border-strokedark xl:pl-11">
+                  <h5 className="font-medium text-black dark:text-white">
+                    {item.lname}
+                  </h5>
+                  
+                </td>
+                <td className="border-b border-[#eee] px-4 py-5 pl-9 dark:border-strokedark xl:pl-11">
+                  <h5 className="font-medium text-black dark:text-white">
+                    {item.age}
                   </h5>
                   
                 </td>
@@ -71,19 +99,29 @@ const TableThree = () => {
                   </h5>
                   
                 </td>
-                
-                <td className="border-b border-[#eee] px-4 py-5 dark:border-strokedark">
-                  <p
-                    className={`inline-flex rounded-full bg-opacity-10 px-3 py-1 text-sm font-medium ${
-                      item.status === "Active"
-                        ? "bg-success text-success"
-                        : item.status === "Unactive"
-                          ? "bg-danger text-danger"
-                          : "bg-warning text-warning"
-                    }`}
-                  >
-                    {item.status}
-                  </p>
+                <td className="border-b border-[#eee] px-4 py-5 pl-9 dark:border-strokedark xl:pl-11">
+                  <h5 className="font-medium text-black dark:text-white">
+                  {item.city}
+                  </h5>
+                  
+                </td>
+                <td className="border-b border-[#eee] px-4 py-5 pl-9 dark:border-strokedark xl:pl-11">
+                  <h5 className="font-medium text-black dark:text-white">
+                  {item.linkedinurl}
+                  </h5>
+                  
+                </td>
+                <td className="border-b border-[#eee] px-4 py-5 pl-9 dark:border-strokedark xl:pl-11">
+                  <h5 className="font-medium text-black dark:text-white">
+                  {item.title}
+                  </h5>
+                  
+                </td>
+                <td className="border-b border-[#eee] px-4 py-5 pl-9 dark:border-strokedark xl:pl-11">
+                  <h5 className="font-medium text-black dark:text-white">
+                  {item.bio}
+                  </h5>
+                  
                 </td>
                 <td className="border-b border-[#eee] px-4 py-5 dark:border-strokedark">
                   <div className="flex items-center space-x-3.5">
