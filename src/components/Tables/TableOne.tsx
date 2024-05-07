@@ -192,7 +192,7 @@ const handleAddUser = async () => {
       {isAddUserPopupOpen && (
           <div className="fixed inset-0 z-50 flex items-center justify-center" >
             <div className="bg-white p-6 rounded-md shadow-md">
-              <h2 className="text-lg font-semibold mb-4">Add New User</h2>
+              <h2 className="text-lg font-semibold mb-4">Add New Application</h2>
               <div className="mb-4">
                 <label className="block text-sm font-medium text-gray-700">User ID</label>
                 <input
@@ -230,7 +230,7 @@ const handleAddUser = async () => {
                   Cancel
                 </button>
                 <button onClick={handleAddUser} className="bg-primary text-white px-4 py-2 rounded">
-                  Add User
+                  Add 
                 </button>
               </div>
             </div>

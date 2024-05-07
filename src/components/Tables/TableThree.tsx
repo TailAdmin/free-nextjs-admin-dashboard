@@ -14,6 +14,7 @@ interface Company {
   hr_email: string;
   hr_phone: string;
   website_link: string;
+  logo_url: string;
 }
 
 
@@ -31,6 +32,7 @@ const TableThree = () => {
   const [editedHRPhone, setEditedHRPhone] = useState("");
   const [editedWebsiteLink, setEditedWebsiteLink] = useState("");
   const [editedCompanyName, setEditedCompanyName] = useState("");
+  const [editedLogoUrl, setEditedLogoUrl] = useState("");
 // New states for pop-up
 const [isAddUserPopupOpen, setAddUserPopupOpen] = useState(false);
 const [newUserCompanyName, setNewUserCompanyName] = useState("");
@@ -42,6 +44,7 @@ const [newUserRemote, setNewUserRemote] = useState("");
 const [newUserHREmail, setNewUserHREmail] = useState("");
 const [newUserHRPhone, setNewUserHRPhone] = useState("");
 const [newUserWebsiteLink, setNewUserWebsiteLink] = useState("");
+const [newUserLogoUrl, setNewUserUserLogo] = useState("");
 useEffect(() => {
   axios
     .get(url)
@@ -76,6 +79,7 @@ const handleDeleteCompany = async (companyId: number) => {
       setEditedHREmail(company.hr_email);
       setEditedHRPhone(company.hr_phone);
       setEditedWebsiteLink(company.website_link);
+      setEditedLogoUrl(company.logo_url);
     };
   
     const handleSaveClick = async (index: number) => {
@@ -91,6 +95,7 @@ const handleDeleteCompany = async (companyId: number) => {
           hr_email: editedHREmail,
           hr_phone: editedHRPhone,
           website_link: editedWebsiteLink,
+          logo_url: editedLogoUrl,
         });
     
         setCompanies((prevCompanies) =>
@@ -107,6 +112,7 @@ const handleDeleteCompany = async (companyId: number) => {
                   hr_email: editedHREmail,
                   hr_phone: editedHRPhone,
                   website_link: editedWebsiteLink,
+                  logo_url:editedLogoUrl,
                 }
               : company
           )
@@ -134,6 +140,7 @@ const handleClosePopup = () => {
   setNewUserHREmail("");
   setNewUserHRPhone("");
   setNewUserWebsiteLink("");
+  setNewUserUserLogo("");
 };
 
 // Function to handle adding a new user
@@ -150,6 +157,7 @@ const handleAddUser = async () => {
       hrEmail: newUserHREmail,
       hrPhone: newUserHRPhone,
       websiteLink: newUserWebsiteLink,
+      logo_url: newUserLogoUrl,
     });
     
     // Refresh the list of providers
@@ -176,6 +184,9 @@ const handleAddUser = async () => {
         <table className="w-full table-auto">
           <thead>
             <tr className="bg-gray-2 text-left dark:bg-meta-4">
+            <th className="min-w-[220px] px-4 py-4 font-medium text-black dark:text-white xl:pl-11">
+                Company Logo
+              </th>
               <th className="min-w-[220px] px-4 py-4 font-medium text-black dark:text-white xl:pl-11">
                 Company Name
               </th>
@@ -211,6 +222,11 @@ const handleAddUser = async () => {
           <tbody>
             {companies.map((item, key) => (
               <tr key={key}>
+              <td className="border-b border-[#eee] px-4 py-5 pl-9 dark:border-strokedark xl:pl-11">
+                <img src={item.logo_url} alt="Company Logo" className="h-10 w-10" style={{ height: "100px", width: "100px" }} />
+              </td>
+
+
                 <td className="border-b border-[#eee] px-4 py-5 pl-9 dark:border-strokedark xl:pl-11">
                   <h5 className="font-medium text-black dark:text-white">
                     {item.company_name}
@@ -317,6 +333,15 @@ const handleAddUser = async () => {
                   type="text"
                   value={newUserCompanyName}
                   onChange={(e) => setNewUserCompanyName(e.target.value)}
+                  className="border p-2 w-full"
+                />
+              </div>
+              <div className="mb-4">
+                <label className="block text-sm font-medium text-gray-700">Company Logo</label>
+                <input
+                  type="text"
+                  value={newUserLogoUrl}
+                  onChange={(e) => setNewUserUserLogo(e.target.value)}
                   className="border p-2 w-full"
                 />
               </div>

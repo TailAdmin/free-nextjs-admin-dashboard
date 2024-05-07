@@ -101,11 +101,11 @@ export async function postApplication(userid,jobid,status) {
   const [result] = await pool.query("INSERT INTO application ( userid,jobid,status) VALUES (?, ?, ?)", [userid,jobid,status]);
   return result;
 }
-export async function postCompany(companyName, industry, description, city, country, remote, hrEmail, hrPhone, websiteLink) {
+export async function postCompany(companyName, industry, description, city, country, remote, hrEmail, hrPhone, websiteLink, logo_url) {
   // Convert 'True' and 'False' strings to boolean values
   const remoteValue = remote === 'True' ? 1 : 0;
   
-  const [result] = await pool.query("INSERT INTO company (company_name, industry, description, city, country, remote, hr_email, hr_phone, website_link) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)", [companyName, industry, description, city, country, remoteValue, hrEmail, hrPhone, websiteLink]);
+  const [result] = await pool.query("INSERT INTO company (company_name, industry, description, city, country, remote, hr_email, hr_phone, website_link, logo_url) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)", [companyName, industry, description, city, country, remoteValue, hrEmail, hrPhone, websiteLink, logo_url]);
   return result;
 }
 
@@ -119,8 +119,8 @@ export async function deleteCompany(companyId) {
   return result;
 }
 
-export async function updateCompany(companyId, companyName, industry, description, city, country, remote, hrEmail, hrPhone, websiteLink) {
-  const [result] = await pool.query("UPDATE company SET company_name=?, industry=?, description=?, city=?, country=?, remote=?, hr_email=?, hr_phone=?, website_link=? WHERE companyid=?", [companyName, industry, description, city, country, remote, hrEmail, hrPhone, websiteLink, companyId]);
+export async function updateCompany(companyId, companyName, industry, description, city, country, remote, hrEmail, hrPhone, websiteLink, logo_url) {
+  const [result] = await pool.query("UPDATE company SET company_name=?, industry=?, description=?, city=?, country=?, remote=?, hr_email=?, hr_phone=?, website_link=? , logo_url= ? WHERE companyid=?", [companyName, industry, description, city, country, remote, hrEmail, hrPhone, websiteLink, logo_url, companyId]);
   return result;
 }
 

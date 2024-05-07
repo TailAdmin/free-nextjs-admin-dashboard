@@ -235,6 +235,9 @@ const handleAddUser = async () => {
               <th className="min-w-[120px] px-4 py-4 font-medium text-black dark:text-white">
                 Experience Level
               </th>
+              <th className="min-w-[120px] px-4 py-4 font-medium text-black dark:text-white">
+                Action
+              </th>
             </tr>
           </thead>
           <tbody>

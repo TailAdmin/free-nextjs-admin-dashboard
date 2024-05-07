@@ -253,9 +253,9 @@ app.post('/login', async (req, res) => {
   }
 });
 app.post('/company', async (req, res) => {
-  const { companyName, industry, description, city, country, remote, hrEmail, hrPhone, websiteLink } = req.body;
+  const { companyName, industry, description, city, country, remote, hrEmail, hrPhone, websiteLink, logo_url } = req.body;
   try {
-    await postCompany(companyName, industry, description, city, country, remote, hrEmail, hrPhone, websiteLink);
+    await postCompany(companyName, industry, description, city, country, remote, hrEmail, hrPhone, websiteLink, logo_url);
     res.status(201).json({ message: 'Company added successfully' });
   } catch (error) {
     console.error(error);
@@ -286,9 +286,9 @@ app.delete('/company/:companyId', async (req, res) => {
 
 app.put('/company/:companyId', async (req, res) => {
   const companyId = req.params.companyId;
-  const { companyName, industry, description, city, country, remote, hrEmail, hrPhone, websiteLink } = req.body;
+  const { companyName, industry, description, city, country, remote, hrEmail, hrPhone, websiteLink, logo_url } = req.body;
   try {
-    await updateCompany(companyId, companyName, industry, description, city, country, remote, hrEmail, hrPhone, websiteLink);
+    await updateCompany(companyId, companyName, industry, description, city, country, remote, hrEmail, hrPhone, websiteLink,logo_url);
     res.status(200).json({ message: 'Company updated successfully' });
   } catch (error) {
     console.error(error);
