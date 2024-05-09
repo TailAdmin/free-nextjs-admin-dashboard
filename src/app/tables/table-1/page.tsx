@@ -14,7 +14,6 @@ const Table1Page = () => {
   
     <DefaultLayout>
       <TableOne />
-      <TableEight />
     </DefaultLayout>
     </>
   );

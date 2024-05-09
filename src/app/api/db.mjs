@@ -129,6 +129,25 @@ export async function getUserByEmail(email) {
   const [result] = await pool.query('SELECT * FROM users WHERE email = ?', [email]);
   return result[0]; // Assuming there's only one user with a given email
 }
+export async function getAppliedJobsCount() {
+  try {
+      // SQL query to count the number of applied jobs
+      const sql = 'SELECT COUNT(*) AS appliedJobsCount FROM joblisting WHERE applied = true';
+      
+      // Execute the query
+      const [rows] = await pool.query(sql);
+      
+      // Extract the count from the result
+      const appliedJobsCount = rows[0].appliedJobsCount;
+      
+      // Return the count
+      return appliedJobsCount;
+  } catch (error) {
+      console.error('Error in getAppliedJobsCount:', error);
+      throw error;
+  }
+}
+
 // const users = await getUsers();
 const users = await getUsers();
 // const offers = await getOffers();

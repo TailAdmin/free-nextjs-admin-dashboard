@@ -23,6 +23,7 @@ import { updateCompany } from './db.mjs';
 import { getCompanies } from './db.mjs';
 import { postCompany } from './db.mjs';
 import { deleteCompany } from './db.mjs';
+import { getAppliedJobsCount } from './db.mjs';
 const app = express();
 
 app.use(cors());
@@ -295,7 +296,19 @@ app.put('/company/:companyId', async (req, res) => {
     res.status(500).json({ error: 'Internal Server Error' });
   }
 });
-
+app.get('/applied-jobs-count', async (req, res) => {
+  try {
+      // Call the getAppliedJobsCount function to get the count
+      const count = await getAppliedJobsCount();
+      
+      // Send the count as a JSON response
+      res.json({ count });
+  } catch (error) {
+      // Handle errors
+      console.error('Error in API endpoint:', error);
+      res.status(500).json({ error: 'Internal server error' });
+  }
+});
 // Start the server
 app.listen(8000, () => {
   console.log('Server is running on http://localhost:8000');
