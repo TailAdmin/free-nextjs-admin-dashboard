@@ -10,8 +10,6 @@ import Head from "next/head";
 const Table1Page = () => {
   return (
     <>
-    
-  
     <DefaultLayout>
       <TableOne />
     </DefaultLayout>
