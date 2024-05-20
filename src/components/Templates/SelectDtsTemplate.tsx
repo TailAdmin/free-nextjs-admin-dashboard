@@ -1,24 +1,39 @@
 "use client";
-import React, { useState } from "react";
 
-const SelectGroupOne: React.FC = () => {
+import React, { useEffect, useState } from 'react';
+import { DtsTemplateResourceApi } from '../../openapi-client/apis/DtsTemplateResourceApi'; 
+import { DtsTemplateVO } from '../../openapi-client/models';
+import { Configuration, ConfigurationParameters } from '../../openapi-client';
+import { useAuth } from "react-oidc-context";
+
+function DtsTemplateSelect() {
+
+  const [dtsTemplateVOs, setDtsTemplateVOs] = useState<DtsTemplateVO[]>([]);
+  const auth = useAuth();
   const [selectedOption, setSelectedOption] = useState<string>("");
   const [isOptionSelected, setIsOptionSelected] = useState<boolean>(false);
 
   const changeTextColor = () => {
     setIsOptionSelected(true);
   };
+  
+  
 
-  return (
-    <div className="mb-4.5">
+  if (auth.isAuthenticated) {
+    return (
+
+
+
+      <div className="mb-4.5">
       <label className="mb-2.5 block text-black dark:text-white">
         {" "}
-        Subject{" "}
+        DTS Template{" "}
       </label>
 
       <div className="relative z-20 bg-transparent dark:bg-form-input">
         <select
           value={selectedOption}
+          id="templateFk"
           onChange={(e) => {
             setSelectedOption(e.target.value);
             changeTextColor();
@@ -27,18 +42,22 @@ const SelectGroupOne: React.FC = () => {
             isOptionSelected ? "text-black dark:text-white" : ""
           }`}
         >
+
           <option value="" disabled className="text-body dark:text-bodydark">
-            Select your subject
+            Select your template
           </option>
-          <option value="USA" className="text-body dark:text-bodydark">
-            USA
-          </option>
-          <option value="UK" className="text-body dark:text-bodydark">
-            UK
-          </option>
-          <option value="Canada" className="text-body dark:text-bodydark">
-            Canada
-          </option>
+
+      {dtsTemplateVOs.map((dtst, index) => (
+             
+            <option value="{dtst.id}}" className="text-body dark:text-bodydark">
+              {dtst.name}
+            </option>
+            
+            ))}
+
+
+
+
         </select>
 
         <span className="absolute right-4 top-1/2 z-30 -translate-y-1/2">
@@ -62,9 +81,21 @@ const SelectGroupOne: React.FC = () => {
         </span>
       </div>
     </div>
-  );
+
+     
+    );
+  } else {
+    return (
+      <div>
+       You are not authenticated.
+      </div>
+    );
+  }
 
   
 };
 
-export default SelectGroupOne;
+
+
+
+export default DtsTemplateSelect;

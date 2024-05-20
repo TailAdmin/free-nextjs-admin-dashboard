@@ -1,12 +1,22 @@
 import { useEffect, useRef, useState } from "react";
 import Link from "next/link";
 import Image from "next/image";
+import { useAuth } from "react-oidc-context";
+
+
 
 const DropdownUser = () => {
   const [dropdownOpen, setDropdownOpen] = useState(false);
-
+  const auth = useAuth();
   const trigger = useRef<any>(null);
   const dropdown = useRef<any>(null);
+
+
+  const handleLogout = () => {
+    auth.signoutRedirect();
+    auth.removeUser();
+    
+  };
 
   // close on click outside
   useEffect(() => {
@@ -34,7 +44,28 @@ const DropdownUser = () => {
     return () => document.removeEventListener("keydown", keyHandler);
   });
 
+
+
+  switch (auth.activeNavigator) {
+    case "signinSilent":
+        return <div>Signing you in...</div>;
+    case "signoutRedirect":
+        return <div>Signing you out...</div>;
+}
+
+if (auth.isLoading) {
+    return <div>Loading...</div>;
+}
+
+if (auth.error) {
+    return <div>Oops... {auth.error.message}</div>;
+}
+
+if (auth.isAuthenticated) {
   return (
+
+
+    
     <div className="relative">
       <Link
         ref={trigger}
@@ -44,11 +75,12 @@ const DropdownUser = () => {
       >
         <span className="hidden text-right lg:block">
           <span className="block text-sm font-medium text-black dark:text-white">
-            Thomas Anree
+          {auth.user?.profile.given_name} {auth.user?.profile.family_name} 
           </span>
-          <span className="block text-xs">UX Designer</span>
+          <span className="block text-xs">{auth.user?.profile.preferred_username}</span>
         </span>
 
+{/* <!-- 
         <span className="h-12 w-12 rounded-full">
           <Image
             width={112}
@@ -61,9 +93,9 @@ const DropdownUser = () => {
             alt="User"
           />
         </span>
-
+--> */}
         <svg
-          className="hidden fill-current sm:block"
+          className="fill-current sm:block"
           width="12"
           height="8"
           viewBox="0 0 12 8"
@@ -88,6 +120,7 @@ const DropdownUser = () => {
           dropdownOpen === true ? "block" : "hidden"
         }`}
       >
+       {/* <!-- 
         <ul className="flex flex-col gap-5 border-b border-stroke px-6 py-7.5 dark:border-strokedark">
           <li>
             <Link
@@ -161,7 +194,9 @@ const DropdownUser = () => {
             </Link>
           </li>
         </ul>
-        <button className="flex items-center gap-3.5 px-6 py-4 text-sm font-medium duration-300 ease-in-out hover:text-primary lg:text-base">
+
+        --> */}
+        <button onClick={() => void handleLogout ()} className="flex items-center gap-3.5 px-6 py-4 text-sm font-medium duration-300 ease-in-out hover:text-primary lg:text-base">
           <svg
             className="fill-current"
             width="22"
@@ -185,6 +220,12 @@ const DropdownUser = () => {
       {/* <!-- Dropdown End --> */}
     </div>
   );
+}
+
+return <button onClick={() => void auth.signinRedirect()}>Log in</button>;
+
+
+  
 };
 
 export default DropdownUser;
