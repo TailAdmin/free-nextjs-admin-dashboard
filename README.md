@@ -6,7 +6,7 @@ TailAdmin is a free and open-source admin dashboard template built on **Next.js 
 
 With TailAdmin Next.js, you get access to all the necessary dashboard UI components, elements, and pages required to build a high-quality and complete dashboard or admin panel. Whether you're building a dashboard or admin panel for a complex web application or a simple website. 
 
-TailAdmin utilizes the powerful features of **Next.js 13** and common features of Next.js such as server-side rendering (SSR), static site generation (SSG), and seamless API route integration. Combined with the advancements of **React 18** and the robustness of **TypeScript**, TailAdmin is the perfect solution to help get your project up and running quickly.
+TailAdmin utilizes the powerful features of **Next.js 14** and common features of Next.js such as server-side rendering (SSR), static site generation (SSG), and seamless API route integration. Combined with the advancements of **React 18** and the robustness of **TypeScript**, TailAdmin is the perfect solution to help get your project up and running quickly.
 
 ### [✨ Visit Website](https://tailadmin.com/)
 ### [🚀 PRO Demo](https://nextjs-demo.tailadmin.com/)
@@ -15,8 +15,8 @@ TailAdmin utilizes the powerful features of **Next.js 13** and common features o
 ### TailAdmin Next.js PRO vs TailAdmin Next.js FREE Comparison 📊
 
 #### [TailAdmin Next.js PRO](https://nextjs-demo.tailadmin.com/)
-- 4 Unique Dashboards: Analytics, Ecommerce, Marketing, and CRM (More will be added)
-- 120+ Dashboard UI Components
+- 5 Unique Dashboards: Analytics, Ecommerce, Marketing, and CRM (More will be added)
+- 150+ Dashboard UI Components
 - 200+ Total UI Elements
 - 45+ HTML Files
 - All Essential Elements and Files
