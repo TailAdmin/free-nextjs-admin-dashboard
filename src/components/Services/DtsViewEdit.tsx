@@ -10,6 +10,8 @@ import { Log } from 'oidc-client-ts';
 import { usePathname } from 'next/navigation';
 import SelectDtsTemplate from '../Templates/SelectDtsTemplate';
 import {v4 as uuidv4} from 'uuid';
+import Ajv from 'ajv';
+import { load } from 'js-yaml';
 
 
 
@@ -24,11 +26,69 @@ function DtsViewEdit() {
 
   const [dtsTemplateVOs, setDtsTemplateVOs] = useState<DtsTemplateVO[]>([]);
   const [isOptionSelected, setIsOptionSelected] = useState<boolean>(false);
+  const [templateNames, setTemplateNames] = useState([]);
+  const [selectedOption, setSelectedOption] = useState('');
 
-  const changeTextColor = () => {
+  const handleChange = async (e) => {
+    setSelectedOption(e.target.value);
     setIsOptionSelected(true);
+    const newValue = await readGithubValue('kubernetes/'+ e.target.value);
+    setDtsTemplateVOs(dtsTemplateVOs.map((item) => {
+      if (item?.id === dtsVO?.templateFk) {
+        return { ...item, yaml: newValue };
+      }
+      return item;
+    }));
+  };
+
+  const readGithubValue = async (name:String) => {
+    try {
+      const urlFile = `https://raw.githubusercontent.com/2060-io/dashboard-templates/main/${name}`;
+      
+      const res = await fetch(urlFile);
+      return await res.text();
+    } catch (error) {
+      console.error('Error loading file:', error);
+    }
   };
   
+  const checkConfigStructure = async (e) =>{
+    setDtsVO({...dtsVO, config: e.target.value});
+    const ajv = new Ajv();
+    const schemaDefault = await readGithubValue('fastbot/config/schema.json');
+    const validate = ajv.compile(JSON.parse(schemaDefault ?? ''));
+    const jsonData = load(e);
+
+    const valid = validate(jsonData);
+    if (valid) {
+      setDtsVO({...dtsVO, config: e.target.value})
+    } else {
+      console.log('Errores de validación:', validate.errors);
+    }
+  }
+
+  const listTemplateNames = async () => {
+    try {
+        const response = await fetch('https://api.github.com/repos/2060-io/dashboard-templates/contents/kubernetes');
+        const data = await response.json();
+        const templates = data
+            .filter(file => file.name.endsWith('.yml'))
+            .reduce((values, file) => {
+              const template = {
+                  name: file.name.split('.')[0],
+                  value: file.name
+              };
+              if (values.length === 0) {
+                values.push({ name: "current", value: "current" });
+              }
+              values.push(template);
+              return values;
+          }, []);
+        setTemplateNames(templates);
+    } catch (error) {
+        console.error('Error fetching templates:', error);
+    }
+}
   
   
   let idinurl = pathname.replace("/services/", "");
@@ -52,12 +112,16 @@ function DtsViewEdit() {
     apiDtst.dtstListPost({}).then((resp) => setDtsTemplateVOs(resp));
   }
 
+
+   
+   
    
   useEffect(() => {
     console.log("going here " + auth.isAuthenticated);
     if (auth.isAuthenticated) {
       
       listDtsTemplateVOs();
+      listTemplateNames();
     }
     
 
@@ -139,8 +203,24 @@ function DtsViewEdit() {
    
     
     api.dtsSavePost({ dtsVO: dtsVO });
+  }
+
+  function saveDtsTemplateVO() {
+    if(selectedOption !== 'current'){
+      const templateVO = dtsTemplateVOs.find(t => t.id === dtsVO?.templateFk);
+      const configParameters: ConfigurationParameters = {
+        headers: {
+          'Authorization': 'Bearer ' + auth.user?.access_token ,
+          
+        },
+        basePath: 'http://localhost:2601/',
+      };
   
-    
+      const config = new Configuration(configParameters);
+      const api = new DtsTemplateResourceApi(config);
+      
+      templateVO && api.dtstSavePost({ dtsTemplateVO: templateVO });
+    }
   }
   
   
@@ -195,12 +275,8 @@ function DtsViewEdit() {
 
       <div className="relative z-20 bg-transparent dark:bg-form-input">
         <select
-          value={dtsVO?.templateFk}
-          
-          onChange={(e) => {
-            setDtsVO({...dtsVO, templateFk: e.target.value})
-            changeTextColor();
-          }}
+          value={selectedOption}
+          onChange={handleChange}
           className={`relative z-20 w-full appearance-none rounded border border-stroke bg-transparent px-5 py-3 outline-none transition focus:border-primary active:border-primary dark:border-form-strokedark dark:bg-form-input dark:focus:border-primary ${
             isOptionSelected ? "text-black dark:text-white" : ""
           }`}
@@ -210,10 +286,11 @@ function DtsViewEdit() {
             Select your template
           </option>
 
-      {dtsTemplateVOs.map((dtst, index) => (
+      {templateNames.map((template) => (
              
-            <option value={dtst.id} className="text-body dark:text-bodydark">
-              {dtst.name}
+            <option value={template.value} 
+            className="text-body dark:text-bodydark">
+              {template.name}
             </option>
             
             ))}
@@ -222,6 +299,9 @@ function DtsViewEdit() {
 
 
         </select>
+        <button onClick={saveDtsTemplateVO} className="text-sm hover:text-primary">
+                Update template
+              </button>
 
         <span className="absolute right-4 top-1/2 z-30 -translate-y-1/2">
           <svg
@@ -256,9 +336,7 @@ function DtsViewEdit() {
                   rows={6}
                   placeholder="Write your DTS Configuration"
                   value={dtsVO?.config}
-                  onChange={(e) => {
-                    setDtsVO({...dtsVO, config: e.target.value})
-                  }}
+                  onChange={checkConfigStructure}
                   className="w-full rounded-lg border-[1.5px] border-stroke bg-transparent px-5 py-3 text-black outline-none transition focus:border-primary active:border-primary disabled:cursor-default disabled:bg-whiter dark:border-form-strokedark dark:bg-form-input dark:text-white dark:focus:border-primary"
                 ></textarea>
                      
@@ -303,8 +381,6 @@ function DtsViewEdit() {
                     Debug
                   </label>
                 </div>
-
-
  
                 {getDeploymentConfigKeys().map((key) => (
 
