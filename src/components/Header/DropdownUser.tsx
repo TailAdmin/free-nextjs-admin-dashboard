@@ -46,6 +46,7 @@ const DropdownUser = () => {
           <span className="block text-sm font-medium text-black dark:text-white">
             PowerPals
           </span>
+
           <span className="block text-xs"></span>
         </span>
 
