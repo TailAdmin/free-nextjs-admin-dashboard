@@ -256,7 +256,7 @@ const Sidebar = ({ sidebarOpen, setSidebarOpen }: SidebarProps) => {
                       fill=""
                     />
                   </svg>
-                  Profile
+                  Map
                 </Link>
               </li>
               {/* <!-- Menu Item Profile --> */}
