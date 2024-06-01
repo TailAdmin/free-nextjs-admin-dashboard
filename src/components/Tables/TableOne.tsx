@@ -4,43 +4,43 @@ import Image from "next/image";
 const brandData: BRAND[] = [
   {
     logo: "/images/brand/brand-01.svg",
-    name: "Google",
-    visitors: 3.5,
-    revenues: "5,768",
-    sales: 590,
-    conversion: 4.8,
+    name: "Sunset Heights",
+    visitors: 350, // kWh Available
+    revenues: "0.12", // Price / kW
+    sales: 420, // Total Price calculated as visitors * revenues
+    conversion: 15, // Savings %
   },
   {
     logo: "/images/brand/brand-02.svg",
-    name: "Twitter",
-    visitors: 2.2,
-    revenues: "4,635",
-    sales: 467,
-    conversion: 4.3,
+    name: "Mission Valley",
+    visitors: 500,
+    revenues: "0.10",
+    sales: 500,
+    conversion: 20,
   },
   {
     logo: "/images/brand/brand-03.svg",
-    name: "Github",
-    visitors: 2.1,
-    revenues: "4,290",
-    sales: 420,
-    conversion: 3.7,
+    name: "North Hills",
+    visitors: 450,
+    revenues: "0.11",
+    sales: 495,
+    conversion: 18,
   },
   {
     logo: "/images/brand/brand-04.svg",
-    name: "Vimeo",
-    visitors: 1.5,
-    revenues: "3,580",
-    sales: 389,
-    conversion: 2.5,
+    name: "Kern Place",
+    visitors: 300,
+    revenues: "0.13",
+    sales: 390,
+    conversion: 12,
   },
   {
     logo: "/images/brand/brand-05.svg",
-    name: "Facebook",
-    visitors: 3.5,
-    revenues: "6,768",
-    sales: 390,
-    conversion: 4.2,
+    name: "Five Points",
+    visitors: 400,
+    revenues: "0.09",
+    sales: 360,
+    conversion: 25,
   },
 ];
 
@@ -48,7 +48,7 @@ const TableOne = () => {
   return (
     <div className="rounded-sm border border-stroke bg-white px-5 pb-2.5 pt-6 shadow-default dark:border-strokedark dark:bg-boxdark sm:px-7.5 xl:pb-1">
       <h4 className="mb-6 text-xl font-semibold text-black dark:text-white">
-        Top Channels
+        Top Deals from Neighborhoods
       </h4>
 
       <div className="flex flex-col">
@@ -60,22 +60,22 @@ const TableOne = () => {
           </div>
           <div className="p-2.5 text-center xl:p-5">
             <h5 className="text-sm font-medium uppercase xsm:text-base">
-              Visitors
+              kW Available
             </h5>
           </div>
           <div className="p-2.5 text-center xl:p-5">
             <h5 className="text-sm font-medium uppercase xsm:text-base">
-              Revenues
+              Price / kW ($)
             </h5>
           </div>
           <div className="hidden p-2.5 text-center sm:block xl:p-5">
             <h5 className="text-sm font-medium uppercase xsm:text-base">
-              Sales
+              Total Price ($)
             </h5>
           </div>
           <div className="hidden p-2.5 text-center sm:block xl:p-5">
             <h5 className="text-sm font-medium uppercase xsm:text-base">
-              Conversion
+              Savings %
             </h5>
           </div>
         </div>
@@ -90,24 +90,21 @@ const TableOne = () => {
             key={key}
           >
             <div className="flex items-center gap-3 p-2.5 xl:p-5">
-              <div className="flex-shrink-0">
-                <Image src={brand.logo} alt="Brand" width={48} height={48} />
-              </div>
               <p className="hidden text-black dark:text-white sm:block">
                 {brand.name}
               </p>
             </div>
 
             <div className="flex items-center justify-center p-2.5 xl:p-5">
-              <p className="text-black dark:text-white">{brand.visitors}K</p>
+              <p className="text-black dark:text-white">{brand.visitors} kWh</p>
             </div>
 
             <div className="flex items-center justify-center p-2.5 xl:p-5">
-              <p className="text-meta-3">${brand.revenues}</p>
+              <p className="text-black dark:text-white">${brand.revenues}</p>
             </div>
 
             <div className="hidden items-center justify-center p-2.5 sm:flex xl:p-5">
-              <p className="text-black dark:text-white">{brand.sales}</p>
+              <p className="text-meta-3">${brand.sales}</p>
             </div>
 
             <div className="hidden items-center justify-center p-2.5 sm:flex xl:p-5">
