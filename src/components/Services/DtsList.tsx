@@ -27,7 +27,7 @@ function DtsList() {
         'Authorization': 'Bearer ' + auth.user?.access_token ,
         
       },
-      basePath: 'http://localhost:2601/',
+      basePath: process.env.BACKEND_BASE_PATH,
     };
     
   

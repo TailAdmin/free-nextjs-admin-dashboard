@@ -101,7 +101,7 @@ function DtsViewEdit() {
         'Authorization': 'Bearer ' + auth.user?.access_token ,
         
       },
-      basePath: 'http://localhost:2601/',
+      basePath: process.env.BACKEND_BASE_PATH,
     };
     
   
@@ -140,7 +140,7 @@ function DtsViewEdit() {
           'Authorization': 'Bearer ' + auth.user?.access_token ,
           
         },
-        basePath: 'http://localhost:2601/',
+        basePath: process.env.BACKEND_BASE_PATH,
       };
       
     
@@ -193,7 +193,7 @@ function DtsViewEdit() {
         'Authorization': 'Bearer ' + auth.user?.access_token ,
         
       },
-      basePath: 'http://localhost:2601/',
+      basePath: process.env.BACKEND_BASE_PATH,
     };
     
   
@@ -213,7 +213,7 @@ function DtsViewEdit() {
           'Authorization': 'Bearer ' + auth.user?.access_token ,
           
         },
-        basePath: 'http://localhost:2601/',
+        basePath: process.env.BACKEND_BASE_PATH,
       };
   
       const config = new Configuration(configParameters);
@@ -384,21 +384,21 @@ function DtsViewEdit() {
  
                 {getDeploymentConfigKeys().map((key) => (
 
-                    <div className="mb-4.5">
+                    <div className="mb-4.5" key={key}>
                     <label className="mb-3 block text-sm font-medium text-black dark:text-white">
                     { key }
                     </label>
                     <input
                       type="text"
-                      value={   
-                        
-                        dtsVO?.deploymentConfig[key]   }
+                      value={dtsVO?.deploymentConfig[key] || ''}
                       onChange={(e) => {
-                        
-                        let deploymentConf = dtsVO?.deploymentConfig;
-                        deploymentConf?[key] : e;
-                        setDtsVO({...dtsVO, deploymentConfig: deploymentConf})
-                        console.log(dtsVO?.deploymentConfig[key])
+                        setDtsVO(prevState => ({
+                          ...prevState,
+                          deploymentConfig: {
+                            ...prevState.deploymentConfig,
+                            [key]: e.target.value
+                          }
+                        }));
                       }}
                       className="w-full rounded border-[1.5px] border-stroke bg-transparent px-5 py-3 text-black outline-none transition focus:border-primary active:border-primary disabled:cursor-default disabled:bg-whiter dark:border-form-strokedark dark:bg-form-input dark:text-white dark:focus:border-primary"
                     />
