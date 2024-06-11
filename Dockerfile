@@ -3,7 +3,7 @@ FROM node:20 as base
 # AFJ specifc setup
 WORKDIR /app
 
-COPY package*.json./
+COPY package*.json ./
 
 RUN yarn install --frozen-lockfile
 
