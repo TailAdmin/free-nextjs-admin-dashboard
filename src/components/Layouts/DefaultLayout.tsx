@@ -13,6 +13,9 @@ const oidcConfig = {
   client_id: process.env.KEYCLOAK_CLIENT_ID,
   redirect_uri: process.env.KEYCLOAK_REDIRECT_URI,
   post_logout_redirect_uri: process.env.KEYCLOAK_POST_LOGOUT_REDIRECT_URI,
+  extraQueryParams: {
+    pres_req_conf_id: process.env.KEYCLOAK_PRES_REQ_CONF_ID,
+  }
 };
 
 
