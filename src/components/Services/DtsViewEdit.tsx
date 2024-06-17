@@ -32,7 +32,7 @@ function DtsViewEdit() {
   const handleChange = async (e) => {
     setSelectedOption(e.target.value);
     setIsOptionSelected(true);
-    const newValue = await readGithubValue('kubernetes/'+ e.target.value);
+    const newValue = await readGithubValue(`${process.env.TEMPLATE_DIR}/${process.env.TEMPLATE_BRANCH}/${e.target.value}/template.yml`);
     setDtsTemplateVOs(dtsTemplateVOs.map((item) => {
       if (item?.id === dtsVO?.templateFk) {
         return { ...item, yaml: newValue };
@@ -43,7 +43,7 @@ function DtsViewEdit() {
 
   const readGithubValue = async (name:String) => {
     try {
-      const urlFile = `https://raw.githubusercontent.com/2060-io/dashboard-templates/main/${name}`;
+      const urlFile = `https://raw.githubusercontent.com/${name}`;
       
       const res = await fetch(urlFile);
       return await res.text();
@@ -54,10 +54,11 @@ function DtsViewEdit() {
   
   const checkConfigStructure = async (e) =>{
     setDtsVO({...dtsVO, config: e.target.value});
+    const file = load(await readGithubValue(`${process.env.TEMPLATE_DIR}/${process.env.TEMPLATE_BRANCH}/${process.env.TEMPLATE_SCHEMA_DIR}`));
     const ajv = new Ajv();
-    const schemaDefault = await readGithubValue('fastbot/config/schema.json');
+    const schemaDefault = await readGithubValue(`${file.config.path}/${file.config.branch}/schema.json`);
     const validate = ajv.compile(JSON.parse(schemaDefault ?? ''));
-    const jsonData = load(e);
+    const jsonData = load(e.target.value);
 
     const valid = validate(jsonData);
     if (valid) {
@@ -69,22 +70,19 @@ function DtsViewEdit() {
 
   const listTemplateNames = async () => {
     try {
-        const response = await fetch('https://api.github.com/repos/2060-io/dashboard-templates/contents/kubernetes');
+        const response = await fetch(`https://api.github.com/repos/${process.env.TEMPLATE_DIR??''}/contents`);
         const data = await response.json();
-        const templates = data
-            .filter(file => file.name.endsWith('.yml'))
-            .reduce((values, file) => {
-              const template = {
-                  name: file.name.split('.')[0],
-                  value: file.name
-              };
-              if (values.length === 0) {
-                values.push({ name: "current", value: "current" });
-              }
-              values.push(template);
-              return values;
-          }, []);
-        setTemplateNames(templates);
+        const folders = data.filter(item => item.type === 'dir');
+        
+        let templates = folders.map(folder => ({
+            name: folder.name,
+            value: folder.name,
+            schema: folder.name === "Fastbot" ? process.env.TEMPLATE_DIR : null
+        }));
+        const currentTemplate = { name: "Current", value: "current", schema:null };
+        templates = [currentTemplate, ...templates];
+
+      setTemplateNames(templates);
     } catch (error) {
         console.error('Error fetching templates:', error);
     }
