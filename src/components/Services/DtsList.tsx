@@ -101,7 +101,7 @@ function DtsList() {
                     className={`inline-flex rounded-full bg-opacity-10 px-3 py-1 text-sm font-medium ${
                       dts.state === "ENABLED"
                         ? "bg-success text-success"
-                        : dts.status === "DISABLED"
+                        : dts.state === "DISABLED"
                           ? "bg-danger text-danger"
                           : "bg-warning text-warning"
                     }`}

@@ -1,19 +1,32 @@
 "use client";
 
-import React, { useEffect, useState } from 'react';
+import React, { ChangeEvent, useEffect, useState } from 'react';
 import { DtsListPostRequest, DtsResourceApi } from '../../openapi-client/apis/DtsResourceApi'; 
 import { DtsFilterFromJSON, DtsTemplateVO, DtsVO, EntityState } from '../../openapi-client/models';
 import { DtsFilter } from '../../openapi-client/models';
 import { Configuration, ConfigurationParameters, DtsTemplateResourceApi } from '../../openapi-client';
 import { useAuth } from "react-oidc-context";
-import { Log } from 'oidc-client-ts';
 import { usePathname } from 'next/navigation';
 import SelectDtsTemplate from '../Templates/SelectDtsTemplate';
 import {v4 as uuidv4} from 'uuid';
 import Ajv from 'ajv';
 import { load } from 'js-yaml';
 
-
+type ApiGitHub = {
+  name: string;
+  type: string;
+}
+type TemplateInfo = {
+  name: string; 
+  value: string; 
+  schema?:string|null;
+}
+type SchemaConfig = {
+  config: {
+    path: string;
+    branch: string;
+  }
+}
 
 
 function DtsViewEdit() {
@@ -26,10 +39,10 @@ function DtsViewEdit() {
 
   const [dtsTemplateVOs, setDtsTemplateVOs] = useState<DtsTemplateVO[]>([]);
   const [isOptionSelected, setIsOptionSelected] = useState<boolean>(false);
-  const [templateNames, setTemplateNames] = useState([]);
-  const [selectedOption, setSelectedOption] = useState('');
+  const [templateNames, setTemplateNames] = useState<TemplateInfo[]>([]);
+  const [selectedOption, setSelectedOption] = useState<string>('');
 
-  const handleChange = async (e) => {
+  const handleChange = async (e: ChangeEvent<HTMLSelectElement>) => {
     setSelectedOption(e.target.value);
     setIsOptionSelected(true);
     const newValue = await readGithubValue(`${process.env.TEMPLATE_DIR}/${process.env.TEMPLATE_BRANCH}/${e.target.value}/template.yml`);
@@ -49,32 +62,40 @@ function DtsViewEdit() {
       return await res.text();
     } catch (error) {
       console.error('Error loading file:', error);
+      return '';
     }
   };
   
-  const checkConfigStructure = async (e) =>{
+  const checkConfigStructure = async (e: ChangeEvent<HTMLTextAreaElement>) =>{
     setDtsVO({...dtsVO, config: e.target.value});
-    const file = load(await readGithubValue(`${process.env.TEMPLATE_DIR}/${process.env.TEMPLATE_BRANCH}/${process.env.TEMPLATE_SCHEMA_DIR}`));
-    const ajv = new Ajv();
-    const schemaDefault = await readGithubValue(`${file.config.path}/${file.config.branch}/schema.json`);
-    const validate = ajv.compile(JSON.parse(schemaDefault ?? ''));
-    const jsonData = load(e.target.value);
-
-    const valid = validate(jsonData);
-    if (valid) {
-      setDtsVO({...dtsVO, config: e.target.value})
-    } else {
-      console.log('Errores de validación:', validate.errors);
+    try {
+      const file: SchemaConfig = load(await readGithubValue(`${process.env.TEMPLATE_DIR}/${process.env.TEMPLATE_BRANCH}/${process.env.TEMPLATE_SCHEMA_DIR}`)) as SchemaConfig;
+  
+      if(file && file.config && typeof file.config === 'object'){
+        const ajv = new Ajv();
+        const schemaDefault = await readGithubValue(`${file.config.path}/${file.config.branch}/schema.json`);
+        const validate = ajv.compile(JSON.parse(schemaDefault ?? ''));
+        const jsonData = load(e.target.value);
+    
+        const valid = validate(jsonData);
+        if (valid) {
+          setDtsVO({...dtsVO, config: e.target.value})
+        } else {
+          console.log('Errores de validación:', validate.errors);
+        }
+      }
+    } catch (error) {
+      console.error("checkConfigStructure: Error: " ,error)
     }
   }
 
   const listTemplateNames = async () => {
     try {
         const response = await fetch(`https://api.github.com/repos/${process.env.TEMPLATE_DIR??''}/contents`);
-        const data = await response.json();
-        const folders = data.filter(item => item.type === 'dir');
+        const data: ApiGitHub[] = await response.json();
+        const folders = data.filter((item:ApiGitHub) => item.type === 'dir');
         
-        let templates = folders.map(folder => ({
+        let templates: TemplateInfo[] = folders.map(folder => ({
             name: folder.name,
             value: folder.name,
             schema: folder.name === "Fastbot" ? process.env.TEMPLATE_DIR : null
@@ -284,9 +305,9 @@ function DtsViewEdit() {
             Select your template
           </option>
 
-      {templateNames.map((template) => (
+      {(templateNames||[]).map((template, index) => (
              
-            <option value={template.value} 
+            <option key={index} value={template.value} 
             className="text-body dark:text-bodydark">
               {template.name}
             </option>
@@ -388,12 +409,12 @@ function DtsViewEdit() {
                     </label>
                     <input
                       type="text"
-                      value={dtsVO?.deploymentConfig[key] || ''}
+                      value={dtsVO?.deploymentConfig && dtsVO.deploymentConfig[key] || ''}
                       onChange={(e) => {
                         setDtsVO(prevState => ({
                           ...prevState,
                           deploymentConfig: {
-                            ...prevState.deploymentConfig,
+                            ...prevState?.deploymentConfig,
                             [key]: e.target.value
                           }
                         }));
