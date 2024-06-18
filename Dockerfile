@@ -8,7 +8,7 @@ WORKDIR /app
 
 COPY package.json yarn.lock ./
 
-RUN yarn install &&  yarn upgrade
+RUN yarn install --frozen-lockfile &&  yarn upgrade
 
 FROM base AS builder
 WORKDIR /app
