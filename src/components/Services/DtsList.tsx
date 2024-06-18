@@ -66,8 +66,6 @@ function DtsList() {
   }
 
   useEffect(() => {
-    console.log("going here " + process.env.KEYCLOAK_URL);
-    console.log("going here " + process.env.TEMPLATE_BRANCH);
     console.log("going here " + auth.isAuthenticated);
     if (auth.isAuthenticated) {
       listDtsVOs();
