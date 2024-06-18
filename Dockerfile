@@ -1,51 +1,16 @@
-FROM node:20-alpine as base
-
-FROM base AS builder
+FROM node:20 as base
 
 WORKDIR /app
 
-COPY package.json yarn.lock* package-lock.json* pnpm-lock.yaml* ./
+COPY package.json yarn.lock ./
 
 RUN yarn install --frozen-lockfile
 
-COPY src ./src
-COPY public ./public
-COPY next.config.mjs .
-COPY tsconfig.json .
-
-ARG BACKEND_BASE_PATH
-ENV BACKEND_BASE_PATH=${BACKEND_BASE_PATH}
-ARG KEYCLOAK_URL
-ENV KEYCLOAK_URL=${KEYCLOAK_URL}
-ARG KEYCLOAK_CLIENT_ID
-ENV KEYCLOAK_CLIENT_ID=${KEYCLOAK_CLIENT_ID}
-ARG KEYCLOAK_REDIRECT_URI
-ENV KEYCLOAK_REDIRECT_URI=${KEYCLOAK_REDIRECT_URI}
-ARG KEYCLOAK_POST_LOGOUT_REDIRECT_URI
-ENV KEYCLOAK_POST_LOGOUT_REDIRECT_URI=${KEYCLOAK_POST_LOGOUT_REDIRECT_URI}
-ARG KEYCLOAK_PRES_REQ_CONF_ID
-ENV KEYCLOAK_PRES_REQ_CONF_ID=${KEYCLOAK_PRES_REQ_CONF_ID}
-ARG TEMPLATE_DIR
-ENV TEMPLATE_DIR=${TEMPLATE_DIR}
-ARG TEMPLATE_BRANCH
-ENV TEMPLATE_BRANCH=${TEMPLATE_BRANCH}
-ARG TEMPLATE_SCHEMA_DIR
-ENV TEMPLATE_SCHEMA_DIR=${TEMPLATE_SCHEMA_DIR}
+COPY . .
 
 RUN yarn build
 
-FROM base AS runner
-
-WORKDIR /app
-
-RUN addgroup --system --gid 1001 nodejs
-RUN adduser --system --uid 1001 nextjs
-USER nextjs
-
-COPY --from=builder /app/public ./public
-
-COPY --from=builder --chown=nextjs:nodejs /app/.next/standalone ./
-COPY --from=builder --chown=nextjs:nodejs /app/.next/static ./.next/static
+EXPOSE 3000
 
 ARG BACKEND_BASE_PATH
 ENV BACKEND_BASE_PATH=${BACKEND_BASE_PATH}
@@ -66,4 +31,4 @@ ENV TEMPLATE_BRANCH=${TEMPLATE_BRANCH}
 ARG TEMPLATE_SCHEMA_DIR
 ENV TEMPLATE_SCHEMA_DIR=${TEMPLATE_SCHEMA_DIR}
 
-CMD ["node", "server.js"]
+CMD ["yarn", "start"]
