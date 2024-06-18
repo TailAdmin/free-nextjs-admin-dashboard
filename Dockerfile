@@ -2,7 +2,6 @@ FROM node:20 as base
 
 FROM base AS deps
 
-RUN apk add --no-cache libc6-compat
 WORKDIR /app
 
 COPY package.json ./
