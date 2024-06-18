@@ -22,7 +22,6 @@
     "react-apexcharts": "^1.4.1",
     "react-dom": "^18",
     "react-oidc-context": "^3.1.0",
-    "sharp": "^0.33.4",
     "uuid": "^10.0.0"
   },
   "devDependencies": {
