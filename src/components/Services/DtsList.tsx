@@ -42,7 +42,7 @@ function DtsList() {
       headers: {
         Authorization: "Bearer " + auth.user?.access_token,
       },
-      basePath: process.env.NEXT_PUBLIC_BACKEND_BASE_PATH,
+      basePath: process.env.BACKEND_BASE_PATH,
     };
 
     const config = new Configuration(configParameters);

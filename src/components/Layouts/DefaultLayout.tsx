@@ -9,12 +9,12 @@ const oidcConfig = {
   /*onSignIn: () => {
     // Redirect?
   },*/
-  authority: process.env.NEXT_PUBLIC_KEYCLOAK_URL,
-  client_id: process.env.NEXT_PUBLIC_KEYCLOAK_CLIENT_ID,
-  redirect_uri: process.env.NEXT_PUBLIC_KEYCLOAK_REDIRECT_URI,
-  post_logout_redirect_uri: process.env.NEXT_PUBLIC_KEYCLOAK_POST_LOGOUT_REDIRECT_URI,
+  authority: process.env.KEYCLOAK_URL,
+  client_id: process.env.KEYCLOAK_CLIENT_ID,
+  redirect_uri: process.env.KEYCLOAK_REDIRECT_URI,
+  post_logout_redirect_uri: process.env.KEYCLOAK_POST_LOGOUT_REDIRECT_URI,
   extraQueryParams: {
-    pres_req_conf_id: process.env.NEXT_PUBLIC_KEYCLOAK_PRES_REQ_CONF_ID,
+    pres_req_conf_id: process.env.KEYCLOAK_PRES_REQ_CONF_ID,
   }
 };
 
