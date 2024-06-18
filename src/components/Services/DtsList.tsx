@@ -1,21 +1,37 @@
 "use client";
 
-import React, { useEffect, useState } from 'react';
-import { DtsListPostRequest, DtsResourceApi } from '../../openapi-client/apis/DtsResourceApi'; 
-import { DtsFilterFromJSON, DtsVO, EntityState } from '../../openapi-client/models';
-import { DtsFilter } from '../../openapi-client/models';
-import { Configuration, ConfigurationParameters } from '../../openapi-client';
+import React, {
+  JSXElementConstructor,
+  ReactNode,
+  useEffect,
+  useState,
+} from "react";
+import {
+  DtsListPostRequest,
+  DtsResourceApi,
+} from "../../openapi-client/apis/DtsResourceApi";
+import {
+  DtsFilterFromJSON,
+  DtsVO,
+  EntityState,
+} from "../../openapi-client/models";
+import { DtsFilter } from "../../openapi-client/models";
+import { Configuration, ConfigurationParameters } from "../../openapi-client";
 import { useAuth } from "react-oidc-context";
-import { Log } from 'oidc-client-ts';
-import Link from 'next/link';
-
-
-
-
+import { Log } from "oidc-client-ts";
+import Link from "next/link";
+import DropdownDefault from "../Dropdowns/DropdownDefault";
 
 function DtsList() {
+  const [dtsVOs, setDtsVOs] = useState<DtsVO[]>([
+    {
+      id: "1",
+      createdTs: new Date(),
+      name: "Juanchito Estrella",
+      state: "EDITING",
+    },
+  ]);
 
-  const [dtsVOs, setDtsVOs] = useState<DtsVO[]>([]);
   const auth = useAuth();
 
   Log.setLogger(console);
@@ -24,23 +40,19 @@ function DtsList() {
   function listDtsVOs() {
     const configParameters: ConfigurationParameters = {
       headers: {
-        'Authorization': 'Bearer ' + auth.user?.access_token ,
-        
+        Authorization: "Bearer " + auth.user?.access_token,
       },
       basePath: process.env.BACKEND_BASE_PATH,
     };
-    
-  
+
     const config = new Configuration(configParameters);
     const api = new DtsResourceApi(config);
-    
-    
 
     class DtsFilterClass implements DtsFilter {
       state?: EntityState;
     }
     //const filter = DtsFilterFromJSON('');
-    
+
     const filterw = new DtsFilterClass();
     //filterw.state = EntityState.Enabled;
 
@@ -49,25 +61,21 @@ function DtsList() {
     }
     const requestParameters = new DtsListPostRequestClass();
     requestParameters.dtsFilter = filterw;
-    
+
     api.dtsListPost(requestParameters).then((resp) => setDtsVOs(resp));
   }
 
-   
   useEffect(() => {
+    console.log("going here " + process.env.KEYCLOAK_URL);
+    console.log("going here " + process.env.TEMPLATE_BRANCH);
     console.log("going here " + auth.isAuthenticated);
     if (auth.isAuthenticated) {
-      
       listDtsVOs();
     }
-    
-
-}, [auth]);
+  }, [auth]);
 
   if (auth.isAuthenticated) {
     return (
-
-
       <div className="rounded-sm border border-stroke bg-white px-5 pb-2.5 pt-6 shadow-default dark:border-strokedark dark:bg-boxdark sm:px-7.5 xl:pb-1">
       <div className="max-w-full overflow-x-auto">
         <table className="w-full table-auto">
@@ -154,17 +162,8 @@ function DtsList() {
      
     );
   } else {
-    return (
-      <div>
-       You are not authenticated.
-      </div>
-    );
+    return <div>You are not authenticated.</div>;
   }
-
-  
 }
-
-
-
 
 export default DtsList;
