@@ -10,7 +10,7 @@ RUN yarn install --frozen-lockfile
 
 COPY src ./src
 COPY public ./public
-COPY next.config.js .
+COPY next.config.mjs .
 COPY tsconfig.json .
 
 ARG BACKEND_BASE_PATH
