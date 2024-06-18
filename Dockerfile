@@ -2,7 +2,7 @@ FROM node:20 as base
 
 WORKDIR /app
 
-COPY package.json yarn.lock ./
+COPY package.json yarn.lock .env.production ./
 
 RUN yarn install --frozen-lockfile
 
