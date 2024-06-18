@@ -49,7 +49,7 @@ function DtsTemplateSelect() {
 
       {dtsTemplateVOs.map((dtst, index) => (
              
-            <option value="{dtst.id}}" className="text-body dark:text-bodydark">
+            <option key={index} value="{dtst.id}}" className="text-body dark:text-bodydark">
               {dtst.name}
             </option>
             

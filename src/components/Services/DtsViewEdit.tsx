@@ -1,19 +1,32 @@
 "use client";
 
-import React, { useEffect, useState } from 'react';
+import React, { ChangeEvent, useEffect, useState } from 'react';
 import { DtsListPostRequest, DtsResourceApi } from '../../openapi-client/apis/DtsResourceApi'; 
 import { DtsFilterFromJSON, DtsTemplateVO, DtsVO, EntityState } from '../../openapi-client/models';
 import { DtsFilter } from '../../openapi-client/models';
 import { Configuration, ConfigurationParameters, DtsTemplateResourceApi } from '../../openapi-client';
 import { useAuth } from "react-oidc-context";
-import { Log } from 'oidc-client-ts';
 import { usePathname } from 'next/navigation';
 import SelectDtsTemplate from '../Templates/SelectDtsTemplate';
 import {v4 as uuidv4} from 'uuid';
 import Ajv from 'ajv';
 import { load } from 'js-yaml';
 
-
+type ApiGitHub = {
+  name: string;
+  type: string;
+}
+type TemplateInfo = {
+  name: string; 
+  value: string; 
+  schema?:string|null;
+}
+type SchemaConfig = {
+  config: {
+    path: string;
+    branch: string;
+  }
+}
 
 
 function DtsViewEdit() {
@@ -26,13 +39,13 @@ function DtsViewEdit() {
 
   const [dtsTemplateVOs, setDtsTemplateVOs] = useState<DtsTemplateVO[]>([]);
   const [isOptionSelected, setIsOptionSelected] = useState<boolean>(false);
-  const [templateNames, setTemplateNames] = useState([]);
-  const [selectedOption, setSelectedOption] = useState('');
+  const [templateNames, setTemplateNames] = useState<TemplateInfo[]>([]);
+  const [selectedOption, setSelectedOption] = useState<string>('');
 
-  const handleChange = async (e) => {
+  const handleChange = async (e: ChangeEvent<HTMLSelectElement>) => {
     setSelectedOption(e.target.value);
     setIsOptionSelected(true);
-    const newValue = await readGithubValue('kubernetes/'+ e.target.value);
+    const newValue = await readGithubValue(`${process.env.TEMPLATE_DIR}/${process.env.TEMPLATE_BRANCH}/${e.target.value}/template.yml`);
     setDtsTemplateVOs(dtsTemplateVOs.map((item) => {
       if (item?.id === dtsVO?.templateFk) {
         return { ...item, yaml: newValue };
@@ -43,48 +56,54 @@ function DtsViewEdit() {
 
   const readGithubValue = async (name:String) => {
     try {
-      const urlFile = `https://raw.githubusercontent.com/2060-io/dashboard-templates/main/${name}`;
+      const urlFile = `https://raw.githubusercontent.com/${name}`;
       
       const res = await fetch(urlFile);
       return await res.text();
     } catch (error) {
       console.error('Error loading file:', error);
+      return '';
     }
   };
   
-  const checkConfigStructure = async (e) =>{
+  const checkConfigStructure = async (e: ChangeEvent<HTMLTextAreaElement>) =>{
     setDtsVO({...dtsVO, config: e.target.value});
-    const ajv = new Ajv();
-    const schemaDefault = await readGithubValue('fastbot/config/schema.json');
-    const validate = ajv.compile(JSON.parse(schemaDefault ?? ''));
-    const jsonData = load(e);
-
-    const valid = validate(jsonData);
-    if (valid) {
-      setDtsVO({...dtsVO, config: e.target.value})
-    } else {
-      console.log('Errores de validación:', validate.errors);
+    try {
+      const file: SchemaConfig = load(await readGithubValue(`${process.env.TEMPLATE_DIR}/${process.env.TEMPLATE_BRANCH}/${process.env.TEMPLATE_SCHEMA_DIR}`)) as SchemaConfig;
+  
+      if(file && file.config && typeof file.config === 'object'){
+        const ajv = new Ajv();
+        const schemaDefault = await readGithubValue(`${file.config.path}/${file.config.branch}/schema.json`);
+        const validate = ajv.compile(JSON.parse(schemaDefault ?? ''));
+        const jsonData = load(e.target.value);
+    
+        const valid = validate(jsonData);
+        if (valid) {
+          setDtsVO({...dtsVO, config: e.target.value})
+        } else {
+          console.log('Errores de validación:', validate.errors);
+        }
+      }
+    } catch (error) {
+      console.error("checkConfigStructure: Error: " ,error)
     }
   }
 
   const listTemplateNames = async () => {
     try {
-        const response = await fetch('https://api.github.com/repos/2060-io/dashboard-templates/contents/kubernetes');
-        const data = await response.json();
-        const templates = data
-            .filter(file => file.name.endsWith('.yml'))
-            .reduce((values, file) => {
-              const template = {
-                  name: file.name.split('.')[0],
-                  value: file.name
-              };
-              if (values.length === 0) {
-                values.push({ name: "current", value: "current" });
-              }
-              values.push(template);
-              return values;
-          }, []);
-        setTemplateNames(templates);
+        const response = await fetch(`https://api.github.com/repos/${process.env.TEMPLATE_DIR??''}/contents`);
+        const data: ApiGitHub[] = await response.json();
+        const folders = data.filter((item:ApiGitHub) => item.type === 'dir');
+        
+        let templates: TemplateInfo[] = folders.map(folder => ({
+            name: folder.name,
+            value: folder.name,
+            schema: folder.name === "Fastbot" ? process.env.TEMPLATE_DIR : null
+        }));
+        const currentTemplate = { name: "Current", value: "current", schema:null };
+        templates = [currentTemplate, ...templates];
+
+      setTemplateNames(templates);
     } catch (error) {
         console.error('Error fetching templates:', error);
     }
@@ -286,9 +305,9 @@ function DtsViewEdit() {
             Select your template
           </option>
 
-      {templateNames.map((template) => (
+      {(templateNames||[]).map((template, index) => (
              
-            <option value={template.value} 
+            <option key={index} value={template.value} 
             className="text-body dark:text-bodydark">
               {template.name}
             </option>
@@ -390,12 +409,12 @@ function DtsViewEdit() {
                     </label>
                     <input
                       type="text"
-                      value={dtsVO?.deploymentConfig[key] || ''}
+                      value={dtsVO?.deploymentConfig && dtsVO.deploymentConfig[key] || ''}
                       onChange={(e) => {
                         setDtsVO(prevState => ({
                           ...prevState,
                           deploymentConfig: {
-                            ...prevState.deploymentConfig,
+                            ...prevState?.deploymentConfig,
                             [key]: e.target.value
                           }
                         }));
