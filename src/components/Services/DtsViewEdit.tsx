@@ -45,7 +45,7 @@ function DtsViewEdit() {
   const handleChange = async (e: ChangeEvent<HTMLSelectElement>) => {
     setSelectedOption(e.target.value);
     setIsOptionSelected(true);
-    const newValue = await readGithubValue(`${process.env.TEMPLATE_DIR}/${process.env.TEMPLATE_BRANCH}/${e.target.value}/template.yml`);
+    const newValue = await readGithubValue(`${process.env.NEXT_PUBLIC_TEMPLATE_DIR}/${process.env.NEXT_PUBLIC_TEMPLATE_BRANCH}/${e.target.value}/template.yml`);
     setDtsTemplateVOs(dtsTemplateVOs.map((item) => {
       if (item?.id === dtsVO?.templateFk) {
         return { ...item, yaml: newValue };
@@ -69,7 +69,7 @@ function DtsViewEdit() {
   const checkConfigStructure = async (e: ChangeEvent<HTMLTextAreaElement>) =>{
     setDtsVO({...dtsVO, config: e.target.value});
     try {
-      const file: SchemaConfig = load(await readGithubValue(`${process.env.TEMPLATE_DIR}/${process.env.TEMPLATE_BRANCH}/${process.env.TEMPLATE_SCHEMA_DIR}`)) as SchemaConfig;
+      const file: SchemaConfig = load(await readGithubValue(`${process.env.NEXT_PUBLIC_TEMPLATE_DIR}/${process.env.NEXT_PUBLIC_TEMPLATE_BRANCH}/${process.env.NEXT_PUBLIC_TEMPLATE_SCHEMA_DIR}`)) as SchemaConfig;
   
       if(file && file.config && typeof file.config === 'object'){
         const ajv = new Ajv();
@@ -91,14 +91,14 @@ function DtsViewEdit() {
 
   const listTemplateNames = async () => {
     try {
-        const response = await fetch(`https://api.github.com/repos/${process.env.TEMPLATE_DIR??''}/contents`);
+        const response = await fetch(`https://api.github.com/repos/${process.env.NEXT_PUBLIC_TEMPLATE_DIR??''}/contents`);
         const data: ApiGitHub[] = await response.json();
         const folders = data.filter((item:ApiGitHub) => item.type === 'dir');
         
         let templates: TemplateInfo[] = folders.map(folder => ({
             name: folder.name,
             value: folder.name,
-            schema: folder.name === "Fastbot" ? process.env.TEMPLATE_DIR : null
+            schema: folder.name === "Fastbot" ? process.env.NEXT_PUBLIC_TEMPLATE_DIR : null
         }));
         const currentTemplate = { name: "Current", value: "current", schema:null };
         templates = [currentTemplate, ...templates];
@@ -120,7 +120,7 @@ function DtsViewEdit() {
         'Authorization': 'Bearer ' + auth.user?.access_token ,
         
       },
-      basePath: process.env.BACKEND_BASE_PATH,
+      basePath: process.env.NEXT_PUBLIC_BACKEND_BASE_PATH,
     };
     
   
@@ -159,7 +159,7 @@ function DtsViewEdit() {
           'Authorization': 'Bearer ' + auth.user?.access_token ,
           
         },
-        basePath: process.env.BACKEND_BASE_PATH,
+        basePath: process.env.NEXT_PUBLIC_BACKEND_BASE_PATH,
       };
       
     
@@ -212,7 +212,7 @@ function DtsViewEdit() {
         'Authorization': 'Bearer ' + auth.user?.access_token ,
         
       },
-      basePath: process.env.BACKEND_BASE_PATH,
+      basePath: process.env.NEXT_PUBLIC_BACKEND_BASE_PATH,
     };
     
   
@@ -232,7 +232,7 @@ function DtsViewEdit() {
           'Authorization': 'Bearer ' + auth.user?.access_token ,
           
         },
-        basePath: process.env.BACKEND_BASE_PATH,
+        basePath: process.env.NEXT_PUBLIC_BACKEND_BASE_PATH,
       };
   
       const config = new Configuration(configParameters);
