@@ -69,7 +69,7 @@ function DtsViewEdit() {
   const checkConfigStructure = async (e: ChangeEvent<HTMLTextAreaElement>) =>{
     setDtsVO({...dtsVO, config: e.target.value});
     try {
-      const file: SchemaConfig = load(await readGithubValue(`${process.env.TEMPLATE_DIR}/${process.env.TEMPLATE_BRANCH}/${process.env.TEMPLATE_SCHEMA_DIR}`)) as SchemaConfig;
+      const file: SchemaConfig = JSON.parse(await readGithubValue(`${process.env.TEMPLATE_DIR}/${process.env.TEMPLATE_BRANCH}/${process.env.TEMPLATE_SCHEMA_DIR}`)) as SchemaConfig;
   
       if(file && file.config && typeof file.config === 'object'){
         const ajv = new Ajv();
@@ -93,7 +93,7 @@ function DtsViewEdit() {
     try {
         const response = await fetch(`https://api.github.com/repos/${process.env.TEMPLATE_DIR??''}/contents`);
         const data: ApiGitHub[] = await response.json();
-        const folders = data.filter((item:ApiGitHub) => item.type === 'dir');
+        const folders = data.filter((item:ApiGitHub) => item.type === 'dir' && !item.name.startsWith('.'));
         
         let templates: TemplateInfo[] = folders.map(folder => ({
             name: folder.name,
