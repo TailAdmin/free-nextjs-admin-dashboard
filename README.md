@@ -89,6 +89,14 @@ If you like the template, please star this repository to inspire the team to cre
 
 ## Update Logs
 
+### Version 1.3.2 - [June 19, 2024]
+
+#### Enhancements
+
+- **Enhancement 01:** Add ClickOutside Component for reduce repeated functionality in Header Message, Notification and User Dropdowns
+- **Enhancement 02:** Remove Repeated code from Sidebar Menu and Refactor Sidebar Components
+- **Enhancement 03:** Update Jsvectormap Package and it's imports for latest changes
+
 ### Version 1.3.1 - [Feb 12, 2024]
 
 #### Issues
