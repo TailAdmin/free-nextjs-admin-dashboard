@@ -1,12 +1,11 @@
 "use client";
 
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useRef, useState } from "react";
 import {
   DtsListPostRequest,
   DtsResourceApi,
 } from "../../openapi-client/apis/DtsResourceApi";
 import {
-  DtsFilterFromJSON,
   DtsVO,
   EntityState,
 } from "../../openapi-client/models";
@@ -15,14 +14,15 @@ import { Configuration, ConfigurationParameters } from "../../openapi-client";
 import { useAuth } from "react-oidc-context";
 import { Log } from "oidc-client-ts";
 import Link from "next/link";
-import DropdownDefault from "../Dropdowns/DropdownDefault";
 
 function DtsList() {
   const [dtsVOs, setDtsVOs] = useState<DtsVO[]>([]);
+  const [searchDts, setSearchDts] = useState("");
+  const [filterState, setFilterState] = useState<EntityState | "">("");
+  const [focusedElement, setFocusedElement] = useState<string>('');
 
-  const [searchText, setSerchText] = useState("");
-
-  let [filterState, setFilterState] = useState<Partial<DtsVO["state"]>>();
+  const filterByDts = (item: DtsVO) => item.name?.toLowerCase().includes(searchDts.toLowerCase());
+  const filterByState = (item: DtsVO) => item.state?.toLowerCase().includes(filterState.toLowerCase());
 
   const auth = useAuth();
 
@@ -43,10 +43,8 @@ function DtsList() {
     class DtsFilterClass implements DtsFilter {
       state?: EntityState;
     }
-    //const filter = DtsFilterFromJSON('');
 
     const filterw = new DtsFilterClass();
-    //filterw.state = EntityState.Enabled;
 
     class DtsListPostRequestClass implements DtsListPostRequest {
       dtsFilter?: DtsFilter;
@@ -57,17 +55,6 @@ function DtsList() {
     api.dtsListPost(requestParameters).then((resp) => setDtsVOs(resp));
   }
 
-  function setState(id: DtsVO["id"], state: DtsVO["state"]) {
-    let [filteredDts] = dtsVOs.filter(({ id: idDts }) => {
-      return idDts == id;
-    });
-    filteredDts = {
-      ...filteredDts,
-      state,
-    };
-    setDtsVOs((state) => [...state, filteredDts]);
-  }
-
   useEffect(() => {
     console.log("going here " + auth.isAuthenticated);
     if (auth.isAuthenticated) {
@@ -76,16 +63,26 @@ function DtsList() {
   }, [auth]);
 
   function InputSearch(): JSX.Element {
+    const inputRef = useRef<HTMLInputElement>(null);
+    useEffect(() => {
+      if (focusedElement === 'input' && inputRef.current) {
+        inputRef.current.focus();
+      }
+    }, [focusedElement]);
+
     return (
       <div className="">
         <input
+          ref={inputRef}
           type="text"
           placeholder="search services"
-          value={searchText}
-          onChange={(e) => {}}
+          value={searchDts}
+          onChange={(e) => {
+            setSearchDts(e.target.value);
+            setFocusedElement('input');
+          }}
           className="w-full rounded border-[1.5px] border-stroke bg-transparent px-5 py-3 text-black outline-none transition focus:border-primary active:border-primary disabled:cursor-default disabled:bg-whiter dark:border-form-strokedark dark:bg-form-input dark:text-white dark:focus:border-primary"
         />
-        {/* onChange​= {(e) => setDtsVO({...dtsVO, name: e.target.value})}  */}
       </div>
     );
   }
@@ -95,39 +92,37 @@ function DtsList() {
   }: {
     className: string;
   }): JSX.Element {
+    const selectRef = useRef<HTMLSelectElement>(null);
+    useEffect(() => {
+      if (focusedElement === 'select' && selectRef.current) {
+        selectRef.current.focus();
+      }
+    }, [focusedElement]);
+
     return (
-      <select className={className} value={filterState} defaultValue="">
+      <select 
+        ref={selectRef}
+        className={className} 
+        value={filterState} 
+        onChange={(e) => {
+          setFilterState(e.target.value as EntityState);
+          setFocusedElement('select');
+        }}
+      >
+        <option value="" key="">Filter By State</option>
         {Object.values(EntityState)
           .map((state, idx) => {
             return (
               <option
                 value={state}
                 key={idx}
-                onChange={() => {
-                  setFilterState((prevState) => (prevState = state)); //Pending to fix filter
-                }}
               >
                 {state}
               </option>
             );
-          })
-          .concat(<option value="">Filter By State</option>)}
+          })}
       </select>
     );
-  }
-
-  function filterByState(
-    this: DtsVO["state"],
-    value: DtsVO,
-    idx: number,
-    arr: DtsVO[],
-  ) {
-    let stateToFilter: DtsVO["state"] = this;
-    if (stateToFilter) {
-      return value.state == stateToFilter;
-    } else {
-      return value;
-    }
   }
 
   if (auth.isAuthenticated) {
@@ -139,7 +134,7 @@ function DtsList() {
           </div>
           <div className="flex flex-row space-x-4 align-top">
             <InputSearch></InputSearch>
-            <SelectStateFilter className="h-10 w-auto"></SelectStateFilter>
+            <SelectStateFilter className="h-10 w-auto"/>
           </div>
         </div>
         <div className="max-w-full overflow-x-auto">
@@ -171,7 +166,7 @@ function DtsList() {
               </tr>
             </thead>
             <tbody>
-              {dtsVOs.filter(filterByState, filterState).map((dts, index) => (
+              {dtsVOs.filter(filterByDts).filter(filterByState).map((dts, index) => (
                 <tr key={index}>
                   <td className="border-b border-[#eee] px-4 py-5 pl-9 text-center dark:border-strokedark xl:pl-11">
                     <h5 className="font-medium text-black dark:text-white">
