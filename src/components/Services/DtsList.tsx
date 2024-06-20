@@ -1,11 +1,6 @@
 "use client";
 
-import React, {
-  JSXElementConstructor,
-  ReactNode,
-  useEffect,
-  useState,
-} from "react";
+import React, { useEffect, useState } from "react";
 import {
   DtsListPostRequest,
   DtsResourceApi,
@@ -23,14 +18,11 @@ import Link from "next/link";
 import DropdownDefault from "../Dropdowns/DropdownDefault";
 
 function DtsList() {
-  const [dtsVOs, setDtsVOs] = useState<DtsVO[]>([
-    {
-      id: "1",
-      createdTs: new Date(),
-      name: "Juanchito Estrella",
-      state: "EDITING",
-    },
-  ]);
+  const [dtsVOs, setDtsVOs] = useState<DtsVO[]>([]);
+
+  const [searchText, setSerchText] = useState("");
+
+  let [filterState, setFilterState] = useState<Partial<DtsVO["state"]>>();
 
   const auth = useAuth();
 
@@ -65,6 +57,17 @@ function DtsList() {
     api.dtsListPost(requestParameters).then((resp) => setDtsVOs(resp));
   }
 
+  function setState(id: DtsVO["id"], state: DtsVO["state"]) {
+    let [filteredDts] = dtsVOs.filter(({ id: idDts }) => {
+      return idDts == id;
+    });
+    filteredDts = {
+      ...filteredDts,
+      state,
+    };
+    setDtsVOs((state) => [...state, filteredDts]);
+  }
+
   useEffect(() => {
     console.log("going here " + auth.isAuthenticated);
     if (auth.isAuthenticated) {
@@ -72,81 +75,159 @@ function DtsList() {
     }
   }, [auth]);
 
+  function InputSearch(): JSX.Element {
+    return (
+      <div className="">
+        <input
+          type="text"
+          placeholder="search services"
+          value={searchText}
+          onChange={(e) => {}}
+          className="w-full rounded border-[1.5px] border-stroke bg-transparent px-5 py-3 text-black outline-none transition focus:border-primary active:border-primary disabled:cursor-default disabled:bg-whiter dark:border-form-strokedark dark:bg-form-input dark:text-white dark:focus:border-primary"
+        />
+        {/* onChange​= {(e) => setDtsVO({...dtsVO, name: e.target.value})}  */}
+      </div>
+    );
+  }
+
+  function SelectStateFilter({
+    className,
+  }: {
+    className: string;
+  }): JSX.Element {
+    return (
+      <select className={className} value={filterState} defaultValue="">
+        {Object.values(EntityState)
+          .map((state, idx) => {
+            return (
+              <option
+                value={state}
+                key={idx}
+                onChange={() => {
+                  setFilterState((prevState) => (prevState = state)); //Pending to fix filter
+                }}
+              >
+                {state}
+              </option>
+            );
+          })
+          .concat(<option value="">Filter By State</option>)}
+      </select>
+    );
+  }
+
+  function filterByState(
+    this: DtsVO["state"],
+    value: DtsVO,
+    idx: number,
+    arr: DtsVO[],
+  ) {
+    let stateToFilter: DtsVO["state"] = this;
+    if (stateToFilter) {
+      return value.state == stateToFilter;
+    } else {
+      return value;
+    }
+  }
+
   if (auth.isAuthenticated) {
     return (
       <div className="rounded-sm border border-stroke bg-white px-5 pb-2.5 pt-6 shadow-default dark:border-strokedark dark:bg-boxdark sm:px-7.5 xl:pb-1">
+        <div className="mb-15 flex w-full flex-row justify-between px-4">
+          <div>
+            <button onClick={listDtsVOs}>refresh</button>
+          </div>
+          <div className="flex flex-row space-x-4 align-top">
+            <InputSearch></InputSearch>
+            <SelectStateFilter className="h-10 w-auto"></SelectStateFilter>
+          </div>
+        </div>
         <div className="max-w-full overflow-x-auto">
           <table className="w-full table-auto">
             <thead>
               <tr className="bg-gray-2 text-left dark:bg-meta-4">
-                <th className="min-w-[220px] px-4 py-4 font-medium text-black dark:text-white xl:pl-11">
+                <th className="min-w-[220px] px-4 py-4 text-center font-medium text-black dark:text-white xl:pl-11">
                   Name
                 </th>
 
-                <th className="min-w-[120px] px-4 py-4 font-medium text-black dark:text-white">
+                <th className="min-w-[120px] px-4 py-4 text-center font-medium text-black dark:text-white">
                   Template Repo
                 </th>
-                <th className="px-4 py-4 font-medium text-black dark:text-white">
+                <th className="px-4 py-4 text-center font-medium text-black dark:text-white">
                   Template
                 </th>
-                <th className="px-4 py-4 font-medium text-black dark:text-white">
+                <th className="px-4 py-4 text-center font-medium text-black dark:text-white">
                   Connections
                 </th>
-                <th className="px-4 py-4 font-medium text-black dark:text-white">
+                <th className="px-4 py-4 text-center font-medium text-black dark:text-white">
                   Modified
                 </th>
-                <th className="px-4 py-4 font-medium text-black dark:text-white">
+                <th className="px-4 py-4 text-center font-medium text-black dark:text-white">
                   State
                 </th>
-                <th className="px-4 py-4 font-medium text-black dark:text-white">
+                <th className="px-4 py-4 text-center font-medium text-black dark:text-white">
                   Action
                 </th>
               </tr>
             </thead>
             <tbody>
-              {dtsVOs.map((dts, index) => (
+              {dtsVOs.filter(filterByState, filterState).map((dts, index) => (
                 <tr key={index}>
-                  <td className="border-b border-[#eee] px-4 py-5 pl-9 dark:border-strokedark xl:pl-11">
+                  <td className="border-b border-[#eee] px-4 py-5 pl-9 text-center dark:border-strokedark xl:pl-11">
                     <h5 className="font-medium text-black dark:text-white">
                       {dts.name}
                     </h5>
                   </td>
 
-                  <td className="border-b border-[#eee] px-4 py-5 pl-9 dark:border-strokedark xl:pl-11">
+                  <td className="border-b border-[#eee] px-4 py-5 pl-9 text-center dark:border-strokedark xl:pl-11">
                     <h5 className="font-medium text-black dark:text-white">
                       Template Repo
                     </h5>
                   </td>
-                  <td className="border-b border-[#eee] px-4 py-5 pl-9 dark:border-strokedark xl:pl-11">
+                  <td className="border-b border-[#eee] px-4 py-5 pl-9 text-center dark:border-strokedark xl:pl-11">
                     <h5 className="font-medium text-black dark:text-white">
                       Template
                     </h5>
                   </td>
-                  <td className="border-b border-[#eee] px-4 py-5 pl-9 dark:border-strokedark xl:pl-11">
+                  <td className="border-b border-[#eee] px-4 py-5 pl-9 text-center dark:border-strokedark xl:pl-11">
                     <h5 className="font-medium text-black dark:text-white">
                       Connections
                     </h5>
                   </td>
 
-                  <td className="border-b border-[#eee] px-4 py-5 pl-9 dark:border-strokedark xl:pl-11">
+                  <td className="border-b border-[#eee] px-4 py-5 pl-9 text-center dark:border-strokedark xl:pl-11">
                     <h5 className="font-medium text-black dark:text-white">
                       {String(dts.createdTs)}
                     </h5>
                   </td>
-                  <td className="border-b border-[#eee] px-4 py-5 pl-9 dark:border-strokedark xl:pl-11">
-                    <h5 className="font-medium text-black dark:text-white">
+                  {/* <td className="border-b border-[#eee] px-4 py-5 pl-9 dark:border-strokedark xl:pl-11">
+                     <h5 className="font-medium text-black dark:text-white">
                       {dts.state}
-                    </h5>
-                    <select name="state" id="cars" value={dts.state}>
+                    </h5> 
+                    <select
+                      name="state"
+                      id="cars"
+                      defaultValue={dts.state}
+                      className="dark:bg-black dark:text-white"
+                    >
                       {Object.values(EntityState).map((value, idx) => {
-                        return <option value={value} key={idx}></option>;
+                        return (
+                          <option
+                            value={value}
+                            key={idx}
+                            onChange={() => {
+                              setState(dts.id, value);
+                            }}
+                          >
+                            {value}
+                          </option>
+                        );
                       })}
 
-                      <DropdownDefault></DropdownDefault>
-                    </select>
+                    </select> 
                   </td>
-
-                  <td className="border-b border-[#eee] px-4 py-5 dark:border-strokedark">
+                        */}
+                  <td className="border-b border-[#eee] px-4 py-5 text-center dark:border-strokedark">
                     <p
                       className={`inline-flex rounded-full bg-opacity-10 px-3 py-1 text-sm font-medium ${
                         dts.state === "ENABLED"
@@ -159,7 +240,7 @@ function DtsList() {
                       {dts.state}
                     </p>
                   </td>
-                  <td className="border-b border-[#eee] px-4 py-5 dark:border-strokedark">
+                  <td className="border-b border-[#eee] px-4 py-5 text-center dark:border-strokedark">
                     <div className="flex items-center space-x-3.5">
                       <Link href={"/services/" + dts.id}>
                         <svg
