@@ -194,11 +194,12 @@ function DtsList() {
                       Connections
                     </h5>
                   </td>
-
                   <td className="border-b border-[#eee] px-4 py-5 pl-9 text-center dark:border-strokedark xl:pl-11">
+                  {dts.createdTs && (
                     <h5 className="font-medium text-black dark:text-white">
-                      {String(dts.createdTs)}
+                      {`${dts.createdTs.getFullYear()}-${(dts.createdTs.getMonth() + 1).toString().padStart(2, '0')}-${dts.createdTs.getDate().toString().padStart(2, '0')}`}
                     </h5>
+                  )}
                   </td>
                   {/* <td className="border-b border-[#eee] px-4 py-5 pl-9 dark:border-strokedark xl:pl-11">
                      <h5 className="font-medium text-black dark:text-white">
@@ -232,7 +233,7 @@ function DtsList() {
                       className={`inline-flex rounded-full bg-opacity-10 px-3 py-1 text-sm font-medium ${
                         dts.state === "ENABLED"
                           ? "bg-success text-success"
-                          : dts.status === "DISABLED"
+                          : dts.state === "DISABLED"
                             ? "bg-danger text-danger"
                             : "bg-warning text-warning"
                       }`}
@@ -268,7 +269,6 @@ function DtsList() {
             </tbody>
           </table>
         </div>
-        <button onClick={listDtsVOs}>refresh</button>
       </div>
     );
   } else {
