@@ -1,6 +1,12 @@
+"use client";
+
 import { ApexOptions } from "apexcharts";
-import React, { useState } from "react";
-import ReactApexChart from "react-apexcharts";
+import React from "react";
+import dynamic from "next/dynamic";
+
+const ReactApexChart = dynamic(() => import("react-apexcharts"), {
+  ssr: false,
+});
 
 const options: ApexOptions = {
   colors: ["#3C50E0", "#80CAEE"],
@@ -70,25 +76,16 @@ interface ChartTwoState {
 }
 
 const ChartTwo: React.FC = () => {
-  const [state, setState] = useState<ChartTwoState>({
-    series: [
-      {
-        name: "Sales",
-        data: [44, 55, 41, 67, 22, 43, 65],
-      },
-      {
-        name: "Revenue",
-        data: [13, 23, 20, 8, 13, 27, 15],
-      },
-    ],
-  });
-
-  const handleReset = () => {
-    setState((prevState) => ({
-      ...prevState,
-    }));
-  };
-  handleReset;
+  const series = [
+    {
+      name: "Sales",
+      data: [44, 55, 41, 67, 22, 43, 65],
+    },
+    {
+      name: "Revenue",
+      data: [13, 23, 20, 8, 13, 27, 15],
+    },
+  ];
 
   return (
     <div className="col-span-12 rounded-sm border border-stroke bg-white p-7.5 shadow-default dark:border-strokedark dark:bg-boxdark xl:col-span-4">
@@ -140,7 +137,7 @@ const ChartTwo: React.FC = () => {
         <div id="chartTwo" className="-mb-9 -ml-5">
           <ReactApexChart
             options={options}
-            series={state.series}
+            series={series}
             type="bar"
             height={350}
             width={"100%"}

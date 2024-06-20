@@ -89,6 +89,12 @@ If you like the template, please star this repository to inspire the team to cre
 
 ## Update Logs
 
+### Version 1.3.3 - [June 20, 2024]
+
+#### Issues
+
+- **Issues 01:** Fixed Not building when Loader component removed
+
 ### Version 1.3.2 - [June 19, 2024]
 
 #### Enhancements
@@ -101,7 +107,7 @@ If you like the template, please star this repository to inspire the team to cre
 
 #### Issues
 
-- **Issues 02:** Fix Misspelling issue [Default Layout/Layouts].
+- **Issues 01:** Fix Misspelling issue [Default Layout/Layouts].
 
 #### Enhancements
 - **Enhancement 01:** Update style.css
