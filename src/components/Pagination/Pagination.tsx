@@ -1,18 +1,61 @@
-import React, { ChangeEvent } from 'react';
+import React, { ChangeEvent, useMemo } from 'react';
 
 function Pagination({
     itemsPerPage,
     setItemsPerPage,
     currentPage,
     totalPages,
+    visiblePages = 5,
     onPageChange
 }:{
   itemsPerPage: number,
   setItemsPerPage: React.Dispatch<React.SetStateAction<number>>,
   currentPage: number,
   totalPages: number,
+  visiblePages: number,
   onPageChange: (page: number) => void;
 }): JSX.Element {
+  const pageNumbers = useMemo(() => {
+    const pages = [];
+    const addPage = (page: number) => pages.push(
+      <button
+        key={page}
+        onClick={() => onPageChange(page)}
+        className={`mx-1 px-3 py-1 rounded ${
+          currentPage === page ? 'bg-blue-500 text-white' : 'bg-gray-200'
+        }`}
+      >
+        {page}
+      </button>
+    );
+
+    if (totalPages <= visiblePages) {
+      for (let i = 1; i <= totalPages; i++) {
+        addPage(i);
+      }
+    } else {
+      let start = Math.max(1, currentPage - Math.floor(visiblePages / 2));
+      let end = Math.min(totalPages, start + visiblePages - 1);
+      if (end === totalPages) {
+        start = Math.max(1, end - visiblePages + 1);
+      }
+      if (start > 1) {
+        addPage(1);
+        if (start > 2) pages.push(<span key="start-ellipsis">...</span>);
+      }
+      for (let i = start; i <= end; i++) {
+        addPage(i);
+      }
+      if (end < totalPages) {
+        if (end < totalPages - 1) pages.push(<span key="end-ellipsis">...</span>);
+        addPage(totalPages);
+      }
+    }
+
+    return pages;
+  }, [currentPage, totalPages, onPageChange, visiblePages]);
+
+
   const handleItemsPerPageChange = (e: ChangeEvent<HTMLSelectElement>) => {
     setItemsPerPage(Number(e.target.value));
   };
@@ -38,6 +81,7 @@ function Pagination({
           onChange={handleItemsPerPageChange}
           className="border rounded px-2 py-1"
         >
+          <option value={5}>5</option>
           <option value={10}>10</option>
           <option value={25}>25</option>
           <option value={50}>50</option>
@@ -62,7 +106,7 @@ function Pagination({
         </span>
         
         <span className="mx-4">
-          Page {currentPage} of {totalPages}
+          {pageNumbers}
         </span>
         
         <span className="mx-4">

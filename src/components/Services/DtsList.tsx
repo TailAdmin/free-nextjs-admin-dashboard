@@ -21,8 +21,9 @@ function DtsList() {
   const [searchDts, setSearchDts] = useState("");
   const [filterState, setFilterState] = useState<EntityState | "">("");
   const [focusedElement, setFocusedElement] = useState<string>('');
-  const [itemsPerPage, setItemsPerPage] = useState<number>(10);
+  const [itemsPerPage, setItemsPerPage] = useState<number>(5);
   const [currentPage, setCurrentPage] = useState<number>(1);
+  const visiblePages = 4;
 
   const filterByDts = (item: DtsVO) => item.name?.toLowerCase().includes(searchDts.toLowerCase());
   const filterByState = (item: DtsVO) => item.state?.toLowerCase().includes(filterState.toLowerCase());
@@ -263,6 +264,7 @@ function DtsList() {
               currentPage={currentPage}
               totalPages={totalPages}
               onPageChange={handlePageChange}
+              visiblePages={visiblePages}
             />
           </div>
         </div>
