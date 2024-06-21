@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useEffect, useRef, useState } from "react";
+import React, { useEffect, useMemo, useRef, useState } from "react";
 import {
   DtsListPostRequest,
   DtsResourceApi,
@@ -14,15 +14,31 @@ import { Configuration, ConfigurationParameters } from "../../openapi-client";
 import { useAuth } from "react-oidc-context";
 import { Log } from "oidc-client-ts";
 import Link from "next/link";
+import Pagination from "../Pagination/Pagination";
 
 function DtsList() {
   const [dtsVOs, setDtsVOs] = useState<DtsVO[]>([]);
   const [searchDts, setSearchDts] = useState("");
   const [filterState, setFilterState] = useState<EntityState | "">("");
   const [focusedElement, setFocusedElement] = useState<string>('');
+  const [itemsPerPage, setItemsPerPage] = useState<number>(10);
+  const [currentPage, setCurrentPage] = useState<number>(1);
 
   const filterByDts = (item: DtsVO) => item.name?.toLowerCase().includes(searchDts.toLowerCase());
   const filterByState = (item: DtsVO) => item.state?.toLowerCase().includes(filterState.toLowerCase());
+
+  const filteredItems = useMemo(() => {
+    return dtsVOs.filter(filterByDts).filter(filterByState);
+  }, [dtsVOs, filterByDts, filterByState]);
+
+  const totalPages = Math.max(1, Math.ceil(filteredItems.length / itemsPerPage));
+  const indexOfLastItem = currentPage * itemsPerPage;
+  const indexOfFirstItem = indexOfLastItem - itemsPerPage;
+  const currentItems = filteredItems.slice(indexOfFirstItem, indexOfLastItem);
+
+  const handlePageChange = (newPage: number) => {
+    setCurrentPage(newPage);
+  };
 
   const auth = useAuth();
 
@@ -166,7 +182,7 @@ function DtsList() {
               </tr>
             </thead>
             <tbody>
-              {dtsVOs.filter(filterByDts).filter(filterByState).map((dts, index) => (
+              {currentItems.map((dts, index) => (
                 <tr key={index}>
                   <td className="border-b border-[#eee] px-4 py-5 pl-9 text-center dark:border-strokedark xl:pl-11">
                     <h5 className="font-medium text-black dark:text-white">
@@ -196,33 +212,6 @@ function DtsList() {
                     </h5>
                   )}
                   </td>
-                  {/* <td className="border-b border-[#eee] px-4 py-5 pl-9 dark:border-strokedark xl:pl-11">
-                     <h5 className="font-medium text-black dark:text-white">
-                      {dts.state}
-                    </h5> 
-                    <select
-                      name="state"
-                      id="cars"
-                      defaultValue={dts.state}
-                      className="dark:bg-black dark:text-white"
-                    >
-                      {Object.values(EntityState).map((value, idx) => {
-                        return (
-                          <option
-                            value={value}
-                            key={idx}
-                            onChange={() => {
-                              setState(dts.id, value);
-                            }}
-                          >
-                            {value}
-                          </option>
-                        );
-                      })}
-
-                    </select> 
-                  </td>
-                        */}
                   <td className="border-b border-[#eee] px-4 py-5 text-center dark:border-strokedark">
                     <p
                       className={`inline-flex rounded-full bg-opacity-10 px-3 py-1 text-sm font-medium ${
@@ -263,6 +252,19 @@ function DtsList() {
               ))}
             </tbody>
           </table>
+        </div>
+        <div className="mb-15 flex w-full flex-row justify-between px-4">
+          <div>
+          </div>
+          <div className="flex flex-row space-x-4 align-top items-center">
+            <Pagination
+              itemsPerPage={itemsPerPage}
+              setItemsPerPage={setItemsPerPage}
+              currentPage={currentPage}
+              totalPages={totalPages}
+              onPageChange={handlePageChange}
+            />
+          </div>
         </div>
       </div>
     );
