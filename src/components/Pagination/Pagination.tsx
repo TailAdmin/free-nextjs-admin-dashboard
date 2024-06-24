@@ -21,8 +21,8 @@ function Pagination({
       <button
         key={page}
         onClick={() => onPageChange(page)}
-        className={`mx-1 px-3 py-1 rounded ${
-          currentPage === page ? 'bg-blue-500 text-white' : 'bg-gray-200'
+        className={`mx-1 px-3 py-1 underline bg-gray-200 ${
+          currentPage === page ? 'text-black dark:text-white' : 'text-gray-700 dark:text-gray-300'
         }`}
       >
         {page}

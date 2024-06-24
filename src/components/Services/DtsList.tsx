@@ -32,7 +32,7 @@ function DtsList() {
     return dtsVOs.filter(filterByDts).filter(filterByState);
   }, [dtsVOs, filterByDts, filterByState]);
 
-  const totalPages = Math.max(1, Math.ceil(filteredItems.length / itemsPerPage));
+  const totalPages = Math.ceil(filteredItems.length / itemsPerPage);
   const indexOfLastItem = currentPage * itemsPerPage;
   const indexOfFirstItem = indexOfLastItem - itemsPerPage;
   const currentItems = filteredItems.slice(indexOfFirstItem, indexOfLastItem);
@@ -73,7 +73,6 @@ function DtsList() {
   }
 
   useEffect(() => {
-    console.log("going here " + auth.isAuthenticated);
     if (auth.isAuthenticated) {
       listDtsVOs();
     }
@@ -98,7 +97,7 @@ function DtsList() {
             setSearchDts(e.target.value);
             setFocusedElement('input');
           }}
-          className="w-full rounded border-[1.5px] border-stroke bg-transparent px-5 py-3 text-black outline-none transition focus:border-primary active:border-primary disabled:cursor-default disabled:bg-whiter dark:border-form-strokedark dark:bg-form-input dark:text-white dark:focus:border-primary"
+          className="w-full sm:w-auto rounded border-[1.5px] border-stroke bg-transparent px-5 py-3 text-black outline-none transition focus:border-primary active:border-primary disabled:cursor-default disabled:bg-whiter dark:border-form-strokedark dark:bg-form-input dark:text-white dark:focus:border-primary"
         />
       </div>
     );
@@ -142,16 +141,39 @@ function DtsList() {
     );
   }
 
+  function ButtonAddService({ className }: { className: string; }): JSX.Element {
+    const handleButtonClick = () => {
+      console.log("Llamando al endpoint...");
+    };
+  
+    return (
+      <button
+        className={className}
+        onClick={handleButtonClick}
+      >
+        <span className="absolute text-2xl font-bold text-gray-600 dark:text-gray-300">
+        +
+      </span>
+      </button>
+    );
+  }
+  
+
   if (auth.isAuthenticated) {
     return (
       <div className="rounded-sm border border-stroke bg-white px-5 pb-2.5 pt-6 shadow-default dark:border-strokedark dark:bg-boxdark sm:px-7.5 xl:pb-1">
-        <div className="mb-15 flex w-full flex-row justify-between px-4">
+        <div className="mb-6 flex w-full flex-col sm:flex-row justify-between items-center px-4 space-y-4 sm:space-y-0">
           <div>
-            <button onClick={listDtsVOs}>refresh</button>
+          <button className="text-gray-700 dark:text-gray-300 underline hover:text-gray-900 dark:hover:text-gray-100 transition-colors"
+            onClick={listDtsVOs}
+          >
+            Refresh
+          </button>
           </div>
-          <div className="flex flex-row space-x-4 align-top">
+          <div className="flex flex-col sm:flex-row space-y-4 sm:space-y-0 sm:space-x-4 items-center w-full sm:w-auto">
             <InputSearch></InputSearch>
-            <SelectStateFilter className="h-10 w-auto"/>
+            <SelectStateFilter className="w-full sm:w-auto h-10"/>
+            <ButtonAddService className="rounded-full bg-white dark:bg-boxdark w-10 h-10 border-2 border-gray-300 dark:border-strokedark flex items-center justify-center relative"/>
           </div>
         </div>
         <div className="max-w-full overflow-x-auto">
@@ -254,10 +276,10 @@ function DtsList() {
             </tbody>
           </table>
         </div>
-        <div className="mb-15 flex w-full flex-row justify-between px-4">
+        <div className="mb-6 flex w-full flex-col sm:flex-row justify-between items-center px-4 space-y-4 sm:space-y-0">
           <div>
           </div>
-          <div className="flex flex-row space-x-4 align-top items-center">
+          <div className="-full sm:w-auto flex justify-center sm:justify-end">
             <Pagination
               itemsPerPage={itemsPerPage}
               setItemsPerPage={setItemsPerPage}
