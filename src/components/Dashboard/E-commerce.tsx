@@ -6,6 +6,7 @@ import ChartTwo from "../Charts/ChartTwo";
 import ChatCard from "../Chat/ChatCard";
 import TableOne from "../Tables/TableOne";
 import CardDataStats from "../CardDataStats";
+import { useUser } from "@auth0/nextjs-auth0/client";
 
 const MapOne = dynamic(() => import("@/components/Maps/MapOne"), {
   ssr: false,
@@ -16,6 +17,29 @@ const ChartThree = dynamic(() => import("@/components/Charts/ChartThree"), {
 });
 
 const ECommerce: React.FC = () => {
+  const { user, error, isLoading } = useUser();
+
+  if (!user || isLoading) {
+    return (
+      <>
+        <div>
+          <img
+            src="/images/cards/cards-05.png"
+            alt="Background picture"
+            style={{
+              position: "fixed",
+              top: 0,
+              left: 0,
+              width: "100vw",
+              height: "100vh",
+              objectFit: "cover",
+              zIndex: -1,
+            }}
+          />
+        </div>
+      </>
+    );
+  }
   return (
     <>
       <div className="grid grid-cols-1 gap-4 md:grid-cols-2 md:gap-6 xl:grid-cols-4 2xl:gap-7.5">

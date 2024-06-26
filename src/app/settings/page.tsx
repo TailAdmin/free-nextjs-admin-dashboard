@@ -2,7 +2,6 @@ import Breadcrumb from "@/components/Breadcrumbs/Breadcrumb";
 import Image from "next/image";
 import { Metadata } from "next";
 import DefaultLayout from "@/components/Layouts/DefaultLayout";
-
 export const metadata: Metadata = {
   title: "Next.js Settings | TailAdmin - Next.js Dashboard Template",
   description:
@@ -93,7 +92,7 @@ const Settings = () => {
                       className="mb-3 block text-sm font-medium text-black dark:text-white"
                       htmlFor="emailAddress"
                     >
-                      Email Address
+                      E-mail
                     </label>
                     <div className="relative">
                       <span className="absolute left-4.5 top-4">
