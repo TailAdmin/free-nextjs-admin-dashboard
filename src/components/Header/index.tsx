@@ -56,18 +56,21 @@ const Header = (props: {
               </span>
             </span>
           </button>
+
           {/* <!-- Hamburger Toggle BTN --> */}
 
-          <Link className="block flex-shrink-0 lg:hidden" href="/">
-            <Image
-              width={32}
-              height={32}
-              src={"/images/logo/logo-icon.svg"}
-              alt="Logo"
-            />
-          </Link>
+          {/*<Link className="block flex-shrink-0 lg:hidden" href="/">*/}
+          {/*  <Image*/}
+          {/*    width={32}*/}
+          {/*    height={32}*/}
+          {/*    src={"/images/logo/logo.svg"}*/}
+          {/*    alt="Logo"*/}
+          {/*  />*/}
+          {/*</Link>*/}
         </div>
-
+        {!props.sidebarOpen && (
+          <p style={{ fontSize: "24px", fontWeight: "bold" }}>AghanimAdmin</p>
+        )}
         <div className="hidden sm:block">
           {user && (
             <form action="https://formbold.com/s/unique_form_id" method="POST">
@@ -107,20 +110,21 @@ const Header = (props: {
         </div>
 
         <div className="flex items-center gap-3 2xsm:gap-7">
-          <ul className="flex items-center gap-2 2xsm:gap-4">
-            {/* <!-- Dark Mode Toggler --> */}
-            <DarkModeSwitcher />
-            {/* <!-- Dark Mode Toggler --> */}
+          {user && (
+            <ul className="flex items-center gap-2 2xsm:gap-4">
+              {/* <!-- Dark Mode Toggler --> */}
+              <DarkModeSwitcher />
+              {/* <!-- Dark Mode Toggler --> */}
 
-            {/* <!-- Notification Menu Area --> */}
-            <DropdownNotification />
-            {/* <!-- Notification Menu Area --> */}
+              {/* <!-- Notification Menu Area --> */}
+              <DropdownNotification />
+              {/* <!-- Notification Menu Area --> */}
 
-            {/* <!-- Chat Notification Area --> */}
-            <DropdownMessage />
-            {/* <!-- Chat Notification Area --> */}
-          </ul>
-
+              {/* <!-- Chat Notification Area --> */}
+              <DropdownMessage />
+              {/* <!-- Chat Notification Area --> */}
+            </ul>
+          )}
           {/* <!-- User Area --> */}
           <DropdownUser />
           {/* <!-- User Area --> */}

@@ -33,6 +33,7 @@ const ECommerce: React.FC = () => {
               width: "100vw",
               height: "100vh",
               objectFit: "cover",
+              objectPosition: "center",
               zIndex: -1,
             }}
           />

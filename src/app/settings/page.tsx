@@ -1,14 +1,18 @@
+"use client";
+
 import Breadcrumb from "@/components/Breadcrumbs/Breadcrumb";
 import Image from "next/image";
 import { Metadata } from "next";
 import DefaultLayout from "@/components/Layouts/DefaultLayout";
-export const metadata: Metadata = {
-  title: "Next.js Settings | TailAdmin - Next.js Dashboard Template",
-  description:
-    "This is Next.js Settings page for TailAdmin - Next.js Tailwind CSS Admin Dashboard Template",
-};
+// export const metadata: Metadata = {
+//   title: "Next.js Settings | TailAdmin - Next.js Dashboard Template",
+//   description:
+//     "This is Next.js Settings page for TailAdmin - Next.js Tailwind CSS Admin Dashboard Template",
+// };
 
+import useUserData from "@/hooks/useUserData";
 const Settings = () => {
+  const { userData, isLoading, error } = useUserData();
   return (
     <DefaultLayout>
       <div className="mx-auto max-w-270">
@@ -64,7 +68,8 @@ const Settings = () => {
                           name="fullName"
                           id="fullName"
                           placeholder="Devid Jhon"
-                          defaultValue="Devid Jhon"
+                          defaultValue={userData?.fullname}
+                          // defaultValue="Devid Jhon"
                         />
                       </div>
                     </div>
@@ -82,7 +87,7 @@ const Settings = () => {
                         name="phoneNumber"
                         id="phoneNumber"
                         placeholder="+990 3343 7865"
-                        defaultValue="+990 3343 7865"
+                        defaultValue={userData?.phone}
                       />
                     </div>
                   </div>
@@ -126,7 +131,7 @@ const Settings = () => {
                         name="emailAddress"
                         id="emailAddress"
                         placeholder="devidjond45@gmail.com"
-                        defaultValue="devidjond45@gmail.com"
+                        defaultValue={userData?.email}
                       />
                     </div>
                   </div>
@@ -144,7 +149,7 @@ const Settings = () => {
                       name="Username"
                       id="Username"
                       placeholder="devidjhon24"
-                      defaultValue="devidjhon24"
+                      defaultValue={userData?.username}
                     />
                   </div>
 

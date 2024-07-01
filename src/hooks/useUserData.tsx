@@ -1,5 +1,6 @@
 import { useState, useEffect } from "react";
 import { UserData, UserDataResponse } from "@/types/user";
+import { router } from "next/client";
 
 const useUserData = (): UserDataResponse => {
   const [userData, setUserData] = useState<UserData | null>(null);

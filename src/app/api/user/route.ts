@@ -1,11 +1,12 @@
 // users data router
 import type { NextRequest } from "next/server";
-import { getSession } from "@auth0/nextjs-auth0";
+import { getAccessToken, getSession } from "@auth0/nextjs-auth0";
 import { UserData } from "@/types/user";
 import { userdata } from "@/app/api/user/userdata";
 
 export async function GET(request: NextRequest) {
   const userId = request.nextUrl.searchParams.get("userId");
+  console.log("my request");
   if (request.method !== "GET") {
     return new Response(JSON.stringify({ message: "Unsupported method" }), {
       status: 405,
@@ -15,7 +16,13 @@ export async function GET(request: NextRequest) {
     });
   }
   const session = await getSession();
+  const token = await getAccessToken();
+  console.log(session);
+  console.log(token);
+
   if (!session || !session.user) {
+    console.log("Not authenticated");
+
     return new Response(JSON.stringify({ message: "Not authenticated" }), {
       status: 401,
       headers: {

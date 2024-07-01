@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import Link from "next/link";
 import Image from "next/image";
 import ClickOutside from "@/components/ClickOutside";
@@ -10,7 +10,16 @@ const DropdownUser = () => {
   const { userData, isLoading, error } = useUserData();
   //if (isLoading || !userData) return <p>Loading...</p>;
   //if (error) return <p>Error: {error}</p>;
-
+  useEffect(() => {
+    if (
+      typeof window !== "undefined" &&
+      !isLoading &&
+      !userData &&
+      window.location.pathname !== "/"
+    ) {
+      window.location.href = "/";
+    }
+  }, [isLoading, userData]);
   return (
     <ClickOutside onClick={() => setDropdownOpen(false)} className="relative">
       <Link
