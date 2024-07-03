@@ -89,6 +89,12 @@ If you like the template, please star this repository to inspire the team to cre
 
 ## Update Logs
 
+### Version 1.3.4 - [July 01, 2024]
+
+#### Issues
+
+- **Issues 01:** JSvectormap rendering issue resolved.
+
 ### Version 1.3.3 - [June 20, 2024]
 
 #### Issues
