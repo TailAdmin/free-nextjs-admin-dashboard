@@ -2,11 +2,11 @@
 
 import React, { ChangeEvent, useEffect, useState } from 'react';
 import { DtsListPostRequest, DtsResourceApi } from '../../openapi-client/apis/DtsResourceApi'; 
-import { DtsFilterFromJSON, DtsTemplateVO, DtsVO, EntityState } from '../../openapi-client/models';
+import { DtsFilterFromJSON, DtsTemplateVO, DtsVO, EntityState, DtsType } from '../../openapi-client/models';
 import { DtsFilter } from '../../openapi-client/models';
 import { Configuration, ConfigurationParameters, DtsTemplateResourceApi } from '../../openapi-client';
 import { useAuth } from "react-oidc-context";
-import { usePathname } from 'next/navigation';
+import { usePathname, useRouter } from 'next/navigation';
 import SelectDtsTemplate from '../Templates/SelectDtsTemplate';
 import {v4 as uuidv4} from 'uuid';
 import Ajv from 'ajv';
@@ -31,16 +31,21 @@ type SchemaConfig = {
 
 function DtsViewEdit() {
 
-  const [dtsVO, setDtsVO] = useState<DtsVO>();
+  const [dtsVO, setDtsVO] = useState<DtsVO>({
+    name: "",
+    id: "",
+    templateFk: "",
+    debug: false,
+  });
   const auth = useAuth();
   const pathname = usePathname()
-  let dtsName;
-  let debugInitialValue;
+  const router = useRouter();
 
   const [dtsTemplateVOs, setDtsTemplateVOs] = useState<DtsTemplateVO[]>([]);
   const [isOptionSelected, setIsOptionSelected] = useState<boolean>(false);
   const [templateNames, setTemplateNames] = useState<TemplateInfo[]>([]);
   const [selectedOption, setSelectedOption] = useState<string>('');
+  const [needsRefresh, setNeedsRefresh] = useState(false);
 
   const handleChange = async (e: ChangeEvent<HTMLSelectElement>) => {
     setSelectedOption(e.target.value);
@@ -109,55 +114,32 @@ function DtsViewEdit() {
     }
 }
   
-  
   let idinurl = pathname.replace("/services/", "");
 
-  console.log(idinurl);
-  
   function listDtsTemplateVOs() {
     const configParameters: ConfigurationParameters = {
       headers: {
         'Authorization': 'Bearer ' + auth.user?.access_token ,
-        
       },
       basePath: process.env.BACKEND_BASE_PATH,
     };
-    
-  
     const config = new Configuration(configParameters);
     const apiDtst = new DtsTemplateResourceApi(config);
     
-    
-    apiDtst.dtstListPost({}).then((resp) => setDtsTemplateVOs(resp));
+    apiDtst.dtstListPost({}).then((resp) => setDtsTemplateVOs(prevState => [...prevState, ...resp]));
   }
 
 
-   
-   
-   
-  useEffect(() => {
-    console.log("going here " + auth.isAuthenticated);
-    if (auth.isAuthenticated) {
-      
-      listDtsTemplateVOs();
-      listTemplateNames();
-    }
-    
-
-}, [auth]);
-
-
   function getDtsVO() {
-
     if ((idinurl === null) || (idinurl === "new")) {
-      
-      setDtsVO({...dtsVO, name: "New Decentralized Trusted Service", id: uuidv4(), templateFk:"newTemplateFk", debug: false})
-    
+      const id = uuidv4();
+      setDtsVO({...dtsVO, name: "New Decentralized Trusted Service", id: uuidv4(), templateFk: id, debug: false})
+      const newTemplate:DtsTemplateVO = {title: 'string', state: EntityState.Editing, yaml: 'string', name: "string", id: id, type: DtsType.ConversationalService}
+      setDtsTemplateVOs([newTemplate]);
     } else {
       const configParameters: ConfigurationParameters = {
         headers: {
           'Authorization': 'Bearer ' + auth.user?.access_token ,
-          
         },
         basePath: process.env.BACKEND_BASE_PATH,
       };
@@ -166,7 +148,7 @@ function DtsViewEdit() {
       const config = new Configuration(configParameters);
       const api = new DtsResourceApi(config);
       
-      api.dtsGetIdGet({ id: idinurl}).then((resp: React.SetStateAction<DtsVO | undefined>) => { 
+      api.dtsGetIdGet({ id: idinurl}).then((resp) => { 
         if (resp) {
           setDtsVO(resp);
           setIsOptionSelected(true);
@@ -175,14 +157,16 @@ function DtsViewEdit() {
         }
         
       });
-     
-      
-  dtsVO?.deploymentConfig?.orchestratorUrl;
-
-  console.log("orchestratorUrl:" + dtsVO?.deploymentConfig?.orchestratorUrl);
     }
-    
   }
+
+  useEffect(() => {
+    if (auth.isAuthenticated) {
+      getDtsVO();
+      listDtsTemplateVOs();
+      listTemplateNames();
+    }
+}, [auth, needsRefresh]);
 
   function getDeploymentConfigKeys(): string[] {
 
@@ -190,27 +174,15 @@ function DtsViewEdit() {
 
     for (const key in dtsVO?.deploymentConfig)
       {
-
-        keylist.push(key);
-        
-        
-         
+        keylist.push(key);   
       }
     return keylist;
   }
 
-  function handleDeploymentConfigValueChange(key: string, e: React.ChangeEvent<HTMLInputElement>) {
-
-    let deploymentConf = dtsVO?.deploymentConfig;
-    deploymentConf?[key] : e;
-    setDtsVO({...dtsVO, deploymentConfig: deploymentConf})
-  }
-
-  function saveDtsVO() {
+  async function saveDtsVO() {
     const configParameters: ConfigurationParameters = {
       headers: {
         'Authorization': 'Bearer ' + auth.user?.access_token ,
-        
       },
       basePath: process.env.BACKEND_BASE_PATH,
     };
@@ -219,41 +191,32 @@ function DtsViewEdit() {
     const config = new Configuration(configParameters);
     const api = new DtsResourceApi(config);
     
-   
-    
-    api.dtsSavePost({ dtsVO: dtsVO });
+    try {
+      await saveDtsTemplateVO()
+      await api.dtsSavePost({ dtsVO: dtsVO });
+    } catch (error) {
+    }
+    const id = dtsVO?.id ?? "new";
+    if (pathname.includes("new")) router.push(pathname.replace("new",id))
+    setNeedsRefresh(true);
   }
 
-  function saveDtsTemplateVO() {
+  async function saveDtsTemplateVO() {
     if(selectedOption !== 'current'){
       const templateVO = dtsTemplateVOs.find(t => t.id === dtsVO?.templateFk);
       const configParameters: ConfigurationParameters = {
         headers: {
           'Authorization': 'Bearer ' + auth.user?.access_token ,
-          
         },
         basePath: process.env.BACKEND_BASE_PATH,
       };
-  
       const config = new Configuration(configParameters);
       const api = new DtsTemplateResourceApi(config);
       
-      templateVO && api.dtstSavePost({ dtsTemplateVO: templateVO });
+      templateVO && await api.dtstSavePost({ dtsTemplateVO: templateVO });
     }
   }
   
-  
-   
-  useEffect(() => {
-    console.log("going here " + auth.isAuthenticated);
-    if (auth.isAuthenticated) {
-      
-      getDtsVO();
-    }
-    
-
-  }, [auth, dtsTemplateVOs]);
-
   if (auth.isAuthenticated) {
     
 
@@ -318,9 +281,6 @@ function DtsViewEdit() {
 
 
         </select>
-        <button onClick={saveDtsTemplateVO} className="text-sm hover:text-primary">
-                Update template
-              </button>
 
         <span className="absolute right-4 top-1/2 z-30 -translate-y-1/2">
           <svg

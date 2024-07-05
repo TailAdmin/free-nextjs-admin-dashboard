@@ -143,7 +143,7 @@ function DtsList() {
 
   function ButtonAddService({ className }: { className: string; }): JSX.Element {
     const handleButtonClick = () => {
-      console.log("Llamando al endpoint...");
+      window.location.href = `/services/new`;
     };
   
     return (
