@@ -195,7 +195,6 @@ function DtsViewEdit() {
       await saveDtsTemplateVO()
       await api.dtsSavePost({ dtsVO: dtsVO });
     } catch (error) {
-      console.error('Error saving data:', error);
     }
     const id = dtsVO?.id ?? "new";
     if (pathname.includes("new")) router.push(pathname.replace("new",id))
