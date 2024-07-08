@@ -69,7 +69,11 @@ function DtsList() {
     const requestParameters = new DtsListPostRequestClass();
     requestParameters.dtsFilter = filterw;
 
-    api.dtsListPost(requestParameters).then((resp) => setDtsVOs(resp));
+    api.dtsListPost(requestParameters).then((resp) => setDtsVOs(resp))
+        .catch((error) => setDtsVOs([
+          {description: "Description",state: EntityState.Editing,name: "Default name",debug: false, createdTs: new Date()},
+          {description: "Description",state: EntityState.Editing,name: "Default name 2",debug: false, createdTs: new Date()}
+        ]));
   }
 
   useEffect(() => {
