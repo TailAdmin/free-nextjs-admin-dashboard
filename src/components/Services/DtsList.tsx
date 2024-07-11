@@ -16,6 +16,19 @@ import { Log } from "oidc-client-ts";
 import Link from "next/link";
 import Pagination from "../Pagination/Pagination";
 
+const sortItems = <T extends Record<string, any>>(
+  items: T[],
+  sortKey: string,
+  sortOrder: string
+): T[] => {
+
+  return [...items].sort((a, b) => {
+    if (a[sortKey] < b[sortKey]) return sortOrder === 'asc' ? -1 : 1;
+    if (a[sortKey] > b[sortKey]) return sortOrder === 'asc' ? 1 : -1;
+    return 0;
+  });
+};
+
 function DtsList() {
   const [dtsVOs, setDtsVOs] = useState<DtsVO[]>([]);
   const [searchDts, setSearchDts] = useState("");
@@ -23,6 +36,8 @@ function DtsList() {
   const [focusedElement, setFocusedElement] = useState<string>('');
   const [itemsPerPage, setItemsPerPage] = useState<number>(5);
   const [currentPage, setCurrentPage] = useState<number>(1);
+  const [sortKey, setSortKey] = useState('name');
+  const [sortOrder, setSortOrder] = useState('asc');
   const visiblePages = 4;
 
   const filterByDts = (item: DtsVO) => item.name?.toLowerCase().includes(searchDts.toLowerCase());
@@ -31,14 +46,21 @@ function DtsList() {
   const filteredItems = useMemo(() => {
     return dtsVOs.filter(filterByDts).filter(filterByState);
   }, [dtsVOs, filterByDts, filterByState]);
+  const sortedItems = useMemo(() => {
+    return sortItems(filteredItems, sortKey, sortOrder);
+  }, [filteredItems, sortKey, sortOrder]);
 
   const totalPages = Math.ceil(filteredItems.length / itemsPerPage);
   const indexOfLastItem = currentPage * itemsPerPage;
   const indexOfFirstItem = indexOfLastItem - itemsPerPage;
-  const currentItems = filteredItems.slice(indexOfFirstItem, indexOfLastItem);
+  const currentItems = sortedItems.slice(indexOfFirstItem, indexOfLastItem);
 
   const handlePageChange = (newPage: number) => {
     setCurrentPage(newPage);
+  };
+  const handleSort = (key:string) => {
+    setSortOrder(sortKey === key && sortOrder === 'asc' ? 'desc' : 'asc');
+    setSortKey(key);
   };
 
   const auth = useAuth();
@@ -72,7 +94,8 @@ function DtsList() {
     api.dtsListPost(requestParameters).then((resp) => setDtsVOs(resp))
         .catch((error) => setDtsVOs([
           {description: "Description",state: EntityState.Editing,name: "Default name",debug: false, createdTs: new Date()},
-          {description: "Description",state: EntityState.Editing,name: "Default name 2",debug: false, createdTs: new Date()}
+          {description: "Description 2",state: EntityState.Enabled,name: "Default name 2",debug: false, createdTs: new Date()},
+          {description: "Description 3",state: EntityState.Disabled,name: "Default name 3",debug: false, createdTs: new Date()}
         ]));
   }
 
@@ -185,14 +208,29 @@ function DtsList() {
             <thead>
               <tr className="bg-gray-2 text-left dark:bg-meta-4">
                 <th className="min-w-[220px] px-4 py-4 text-center font-medium text-black dark:text-white xl:pl-11">
-                  Name
+                  <div className="flex items-center justify-center">
+                    Name
+                    <a onClick={(e) => handleSort('name')}><svg className="w-3 h-3 ms-1.5" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" fill="currentColor" viewBox="0 0 24 24">
+      <path d="M8.574 11.024h6.852a2.075 2.075 0 0 0 1.847-1.086 1.9 1.9 0 0 0-.11-1.986L13.736 2.9a2.122 2.122 0 0 0-3.472 0L6.837 7.952a1.9 1.9 0 0 0-.11 1.986 2.074 2.074 0 0 0 1.847 1.086Zm6.852 1.952H8.574a2.072 2.072 0 0 0-1.847 1.087 1.9 1.9 0 0 0 .11 1.985l3.426 5.05a2.123 2.123 0 0 0 3.472 0l3.427-5.05a1.9 1.9 0 0 0 .11-1.985 2.074 2.074 0 0 0-1.846-1.087Z"/>
+    </svg></a>
+                </div>
                 </th>
 
                 <th className="min-w-[120px] px-4 py-4 text-center font-medium text-black dark:text-white">
-                  Template Repo
+                  <div className="flex items-center justify-center">
+                    Template Repo
+                    <a onClick={(e) => handleSort('')}><svg className="w-3 h-3 ms-1.5" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" fill="currentColor" viewBox="0 0 24 24">
+      <path d="M8.574 11.024h6.852a2.075 2.075 0 0 0 1.847-1.086 1.9 1.9 0 0 0-.11-1.986L13.736 2.9a2.122 2.122 0 0 0-3.472 0L6.837 7.952a1.9 1.9 0 0 0-.11 1.986 2.074 2.074 0 0 0 1.847 1.086Zm6.852 1.952H8.574a2.072 2.072 0 0 0-1.847 1.087 1.9 1.9 0 0 0 .11 1.985l3.426 5.05a2.123 2.123 0 0 0 3.472 0l3.427-5.05a1.9 1.9 0 0 0 .11-1.985 2.074 2.074 0 0 0-1.846-1.087Z"/>
+    </svg></a>
+                  </div>
                 </th>
                 <th className="px-4 py-4 text-center font-medium text-black dark:text-white">
-                  Template
+                  <div className="flex items-center justify-center">
+                    Template
+                    <a onClick={(e) => handleSort('')}><svg className="w-3 h-3 ms-1.5" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" fill="currentColor" viewBox="0 0 24 24">
+      <path d="M8.574 11.024h6.852a2.075 2.075 0 0 0 1.847-1.086 1.9 1.9 0 0 0-.11-1.986L13.736 2.9a2.122 2.122 0 0 0-3.472 0L6.837 7.952a1.9 1.9 0 0 0-.11 1.986 2.074 2.074 0 0 0 1.847 1.086Zm6.852 1.952H8.574a2.072 2.072 0 0 0-1.847 1.087 1.9 1.9 0 0 0 .11 1.985l3.426 5.05a2.123 2.123 0 0 0 3.472 0l3.427-5.05a1.9 1.9 0 0 0 .11-1.985 2.074 2.074 0 0 0-1.846-1.087Z"/>
+    </svg></a>
+                  </div>
                 </th>
                 <th className="px-4 py-4 text-center font-medium text-black dark:text-white">
                   Connections
@@ -201,7 +239,12 @@ function DtsList() {
                   Modified
                 </th>
                 <th className="px-4 py-4 text-center font-medium text-black dark:text-white">
-                  State
+                  <div className="flex items-center justify-center">
+                    State
+                    <a onClick={(e) => handleSort('state')}><svg className="w-3 h-3 ms-1.5" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" fill="currentColor" viewBox="0 0 24 24">
+      <path d="M8.574 11.024h6.852a2.075 2.075 0 0 0 1.847-1.086 1.9 1.9 0 0 0-.11-1.986L13.736 2.9a2.122 2.122 0 0 0-3.472 0L6.837 7.952a1.9 1.9 0 0 0-.11 1.986 2.074 2.074 0 0 0 1.847 1.086Zm6.852 1.952H8.574a2.072 2.072 0 0 0-1.847 1.087 1.9 1.9 0 0 0 .11 1.985l3.426 5.05a2.123 2.123 0 0 0 3.472 0l3.427-5.05a1.9 1.9 0 0 0 .11-1.985 2.074 2.074 0 0 0-1.846-1.087Z"/>
+    </svg></a>
+                  </div>
                 </th>
                 <th className="px-4 py-4 text-center font-medium text-black dark:text-white">
                   Action
