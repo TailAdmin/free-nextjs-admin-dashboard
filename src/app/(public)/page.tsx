@@ -11,9 +11,9 @@ export const metadata: Metadata = {
 export default function Home() {
   return (
     <>
-      <DefaultLayout>
-        <ECommerce />
-      </DefaultLayout>
+      {/* <DefaultLayout variant="public"> */}
+        <></>
+      {/* </DefaultLayout> */}
     </>
   );
 }

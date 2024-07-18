@@ -4,9 +4,9 @@ import Sidebar from "@/components/Sidebar";
 import Header from "@/components/Header";
 
 export default function DefaultLayout({
-  children,
+  children, variant
 }: {
-  children: React.ReactNode;
+  children: React.ReactNode; variant: "auth" | "private" | "public";
 }) {
   const [sidebarOpen, setSidebarOpen] = useState(false);
   return (
@@ -14,7 +14,7 @@ export default function DefaultLayout({
       {/* <!-- ===== Page Wrapper Start ===== --> */}
       <div className="flex h-screen overflow-hidden">
         {/* <!-- ===== Sidebar Start ===== --> */}
-        <Sidebar sidebarOpen={sidebarOpen} setSidebarOpen={setSidebarOpen} />
+        <Sidebar sidebarOpen={sidebarOpen} setSidebarOpen={setSidebarOpen} variant={variant} />
         {/* <!-- ===== Sidebar End ===== --> */}
 
         {/* <!-- ===== Content Area Start ===== --> */}
