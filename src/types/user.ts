@@ -5,6 +5,7 @@ export interface UserData {
   role?: string;
   phone?: string;
   email: string;
+  image?: string;
 }
 
 export interface UserDataResponse {

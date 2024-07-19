@@ -20,6 +20,7 @@ const DropdownUser = () => {
     }
   }, [isLoading, userData]);
 
+  const userImage = userData?.image || null;
     
   return (
     <ClickOutside onClick={() => setDropdownOpen(false)} className="relative">
@@ -35,22 +36,36 @@ const DropdownUser = () => {
           <span className="block text-xs">{userData?.role}</span>
         </span>
 
-        <span className="h-12 w-12 rounded-full">
+        <span className="h-12 w-12 text-xl rounded-full overflow-hidden border border-gray-900 bg-gray-100 bg-gray-100 flex items-center justify-center">
           {!userData ? (
-            "User account"
+              "?"
+                
+           
+
           ) : (
-            <Image
-              width={112}
-              height={112}
-              src={"/images/user/user-01.png"}
-              //src={userData.}
-              style={{
-                width: "auto",
-                height: "auto",
-              }}
-              alt="User"
-            />
-          )}
+
+
+            userImage ? (
+              <Image
+                width={112}
+                height={112}
+                src={userImage}
+                style={{
+                  width: "auto",
+                  height: "auto",
+                }}
+                className="object-cover w-full h-full"
+                alt="User"
+
+              />
+            ) : (
+              <div className="w-10 h-10 rounded-full bg-gray-300" />
+            )
+
+       
+
+          )
+          }
         </span>
 
         <svg

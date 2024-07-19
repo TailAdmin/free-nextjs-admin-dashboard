@@ -26,6 +26,7 @@ const useUserData = (): UserDataResponse => {
           const userData: UserData = {
             fullname: user.name || null,
             email: user.email,
+            image: user.image,
           };
           setUserData(userData);
         } else {
