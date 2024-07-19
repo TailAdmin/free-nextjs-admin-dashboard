@@ -1,0 +1,25 @@
+version: "3"
+
+services:
+  next-app:
+    ports:
+      - 8080:3000
+    build: .
+    command: yarn start
+    environment:
+      - NEXT_PUBLIC_BACKEND_BASE_PATH=
+      - NEXT_PUBLIC_KEYCLOAK_URL=http://localhost:8880/auth/realms/vc-authn
+      - NEXT_PUBLIC_KEYCLOAK_CLIENT_ID=vue-fe
+      - NEXT_PUBLIC_KEYCLOAK_REDIRECT_URI=http://localhost:8080/
+      - NEXT_PUBLIC_KEYCLOAK_POST_LOGOUT_REDIRECT_URI=http://localhost:8080/
+      - NEXT_PUBLIC_KEYCLOAK_PRES_REQ_CONF_ID=phone-number
+      - NEXT_PUBLIC_TEMPLATE_DIR=2060-io/dashboard-templates
+      - NEXT_PUBLIC_TEMPLATE_BRANCH=main
+      - NEXT_PUBLIC_TEMPLATE_SCHEMA_DIR=Fastbot/schema.yml
+    networks:
+      - vc_auth
+
+networks:
+  vc_auth:
+    driver: bridge
+
