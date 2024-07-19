@@ -1,6 +1,7 @@
 // users data router
 import type { NextRequest } from "next/server";
 import { getAccessToken, getSession } from "@auth0/nextjs-auth0";
+import { getAppServerSession } from "@/entities/session/get-app-session.server";
 import { UserData } from "@/types/user";
 import { userdata } from "@/app/api/user/userdata";
 
@@ -14,10 +15,12 @@ export async function GET(request: NextRequest) {
       },
     });
   }
-  const session = await getSession();
-  const token = await getAccessToken();
+//  const session = await getSession();
+  const session = await getAppServerSession();
 
-  if (!session || !session.user) {
+  console.log(`session:${session}`);
+
+  if (!session ||!session.user) {
     return new Response(JSON.stringify({ message: "Not authenticated" }), {
       status: 401,
       headers: {
@@ -25,6 +28,8 @@ export async function GET(request: NextRequest) {
       },
     });
   }
+
+ 
   const userEmail = session.user.email;
   try {
     const user: UserData | undefined = userdata.find(

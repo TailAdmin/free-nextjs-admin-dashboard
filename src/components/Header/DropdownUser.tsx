@@ -8,8 +8,7 @@ import { UserData } from "@/types/user";
 const DropdownUser = () => {
   const [dropdownOpen, setDropdownOpen] = useState(false);
   const { userData, isLoading, error } = useUserData();
-  //if (isLoading || !userData) return <p>Loading...</p>;
-  //if (error) return <p>Error: {error}</p>;
+
   useEffect(() => {
     if (
       typeof window !== "undefined" &&
@@ -20,6 +19,8 @@ const DropdownUser = () => {
       window.location.href = "/";
     }
   }, [isLoading, userData]);
+
+    
   return (
     <ClickOutside onClick={() => setDropdownOpen(false)} className="relative">
       <Link
@@ -42,6 +43,7 @@ const DropdownUser = () => {
               width={112}
               height={112}
               src={"/images/user/user-01.png"}
+              //src={userData.}
               style={{
                 width: "auto",
                 height: "auto",
@@ -100,7 +102,7 @@ const DropdownUser = () => {
                   My Profile
                 </Link>
               </li>
-              <li>
+              {/* <li>
                 <Link
                   href="#"
                   className="flex items-center gap-3.5 text-sm font-medium duration-300 ease-in-out hover:text-primary lg:text-base"
@@ -120,8 +122,8 @@ const DropdownUser = () => {
                   </svg>
                   My Contacts
                 </Link>
-              </li>
-              <li>
+              </li> */}
+              {/* <li>
                 <Link
                   href="/settings"
                   className="flex items-center gap-3.5 text-sm font-medium duration-300 ease-in-out hover:text-primary lg:text-base"
@@ -145,7 +147,7 @@ const DropdownUser = () => {
                   </svg>
                   Account Settings
                 </Link>
-              </li>
+              </li> */}
             </ul>
           )}
           <button className="flex items-center gap-3.5 px-6 py-4 text-sm font-medium duration-300 ease-in-out hover:text-primary lg:text-base">
@@ -168,10 +170,10 @@ const DropdownUser = () => {
                     fill=""
                   />
                 </svg>
-                <a href="/api/auth/logout">Log Out</a>
+                <a href="/api/auth/signout/auth0">Log Out</a>
               </>
             ) : (
-              <a href="/api/auth/login">Log In</a>
+              <a href="/api/auth/signin/auth0">Log In</a>
             )}
           </button>
         </div>

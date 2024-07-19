@@ -19,9 +19,9 @@ providers:
     // privateConfig.AUTH_AUTH0_ID && 
     // privateConfig.AUTH_AUTH0_CLIENT_SECRET &&
     // privateConfig.AUTH_AUTH0_DOMAIN &&    
-    Auth0Provider({clientId: privateConfig.AUTH_AUTH0_ID ?? '', 
+    Auth0Provider({clientId: privateConfig.AUTH_AUTH0_CLIENT_ID ?? '', 
                     clientSecret: privateConfig.AUTH_AUTH0_CLIENT_SECRET ?? '',
-                    issuer: `https://${privateConfig.AUTH_AUTH0_DOMAIN}`
+                    issuer: `https://${privateConfig.AUTH_AUTH0_DOMAIN}`,
                     }),                
 ]
 // )
