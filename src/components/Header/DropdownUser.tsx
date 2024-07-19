@@ -142,7 +142,7 @@ const DropdownUser = () => {
                 <a href="/api/auth/signout/auth0">Log Out</a>
               </>
             ) : (
-              <a href={signinString}>Sign In</a>
+              <a href="/api/auth/signin/auth0">Sign In</a>
             )}
           </button>
         </div>
