@@ -11,7 +11,7 @@ export const metadata: Metadata = {
 
 const BasicChartPage: React.FC = () => {
   return (
-    <DefaultLayout>
+    <DefaultLayout variant="private">
       <Chart />
     </DefaultLayout>
   );

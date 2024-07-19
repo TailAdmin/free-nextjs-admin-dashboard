@@ -11,7 +11,7 @@ export const metadata: Metadata = {
 
 const FormElementsPage = () => {
   return (
-    <DefaultLayout>
+    <DefaultLayout variant="private">
       <FormElements />
     </DefaultLayout>
   );
