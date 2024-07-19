@@ -14,9 +14,9 @@ import useUserData from "@/hooks/useUserData";
 const Settings = () => {
   const { userData, isLoading, error } = useUserData();
   return (
-    <DefaultLayout>
+    <>
       <div className="mx-auto max-w-270">
-        <Breadcrumb pageName="Settings" />
+        {/* <Breadcrumb pageName="Settings" /> */}
 
         <div className="grid grid-cols-5 gap-8">
           <div className="col-span-5 xl:col-span-3">
@@ -68,7 +68,7 @@ const Settings = () => {
                           name="fullName"
                           id="fullName"
                           placeholder="Devid Jhon"
-                          defaultValue={userData?.fullname}
+                          defaultValue={userData?.fullname||""}
                           // defaultValue="Devid Jhon"
                         />
                       </div>
@@ -321,7 +321,7 @@ const Settings = () => {
           </div>
         </div>
       </div>
-    </DefaultLayout>
+    </>
   );
 };
 

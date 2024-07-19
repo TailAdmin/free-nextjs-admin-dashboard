@@ -1,30 +1,47 @@
+
 import { useState, useEffect } from "react";
 import { UserData, UserDataResponse } from "@/types/user";
-import { router } from "next/client";
+import { useAppSession } from "@/entities/session/use-app-session";
 
 const useUserData = (): UserDataResponse => {
   const [userData, setUserData] = useState<UserData | null>(null);
   const [isLoading, setIsLoading] = useState<boolean>(true);
   const [error, setError] = useState<string | null>(null);
-
+  const session = useAppSession();
   useEffect(() => {
-    fetch(`/api/user`)
-      .then((response) => {
-        if (!response.ok) {
-          throw new Error("Network response error");
+
+    if (session.status === 'unauthenticated') {
+      setUserData(null);
+      setIsLoading(false);
+    }
+    else if (session.status === 'loading') {
+      setIsLoading(true);
+      setError(null);
+    }
+    else if (session.status === 'authenticated') {
+      try {
+        // Предположим, что данные пользователя уже в сессии
+        const user = session.data?.user;
+        if (user) {
+          const userData: UserData = {
+            fullname: user.name || null,
+            email: user.email,
+            image: user.image,
+          };
+          setUserData(userData);
+        } else {
+          setUserData(null);
         }
-        return response.json();
-      })
-      .then((data) => {
-        setUserData(data);
         setIsLoading(false);
-      })
-      .catch((error) => {
-        console.error("Users data loading error:", error);
-        setError(error);
+      } catch (error) {
+        console.error("User data loading error:", error);
+        setError("Failed to load user data");
         setIsLoading(false);
-      });
-  }, []);
+      }  
+    
+    }
+ 
+  }, [session]);
 
   return { userData, isLoading, error };
 };
