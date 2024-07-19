@@ -11,7 +11,7 @@ export const metadata: Metadata = {
 
 const Buttons = () => {
   return (
-    <DefaultLayout>
+    <DefaultLayout variant="private">
       <Breadcrumb pageName="Buttons" />
 
       {/* <!-- Normal Button Items --> */}

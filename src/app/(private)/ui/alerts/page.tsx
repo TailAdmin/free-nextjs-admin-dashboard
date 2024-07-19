@@ -11,7 +11,7 @@ export const metadata: Metadata = {
 
 const Alerts = () => {
   return (
-    <DefaultLayout>
+    <DefaultLayout variant="private">
       <Breadcrumb pageName="Alerts" />
 
       <div className="rounded-sm border border-stroke bg-white p-4 shadow-default dark:border-strokedark dark:bg-boxdark md:p-6 xl:p-9">
