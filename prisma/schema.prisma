@@ -1,0 +1,59 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+// Looking for ways to speed up your queries, or scale easily with your serverless or edge functions?
+// Try Prisma Accelerate: https://pris.ly/cli/accelerate-init
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model Customer {
+  id         String                @id @default(cuid())
+  name       String
+  email      String             @unique
+  campaigns  CustomerCampaign[]
+  topics     CustomerTopic[]
+}
+
+model Campaign {
+  id         String                @id @default(cuid())
+  title      String
+  description String?
+  customers  CustomerCampaign[]
+}
+
+model Topic {
+  id         String                @id @default(cuid())
+  title      String
+  description String?
+  customers  CustomerTopic[]
+}
+
+model CustomerCampaign {
+  id          String         @id @default(cuid())
+  customerId  String
+  campaignId  String
+
+  customer    Customer    @relation(fields: [customerId], references: [id])
+  campaign    Campaign    @relation(fields: [campaignId], references: [id])
+
+  @@unique([customerId, campaignId])
+}
+
+model CustomerTopic {
+  id          String         @id @default(cuid())
+  customerId  String
+  topicId     String
+
+  customer    Customer    @relation(fields: [customerId], references: [id])
+  topic       Topic       @relation(fields: [topicId], references: [id])
+
+  @@unique([customerId, topicId])
+}
+

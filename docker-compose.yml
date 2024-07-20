@@ -1,0 +1,21 @@
+version: '3'
+services:
+  db:
+    image: postgres
+    restart: always
+    ports: 
+      - 4432:5432
+    environment:
+      - POSTGRES_USER=postgres
+      - POSTGRES_PASSWORD=postgres
+      - POSTGRES_DB=postgres
+    volumes:
+      - db-data:/var/lib/postgresql/data
+    networks:
+      - custom
+volumes:
+  db-data:
+
+networks:
+ custom:
+   driver: bridge  
