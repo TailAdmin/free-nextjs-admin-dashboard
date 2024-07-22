@@ -9,8 +9,12 @@
     "lint": "next lint"
   },
   "dependencies": {
+    "@types/js-yaml": "^4.0.9",
+    "@types/uuid": "9.0.1",
+    "ajv": "^8.13.0",
     "apexcharts": "^3.45.2",
     "flatpickr": "^4.6.13",
+    "js-yaml": "^4.1.0",
     "jsvectormap": "^1.5.3",
     "next": "14.1.0",
     "oidc-client-ts": "^3.0.1",
@@ -18,7 +22,7 @@
     "react-apexcharts": "^1.4.1",
     "react-dom": "^18",
     "react-oidc-context": "^3.1.0",
-    "uuid": "^9.0.1"
+    "uuid": "^10.0.0"
   },
   "devDependencies": {
     "@types/node": "^20",
