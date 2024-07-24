@@ -20,7 +20,6 @@ const useUserData = (): UserDataResponse => {
     }
     else if (session.status === 'authenticated') {
       try {
-        // Предположим, что данные пользователя уже в сессии
         const user = session.data?.user;
         if (user) {
           const userData: UserData = {

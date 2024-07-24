@@ -13,7 +13,6 @@ export const useCustomers = (page: number, pageSize: number) => {
             setError(null);
             try {
                 const response = await fetch(`/api/customer?page=${page}&pageSize=${pageSize}`);
-                console.log(response);
                 const { data, total } = await response.json();
                 setCustomers(data);
                 setTotal(total);
