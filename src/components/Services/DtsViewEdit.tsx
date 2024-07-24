@@ -265,7 +265,7 @@ function DtsViewEdit() {
                     placeholder="Choose a name for your DTS"
                     value={dtsVO?.name}
                     onChange={checkMinSizeName}
-                    className={`w-full rounded border-[1.5px] px-5 py-3 text-black outline-none transition focus:border-primary active:border-primary disabled:cursor-default disabled:bg-whiter dark:text-white ${errorName ? "bg-danger" : "border-stroke bg-transparent dark:focus:border-primary dark:border-form-strokedark dark:bg-form-input"}`}
+                    className={`w-full rounded border-[1.5px] px-5 py-3 text-black outline-none transition focus:border-primary active:border-primary disabled:cursor-default disabled:bg-whiter dark:text-white ${errorName ? "bg-red-200 placeholder-gray-3" : "border-stroke bg-transparent dark:focus:border-primary dark:border-form-strokedark dark:bg-form-input"}`}
                   />
                   {/* onChange​= {(e) => setDtsVO({...dtsVO, name: e.target.value})}  */}
                 </div>
@@ -280,7 +280,7 @@ function DtsViewEdit() {
           value={selectedOption}
           onChange={handleChange}
           className={`relative z-20 w-full appearance-none rounded border border-stroke bg-transparent px-5 py-3 outline-none transition focus:border-primary active:border-primary dark:border-form-strokedark dark:bg-form-input dark:focus:border-primary ${
-            isOptionSelected ? "text-black dark:text-white" : "bg-danger"
+            isOptionSelected ? "text-black dark:text-white" : "bg-red-200 placeholder-gray-3"
           }`}
         >
 
@@ -336,7 +336,7 @@ function DtsViewEdit() {
                   placeholder="Write your DTS Configuration"
                   value={dtsVO?.config}
                   onChange={checkConfigStructure}
-                  className={`w-full rounded-lg border-[1.5px] focus:border-primary px-5 py-3 text-black outline-none transition active:border-primary disabled:cursor-default disabled:bg-whiter dark:focus:border-primary dark:text-white ${errorDTSConf ? "bg-danger" : "border-stroke bg-transparent dark:border-form-strokedark dark:bg-form-input"}`}
+                  className={`w-full rounded-lg border-[1.5px] focus:border-primary px-5 py-3 text-black outline-none transition active:border-primary disabled:cursor-default disabled:bg-whiter dark:focus:border-primary dark:text-white ${errorDTSConf ? "bg-red-200 placeholder-gray-3" : "border-stroke bg-transparent dark:border-form-strokedark dark:bg-form-input"}`}
                 ></textarea>
                      
                   </div>
@@ -399,7 +399,7 @@ function DtsViewEdit() {
                           }
                         }));
                       }}
-                      className={`w-full rounded border-[1.5px] px-5 py-3 text-black outline-none transition focus:border-primary active:border-primary disabled:cursor-default disabled:bg-whiter dark:text-white ${dtsVO?.deploymentConfig ? checkErrorMinSize(String(dtsVO.deploymentConfig[key])) ? "bg-danger" : "border-stroke  bg-transparent dark:focus:border-primary dark:border-form-strokedark dark:bg-form-input" : "" }`}
+                      className={`w-full rounded border-[1.5px] px-5 py-3 text-black outline-none transition focus:border-primary active:border-primary disabled:cursor-default disabled:bg-whiter dark:text-white ${dtsVO?.deploymentConfig ? checkErrorMinSize(String(dtsVO.deploymentConfig[key])) ? "bg-red-200 placeholder-gray-3" : "border-stroke  bg-transparent dark:focus:border-primary dark:border-form-strokedark dark:bg-form-input" : "" }`}
                     />
                   </div>
                  ))}
