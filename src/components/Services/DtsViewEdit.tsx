@@ -75,10 +75,8 @@ function DtsViewEdit() {
 
   const checkMinSizeName = async (e: ChangeEvent<HTMLInputElement>) => {
     setDtsVO({...dtsVO, name: e.target.value})
-    console.log(Number(String(e.target.value).length))
     if(0 === Number(String(e.target.value).length)){
       setErrorName(true);
-      console.log(errorName)
     }
     else{
       setErrorName(false);
