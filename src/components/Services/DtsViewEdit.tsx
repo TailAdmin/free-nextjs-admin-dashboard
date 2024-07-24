@@ -75,12 +75,19 @@ function DtsViewEdit() {
 
   const checkMinSizeName = async (e: ChangeEvent<HTMLInputElement>) => {
     setDtsVO({...dtsVO, name: e.target.value})
-    if(0 === Number(String(e.target.value).length)){
+    if(0 === Number(String(e.target.value).length) || "" === String(e.target.value).trim()){
       setErrorName(true);
     }
     else{
       setErrorName(false);
     }
+  }
+
+  function checkErrorMinSize(value: string): boolean {
+    if(0 === value.length || "" === value.trim()){
+      return true;
+    }
+    return false
   }
   
   const checkConfigStructure = async (e: ChangeEvent<HTMLTextAreaElement>) =>{
@@ -391,7 +398,7 @@ function DtsViewEdit() {
                           }
                         }));
                       }}
-                      className="w-full rounded border-[1.5px] border-stroke bg-transparent px-5 py-3 text-black outline-none transition focus:border-primary active:border-primary disabled:cursor-default disabled:bg-whiter dark:border-form-strokedark dark:bg-form-input dark:text-white dark:focus:border-primary"
+                      className={`w-full rounded border-[1.5px] px-5 py-3 text-black outline-none transition focus:border-primary active:border-primary disabled:cursor-default disabled:bg-whiter dark:text-white ${dtsVO?.deploymentConfig ? checkErrorMinSize(String(dtsVO.deploymentConfig[key])) ? "bg-danger" : "border-stroke  bg-transparent dark:focus:border-primary dark:border-form-strokedark dark:bg-form-input" : "" }`}
                     />
                   </div>
                  ))}
