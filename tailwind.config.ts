@@ -1,5 +1,6 @@
 import type { Config } from "tailwindcss";
 import defaultTheme from "tailwindcss/defaultTheme";
+import colors from 'tailwindcss/colors';
 
 const config: Config = {
   content: [
@@ -24,7 +25,10 @@ const config: Config = {
         transparent: "transparent",
         white: "#FFFFFF",
         black: "#1C2434",
-        red: "#FB5454",
+        red: {
+          ...colors.red,
+          DEFAULT: "#FB5454"
+        },
         "black-2": "#010101",
         body: "#64748B",
         bodydark: "#AEB7C0",
