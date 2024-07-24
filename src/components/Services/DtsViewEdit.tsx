@@ -73,21 +73,22 @@ function DtsViewEdit() {
     }
   };
 
-  const checkMinSizeName = async (e: ChangeEvent<HTMLInputElement>) => {
-    setDtsVO({...dtsVO, name: e.target.value})
-    if(0 === Number(String(e.target.value).length) || "" === String(e.target.value).trim()){
-      setErrorName(true);
-    }
-    else{
-      setErrorName(false);
-    }
-  }
 
   function checkErrorMinSize(value: string): boolean {
     if(0 === value.length || "" === value.trim()){
       return true;
     }
     return false
+  }
+
+  const checkMinSizeName = async (e: ChangeEvent<HTMLInputElement>) => {
+    setDtsVO({...dtsVO, name: e.target.value})
+    if(checkErrorMinSize(String(e.target.value))){
+      setErrorName(true);
+    }
+    else{
+      setErrorName(false);
+    }
   }
   
   const checkConfigStructure = async (e: ChangeEvent<HTMLTextAreaElement>) =>{
