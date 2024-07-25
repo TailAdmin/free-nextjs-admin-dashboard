@@ -1,0 +1,27 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model aghanim_customer {
+  name                     String  @db.VarChar
+  email                    String  @db.VarChar
+  created_at               Float
+  modified_at              Float?
+  deleted_at               Float?
+  id                       String  @unique @id @db.VarChar(32)
+  sub                      String  @db.VarChar
+  accepted_terms_version   String? @db.VarChar(100)
+  accepted_terms_at        Int?
+  accepted_privacy_version String? @db.VarChar(100)
+  accepted_privacy_at      Int?
+  last_login_at            Int?
+  archived_at              Float?
+  is_staff                 Boolean @default(false)
+
+  @@index([id], map: "ix_aghanim_customer_id")
+}
