@@ -39,16 +39,6 @@ export class CustomerRepository {
     async getCustomers(page: number, pageSize: number): Promise<{data: CustomerEntity[], total: number}> {
         const skip = (page - 1) * pageSize;
         const take = pageSize;
-
-
-        try {
-            await dbClient.$connect();
-            console.log('Database server is accessible.');
-          } catch (error) {
-            console.error('Error connecting to the database server:', error);
-          } finally {
-            await dbClient.$disconnect();
-          }
         
         const[rawData, total] = await Promise.all([
             dbClient.aghanim_customer.findMany({
