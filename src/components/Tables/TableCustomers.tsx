@@ -5,13 +5,17 @@ import { useState } from "react";
 import {useCustomers} from '@/hooks/useCustomersData';
 import Loader from "../common/Loader";
 import { CustomerEntity } from "@/entities/customer/_domain/types";
+import CustomerCard from "../Cards/CustomerCard";
+import CustomerDetailForm from "../Cards/CustomerCard";
 
 const TableCustomer = () => {
 
 
   const[currentPage, setCurrentPage] = useState(1);
   const [pageSize] = useState(25);
+  const [selectedCustomer, setSelectedCustomer] = useState<CustomerEntity|null>(null);
   const { customers, isLoading, error, total } = useCustomers(currentPage, pageSize);
+
 
   const totalPages = Math.ceil(total / pageSize);
 
@@ -48,10 +52,19 @@ const TableCustomer = () => {
     const maxLength = Math.max(
       ...customers.map(customer => {
         const value = customer[key];
-        return value ? value.toString().length : 10;
+        return value ? value.toString().length - 20 : 10;
       })
     );
     return `${maxLength }ch`;
+  };
+
+
+  const handleRowClick = (customer: CustomerEntity) => {
+    setSelectedCustomer(customer);
+  };
+
+  const handleCloseCard = () => {
+    setSelectedCustomer(null);
   };
 
 
@@ -63,7 +76,7 @@ const TableCustomer = () => {
 
       <div className="flex flex-col">
       <div className="overflow-x-auto">
-      <div className="min-w-[1800px]">
+      <div className="min-w-[1250px]">
         <div className="flex bg-gray-2 dark:bg-meta-4">
           
         {columns.map((column) => (
@@ -77,46 +90,6 @@ const TableCustomer = () => {
                 </div>
               ))}
 
-          {/* <div className="p-2.5 xl:p-5">
-            <h5 className="text-sm font-medium uppercase xsm:text-base">
-              Name
-            </h5>
-          </div>
-          <div className="p-2.5 text-center xl:p-5">
-            <h5 className="text-sm font-medium uppercase xsm:text-base">
-            E-mail
-            </h5>
-          </div>
-          <div className="p-2.5 text-center xl:p-5">
-            <h5 className="text-sm font-medium uppercase xsm:text-base">
-            Is Staff
-            </h5>
-          </div>
-
-          <div className="p-2.5 text-center xl:p-5">
-            <h5 className="text-sm font-medium uppercase xsm:text-base">
-            Created at
-            </h5>
-          </div>
-
-          <div className="p-2.5 text-center xl:p-5">
-            <h5 className="text-sm font-medium uppercase xsm:text-base">
-            Last login at
-            </h5>
-          </div>
-
-          <div className="p-2.5 text-center xl:p-5">
-            <h5 className="text-sm font-medium uppercase xsm:text-base">
-            Accepted privacy version
-            </h5>
-          </div>
-
-          <div className="p-2.5 text-center xl:p-5">
-            <h5 className="text-sm font-medium uppercase xsm:text-base">
-            Accepted terms version
-            </h5>
-          </div> */}
-
         </div>
 
         {customers.map((customer, key) => (
@@ -127,6 +100,7 @@ const TableCustomer = () => {
                 : "border-b border-stroke dark:border-strokedark"
             }`}
             key={key}
+            onClick={() => handleRowClick(customer)}
           >
 
                 {columns.map((column) => (
@@ -137,38 +111,6 @@ const TableCustomer = () => {
                     <p className="text-black dark:text-white break-words">{customer[column.key]}</p>
                   </div>
                 ))}
-
-            {/* <div className="flex items-center gap-3 p-2.5 xl:p-5 overflow-hidden text-ellipsis whitespace-nowrap w-1/2">
- 
-              <p className="hidden text-black dark:text-white sm:block">
-                {customer.name}
-              </p>
-            </div> */}
-{/* 
-            <div className="flex items-center justify-center p-2.5 xl:p-5 overflow-hidden text-ellipsis whitespace-nowrap w-1/2">
-              <p className="text-black dark:text-white">{customer.email}</p>
-            </div>
-
-            <div className="flex items-center justify-center p-2.5 xl:p-5">
-              <p className="text-meta-3">{customer.is_staff}</p>
-            </div>
-
-            <div className="flex items-center justify-center p-2.5 xl:p-5">
-              <p className="text-meta-3">{customer.created_at}</p>
-            </div>
-
-            <div className="flex items-center justify-center p-2.5 xl:p-5">
-              <p className="text-meta-3">{customer.last_login_at}</p>
-            </div>
-
-            <div className="flex items-center justify-center p-2.5 xl:p-5">
-              <p className="text-meta-3">{customer.accepted_privacy_version}</p>
-            </div>
-
-            <div className="flex items-center justify-center p-2.5 xl:p-5">
-              <p className="text-meta-3">{customer.accepted_terms_version}</p>
-            </div> */}
-
           </div>
         ))}
 
@@ -196,6 +138,12 @@ const TableCustomer = () => {
       </div>  
 
       </div>
+
+      {selectedCustomer && (
+        <CustomerDetailForm customer={selectedCustomer} onClose={handleCloseCard} />
+      )}
+
+
     </div>
   );
 };
