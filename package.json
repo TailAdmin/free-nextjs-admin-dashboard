@@ -3,7 +3,6 @@
   "version": "1.3.3",
   "private": true,
   "scripts": {
-    "prisma:pull": "prisma db pull",
     "prisma:generate": "prisma generate",
     "dev": "next dev",
     "build": "npm run prisma:pull && npm run prisma:generate && next build",
