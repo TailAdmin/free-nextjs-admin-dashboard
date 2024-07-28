@@ -6,6 +6,7 @@ export class CustomerRepository {
 
 
     mapToCustomerType = (data: any): CustomerEntity =>{
+        console.log(`rawData id: ${data.id}`);
         const customerData = {
 
             id: data.id,
@@ -27,14 +28,15 @@ export class CustomerRepository {
 
         return customerData
     }
-    async getCustomerById(CustomerId: string): Promise<CustomerEntity> {
-
-        const rawData = dbClient.aghanim_customer.findUniqueOrThrow({
+    async getCustomerById(customerId: string): Promise<{data:CustomerEntity[], total: number}> {
+        const total = 1;
+        const rawData = await dbClient.aghanim_customer.findUnique({
             where: {
-                id: CustomerId,
+                id: customerId,
             },
         });
-        return this.mapToCustomerType(rawData);
+        const data = [this.mapToCustomerType(rawData)];
+        return {data, total};
     }
     async getCustomers(page: number, pageSize: number): Promise<{data: CustomerEntity[], total: number}> {
         const skip = (page - 1) * pageSize;

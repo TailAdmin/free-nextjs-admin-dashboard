@@ -1,12 +1,12 @@
 'use client'
 
 import Image from "next/image";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import {useCustomers} from '@/hooks/useCustomersData';
 import Loader from "../common/Loader";
 import { CustomerEntity } from "@/entities/customer/_domain/types";
-import CustomerCard from "../Cards/CustomerCard";
-import CustomerDetailForm from "../Cards/CustomerCard";
+import { useRouter } from 'next/navigation';
+import Link from "next/link";
 
 const TableCustomer = () => {
 
@@ -14,10 +14,19 @@ const TableCustomer = () => {
   const[currentPage, setCurrentPage] = useState(1);
   const [pageSize] = useState(25);
   const [selectedCustomer, setSelectedCustomer] = useState<CustomerEntity|null>(null);
-  const { customers, isLoading, error, total } = useCustomers(currentPage, pageSize);
+  const { customers, isLoadingCustomers, errorCustomers, totalCustomers, fetchCustomers } = useCustomers(currentPage, pageSize);
+  const router = useRouter();
+
+  useEffect(() => { 
+
+    fetchCustomers();
+
+  },[currentPage]);
+
+  const totalPages = Math.ceil(totalCustomers / pageSize);
 
 
-  const totalPages = Math.ceil(total / pageSize);
+
 
   const handleNextPage = () => {
     if (currentPage < totalPages) {
@@ -30,11 +39,11 @@ const TableCustomer = () => {
     }
   };
 
-  if (error) {
-    return <div>Error loading customers {error}</div>; 
+  if (errorCustomers) {
+    return <div>Error loading customers {errorCustomers}</div>; 
   }
 
-  if (isLoading) {
+  if (isLoadingCustomers) {
     return <Loader /> ;
   }
 
@@ -58,10 +67,6 @@ const TableCustomer = () => {
     return `${maxLength }ch`;
   };
 
-
-  const handleRowClick = (customer: CustomerEntity) => {
-    setSelectedCustomer(customer);
-  };
 
   const handleCloseCard = () => {
     setSelectedCustomer(null);
@@ -93,6 +98,8 @@ const TableCustomer = () => {
         </div>
 
         {customers.map((customer, key) => (
+          <Link href={`/customer-card/${customer.id}`} key={key}>
+          
           <div
             className={`flex ${
               key === customers.length - 1
@@ -100,7 +107,6 @@ const TableCustomer = () => {
                 : "border-b border-stroke dark:border-strokedark"
             }`}
             key={key}
-            onClick={() => handleRowClick(customer)}
           >
 
                 {columns.map((column) => (
@@ -112,6 +118,7 @@ const TableCustomer = () => {
                   </div>
                 ))}
           </div>
+          </Link>
         ))}
 
         </div>
@@ -139,9 +146,9 @@ const TableCustomer = () => {
 
       </div>
 
-      {selectedCustomer && (
+       {/* {selectedCustomer && (
         <CustomerDetailForm customer={selectedCustomer} onClose={handleCloseCard} />
-      )}
+      )}  */}
 
 
     </div>

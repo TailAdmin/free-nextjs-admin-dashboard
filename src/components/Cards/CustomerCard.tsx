@@ -1,3 +1,5 @@
+'use client';
+
 import React, { useEffect, useState } from 'react';
 import { CustomerEntity } from "@/entities/customer/_domain/types";
 import { CompanyEntity } from "@/entities/company/_domain/types";
@@ -6,28 +8,38 @@ import Link from 'next/link';
 import { useCompanies } from '@/hooks/useCompaniesData';
 import Loader from '../common/Loader';
 import { useGames } from '@/hooks/useGamesData';
+import { useCustomers } from '@/hooks/useCustomersData';
 
 interface CustomerDetailFormProps {
-  customer: CustomerEntity | null;
-  onClose: () => void;
+  customerId: string;
 }
 
-const CustomerDetailForm: React.FC<CustomerDetailFormProps> = ({ customer, onClose }) => {
+const CustomerDetailForm: React.FC<CustomerDetailFormProps> = ({ customerId}) => {
     const [activeTab, setActiveTab] = useState('details');
     const[currentPage, setCurrentPage] = useState(1);
-    const pageSize = 25;
-    const {companies, isLoadingCompanies, errorCompanies, totalCompanies, fetchCompanies } = useCompanies(currentPage, pageSize, customer?.id);
-    const {games, isLoadingGames, errorGames, totalGames, fetchGames } = useGames(currentPage, pageSize, customer?.id);
-    console.log(activeTab);
+    const[customer, setCustomer] = useState<CustomerEntity|null>(null);
+    const pageSize = 1;
+    const {customers, isLoadingCustomers, errorCustomers, fetchCustomers} = useCustomers(currentPage, pageSize, customerId);
+    const {companies, isLoadingCompanies, errorCompanies, totalCompanies, fetchCompanies } = useCompanies(currentPage, pageSize, customerId);
+    const {games, isLoadingGames, errorGames, totalGames, fetchGames } = useGames(currentPage, pageSize, customerId);
+
     useEffect(() => {
         if (activeTab === 'companies'){
           fetchCompanies();
         }else if(activeTab === 'games'){
           fetchGames();
-        }
+        } else if (activeTab === 'details'){
 
-    }, [activeTab]);
+            fetchCustomers();
 
+          }
+    },[activeTab]);
+
+    useEffect(() => {
+      if (customers.length > 0) {
+        setCustomer(customers[0]);
+      }
+    }, [customers]);
 
 
     if (errorCompanies || errorGames) {
@@ -37,14 +49,14 @@ const CustomerDetailForm: React.FC<CustomerDetailFormProps> = ({ customer, onClo
     if (!customer) {
     return null;
     }
-    // if (isLoading) {
-    //   return <Loader /> ;
-    // }
+    if (isLoadingCustomers) {
+       return <Loader /> ;
+    } 
     const renderTabContent = () => {
     switch (activeTab) {
         case 'details':
         return (
-            <div>
+            <div> 
             <label className="block text-sm font-medium text-black">Name:</label>
             <p className="mb-4">{customer.name}</p>
 
@@ -89,12 +101,12 @@ const CustomerDetailForm: React.FC<CustomerDetailFormProps> = ({ customer, onClo
 };
 
   return (
-    <div className="fixed inset-0 flex items-center justify-center bg-black bg-opacity-50 z-50 mt-48">
-      <div className="bg-white p-5 rounded-lg shadow-lg max-w-lg w-full mt-16"> 
+    <div className="p-5 rounded-lg shadow-lg max-w-lg w-full mt-16 bg-white"> 
+
       <div className="flex justify-end mb-4">
-        <button onClick={onClose} 
+        {/* <button onClick={onClose} 
         className= "mb-4 text-red-500"
-        >Close</button> 
+        >Close</button>  */}
         </div>
         <h3 className="text-xl font-semibold mb-4">Customer Details</h3>
         <div className="mb-4">
@@ -120,7 +132,6 @@ const CustomerDetailForm: React.FC<CustomerDetailFormProps> = ({ customer, onClo
         <div>
           {renderTabContent()}
         </div>
-      </div>
     </div>
   );
 };
