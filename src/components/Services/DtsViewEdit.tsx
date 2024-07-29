@@ -236,7 +236,6 @@ function DtsViewEdit() {
       const api = new DtsTemplateResourceApi(config);
       
       templateVO && await api.dtstSavePost({ dtsTemplateVO: templateVO });
-      router.refresh()
     }
   }
 
