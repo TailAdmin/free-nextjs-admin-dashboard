@@ -1,30 +1,33 @@
 import { useState, useEffect } from "react";
 import { CustomerEntity } from '@/entities/customer/_domain/types';
-
-export const useCustomers = (page: number, pageSize: number) => {
+interface ApiResponse {
+    data: CustomerEntity[];
+    total: number;
+ 
+  }
+export const useCustomers = (page?: number, pageSize?: number, filter?: Record<string, any>) => {
     const [customers, setCustomers] = useState<CustomerEntity[]>([]);
-    const [isLoading, setIsLoading] = useState(true);
-    const [error, setError] = useState<string | null>(null);
-    const [total, setTotal] = useState(0);
+    const [isLoadingCustomers, setIsLoading] = useState(true);
+    const [errorCustomers, setError] = useState<string | null>(null);
+    const [totalCustomers, setTotal] = useState(0);
 
-    useEffect(() => {
-        const fetchCustomers = async () => {
-            setIsLoading(true);
-            setError(null);
-            try {
-                const response = await fetch(`/api/customer?page=${page}&pageSize=${pageSize}`);
-                const { data, total } = await response.json();
-                setCustomers(data);
-                setTotal(total);
-            } catch (err) {
+
+    const fetchCustomers = async () => {
+        setIsLoading(true);
+        setError(null);
+        try {
+            const response = await fetch(`/api/customer?page=${page}&pageSize=${pageSize}&customerId=${JSON.stringify(filter)}`);
+            const { data, total }: ApiResponse = await response.json();
+
+            setCustomers(data);
+            setTotal(total);
+        } catch (err) {
                 setError(`Failed to load customers ${err}`);
-            } finally {
-                setIsLoading(false);
-            }
-    }   ;
+        } finally {
+            setIsLoading(false);
+        }
+};
 
-    fetchCustomers();
-    }, [page, pageSize]);
 
-    return { customers, isLoading, error, total };
+    return { customers, isLoadingCustomers, errorCustomers, totalCustomers, fetchCustomers };
 };

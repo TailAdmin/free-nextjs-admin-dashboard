@@ -16,7 +16,6 @@ const TableTransaction = () => {
   useEffect(() =>{
     fetchTransactions()
     const total = transactions.length;
-    console.log(total)
   },[currentPage, pageSize, filter])
 
   const totalPages = Math.ceil(total / pageSize);

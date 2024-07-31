@@ -1,9 +1,9 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { customerRepository } from '@/entities/customer/_repositories/customer';
+import { gameRepository } from '@/entities/game/_repositories/game';
 import { getToken } from 'next-auth/jwt';
+import { json } from 'stream/consumers';
 
 export async function GET(request: NextRequest) {
-
     const token = await getToken({ req: request, secret: process.env.NEXTAUTH_SECRET });
     
     if (!token) {
@@ -13,7 +13,7 @@ export async function GET(request: NextRequest) {
     const { searchParams } = new URL(request.url);
     const page = Number(searchParams.get('page')) || 1;
     const pageSize = Number(searchParams.get('pageSize')) || 10;
-    const filterString = String(searchParams.get('customerId'));
+    const filterString = String(searchParams.get('filter'));
 
     let filter: Record<string, any> = {};
     if (filterString){
@@ -28,21 +28,17 @@ export async function GET(request: NextRequest) {
 
     try {
         let data, total;
-
-        if (filter['customerId']){
-
-            ( {data, total}  = await customerRepository.getCustomerById(filter['customerId']));  
-        } else if(filter['companyId']){
-            ( {data, total}  = await customerRepository.getCustomersByCompany(page, pageSize,filter['companyId']));  
-
+        if (typeof filter !== "undefined"){
+            console.log('filter: ' + JSON.stringify(filter));
+            ({ data, total } = await gameRepository.getGamesByFilter(page, pageSize, filter))
         } else {
-
-            ({ data, total } = await customerRepository.getCustomers(page, pageSize));
+            console.log(filter);
+        ({ data, total } = await gameRepository.getGames(page, pageSize));
         }
-        
+
         return NextResponse.json({ data, total });
     } catch (error) {
-        console.error('Error loading customers', error);
-        return NextResponse.json({ error: 'Failed to load customers' }, { status: 500 });
+        console.error('Error loading companies', error);
+        return NextResponse.json({ error: 'Failed to load companies' }, { status: 500 });
     }
 }

@@ -1,19 +1,37 @@
 'use client'
 
-import Image from "next/image";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import {useCustomers} from '@/hooks/useCustomersData';
 import Loader from "../common/Loader";
 import { CustomerEntity } from "@/entities/customer/_domain/types";
+import Link from "next/link";
 
-const TableCustomer = () => {
+
+interface CustomersTableProps {
+  companyId?: string;
+}
+
+const TableCustomer: React.FC<CustomersTableProps> = ({companyId })  => {
 
 
   const[currentPage, setCurrentPage] = useState(1);
   const [pageSize] = useState(25);
-  const { customers, isLoading, error, total } = useCustomers(currentPage, pageSize);
+  let filter: any = {};
 
-  const totalPages = Math.ceil(total / pageSize);
+  if(companyId){
+      filter = JSON.parse(`{"companyId": "${companyId}"}`);
+  }
+
+  const { customers, isLoadingCustomers, errorCustomers, totalCustomers, fetchCustomers } = useCustomers(currentPage, pageSize, filter);
+  
+
+  useEffect(() => { 
+
+    fetchCustomers();
+
+  },[currentPage]);
+
+  const totalPages = Math.ceil(totalCustomers / pageSize);
 
   const handleNextPage = () => {
     if (currentPage < totalPages) {
@@ -26,11 +44,11 @@ const TableCustomer = () => {
     }
   };
 
-  if (error) {
-    return <div>Error loading customers {error}</div>; 
+  if (errorCustomers) {
+    return <div>Error loading customers {errorCustomers}</div>; 
   }
 
-  if (isLoading) {
+  if (isLoadingCustomers) {
     return <Loader /> ;
   }
 
@@ -48,12 +66,11 @@ const TableCustomer = () => {
     const maxLength = Math.max(
       ...customers.map(customer => {
         const value = customer[key];
-        return value ? value.toString().length : 10;
+        return value ? value.toString().length - 20 : 10;
       })
     );
     return `${maxLength }ch`;
   };
-
 
   return (
     <div className="rounded-sm border border-stroke bg-white px-5 pb-2.5 pt-6 shadow-default dark:border-strokedark dark:bg-boxdark sm:px-7.5 xl:pb-1">
@@ -63,7 +80,7 @@ const TableCustomer = () => {
 
       <div className="flex flex-col">
       <div className="overflow-x-auto">
-      <div className="min-w-[1800px]">
+      <div className="min-w-[1250px]">
         <div className="flex bg-gray-2 dark:bg-meta-4">
           
         {columns.map((column) => (
@@ -77,49 +94,11 @@ const TableCustomer = () => {
                 </div>
               ))}
 
-          {/* <div className="p-2.5 xl:p-5">
-            <h5 className="text-sm font-medium uppercase xsm:text-base">
-              Name
-            </h5>
-          </div>
-          <div className="p-2.5 text-center xl:p-5">
-            <h5 className="text-sm font-medium uppercase xsm:text-base">
-            E-mail
-            </h5>
-          </div>
-          <div className="p-2.5 text-center xl:p-5">
-            <h5 className="text-sm font-medium uppercase xsm:text-base">
-            Is Staff
-            </h5>
-          </div>
-
-          <div className="p-2.5 text-center xl:p-5">
-            <h5 className="text-sm font-medium uppercase xsm:text-base">
-            Created at
-            </h5>
-          </div>
-
-          <div className="p-2.5 text-center xl:p-5">
-            <h5 className="text-sm font-medium uppercase xsm:text-base">
-            Last login at
-            </h5>
-          </div>
-
-          <div className="p-2.5 text-center xl:p-5">
-            <h5 className="text-sm font-medium uppercase xsm:text-base">
-            Accepted privacy version
-            </h5>
-          </div>
-
-          <div className="p-2.5 text-center xl:p-5">
-            <h5 className="text-sm font-medium uppercase xsm:text-base">
-            Accepted terms version
-            </h5>
-          </div> */}
-
         </div>
 
         {customers.map((customer, key) => (
+          <Link href={`/customer-card/${customer.id}`} key={key}>
+          
           <div
             className={`flex ${
               key === customers.length - 1
@@ -137,39 +116,8 @@ const TableCustomer = () => {
                     <p className="text-black dark:text-white break-words">{customer[column.key]}</p>
                   </div>
                 ))}
-
-            {/* <div className="flex items-center gap-3 p-2.5 xl:p-5 overflow-hidden text-ellipsis whitespace-nowrap w-1/2">
- 
-              <p className="hidden text-black dark:text-white sm:block">
-                {customer.name}
-              </p>
-            </div> */}
-{/* 
-            <div className="flex items-center justify-center p-2.5 xl:p-5 overflow-hidden text-ellipsis whitespace-nowrap w-1/2">
-              <p className="text-black dark:text-white">{customer.email}</p>
-            </div>
-
-            <div className="flex items-center justify-center p-2.5 xl:p-5">
-              <p className="text-meta-3">{customer.is_staff}</p>
-            </div>
-
-            <div className="flex items-center justify-center p-2.5 xl:p-5">
-              <p className="text-meta-3">{customer.created_at}</p>
-            </div>
-
-            <div className="flex items-center justify-center p-2.5 xl:p-5">
-              <p className="text-meta-3">{customer.last_login_at}</p>
-            </div>
-
-            <div className="flex items-center justify-center p-2.5 xl:p-5">
-              <p className="text-meta-3">{customer.accepted_privacy_version}</p>
-            </div>
-
-            <div className="flex items-center justify-center p-2.5 xl:p-5">
-              <p className="text-meta-3">{customer.accepted_terms_version}</p>
-            </div> */}
-
           </div>
+          </Link>
         ))}
 
         </div>
@@ -196,6 +144,7 @@ const TableCustomer = () => {
       </div>  
 
       </div>
+
     </div>
   );
 };

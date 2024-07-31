@@ -1,12 +1,9 @@
 'use client';
-
-import TableTransaction from "@/components/Tables/TransactionsTable";
-import { signIn, useSession } from "next-auth/react";
-
+import CompaniesTable from "@/components/Tables/CompaniesTable";
+import { useSession, signIn } from 'next-auth/react';
 
 
-const TablesPage = () => {
-
+const CompaniesTablePage = () => {
   const { data: session, status } = useSession();
   if (!session) {
     signIn();
@@ -14,12 +11,11 @@ const TablesPage = () => {
   }
   return (
 
-
       <div className="flex flex-col gap-10">
-        <TableTransaction />
+        <CompaniesTable />
       </div>
 
   );
 };
 
-export default TablesPage;
+export default CompaniesTablePage;

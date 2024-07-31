@@ -8,7 +8,7 @@ datasource db {
 }
 
 model aghanim_customer {
-  name                     String  @db.VarChar
+  name                     String?  @db.VarChar
   email                    String  @db.VarChar
   created_at               Float
   modified_at              Float?
@@ -22,6 +22,7 @@ model aghanim_customer {
   last_login_at            Int?
   archived_at              Float?
   is_staff                 Boolean @default(false)
+  companies                aghanim_customer_company[]
 
   @@index([id], map: "ix_aghanim_customer_id")
 }
@@ -111,6 +112,9 @@ model aghanim_company {
   archived_at    Float?
   logo_url       String?  @db.VarChar
 
+  customers      aghanim_customer_company[]
+  games          aghanim_game[]
+
   @@index([domains], map: "ix_aghanim_company_domains", type: Gin)
   @@index([id], map: "ix_aghanim_company_id")
 }
@@ -164,6 +168,9 @@ model aghanim_customer_company {
   company_id  String @db.VarChar(32)
   role        String @db.VarChar
   archived_at Float?
+  company     aghanim_company   @relation(fields: [company_id], references: [id]) 
+  customer    aghanim_customer  @relation(fields: [customer_id], references: [id]) 
+
 
   @@index([company_id], map: "ix_aghanim_customer_company_company_id")
   @@index([id], map: "ix_aghanim_customer_company_id")
@@ -199,6 +206,8 @@ model aghanim_game {
   login_settings Json?  @db.Json
   locale_default String @default("en") @db.VarChar
   archived_at    Float?
+  company        aghanim_company @relation(fields: [company_id], references: [id])
+
 
   @@index([id], map: "ix_aghanim_game_id")
 }
