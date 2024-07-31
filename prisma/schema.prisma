@@ -8,7 +8,7 @@ datasource db {
 }
 
 model aghanim_customer {
-  name                     String  @db.VarChar
+  name                     String?  @db.VarChar
   email                    String  @db.VarChar
   created_at               Float
   modified_at              Float?

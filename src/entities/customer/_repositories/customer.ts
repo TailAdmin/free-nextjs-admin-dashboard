@@ -6,7 +6,6 @@ export class CustomerRepository {
 
 
     mapToCustomerType = (data: any): CustomerEntity =>{
-        console.log(`rawData id: ${data.id}`);
         const customerData = {
 
             id: data.id,
@@ -53,16 +52,42 @@ export class CustomerRepository {
         ])
 
         const data = rawData.map(this.mapToCustomerType)
+        console.log(data);
 
         return {data, total };
     }
     
 
-    // async createCustomer(customer: CustomerEntity): Promise<CustomerEntity> {
-    //     return await dbClient.customer.create({
-    //         data: customer,
-    //     });
-    // }
+    async getCustomersByCompany(page: number, pageSize: number, companyId: string): Promise<{ data: CustomerEntity[], total: number }> {
+        const skip = (page - 1) * pageSize;
+        const take = pageSize;
+
+        const [rawData, total] = await Promise.all([
+            dbClient.aghanim_customer.findMany({
+                where: {
+                    companies: {
+                    some: {
+                        company_id: companyId
+                    }
+                    }
+                }
+            }),
+            dbClient.aghanim_customer.count({
+                where: {
+                    companies: {
+                    some: {
+                        company_id: companyId
+                    }
+                    }
+                }
+            }),
+        ]);
+
+        const data = rawData.map(this.mapToCustomerType);
+ 
+
+        return { data, total };
+    }
 }
 
 export const customerRepository = new CustomerRepository();

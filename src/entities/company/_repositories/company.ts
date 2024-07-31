@@ -22,17 +22,26 @@ export class CompanyRepository {
 
         }
 
+        console.log(`companyData: ${companyData}`);
+
         return companyData
     }
-    async getCompanyById(CustomerId: string): Promise<CompanyEntity> {
 
-        const rawData = dbClient.aghanim_company.findUniqueOrThrow({
+
+    async getCompanyById(companyId: string): Promise<CompanyEntity[]> {
+
+        const rawData = await dbClient.aghanim_company.findUniqueOrThrow({
             where: {
-                id: CustomerId,
+                id: companyId,
             },
         });
+
+        console.log(`Repo_RawData: ${( rawData).id}`)
+        let data = [this.mapToCompanyType(rawData)];
         
-        return this.mapToCompanyType(rawData);;
+        console.log(`Repo_Data: ${( data[0].id)}`)
+        
+        return data;
     }
     async getCompanies(page: number, pageSize: number): Promise<{data: CompanyEntity[], total: number}> {
         const skip = (page - 1) * pageSize;
@@ -55,7 +64,6 @@ export class CompanyRepository {
     async getCompaniesByCustomer(page: number, pageSize: number, customerId: string): Promise<{ data: CompanyEntity[], total: number }> {
         const skip = (page - 1) * pageSize;
         const take = pageSize;
-        const filter = { id: customerId }; 
 
         const [rawData, total] = await Promise.all([
             dbClient.aghanim_company.findMany({
@@ -68,7 +76,14 @@ export class CompanyRepository {
                 }
             }),
             dbClient.aghanim_company.count({
-                where: filter,
+                where: {
+
+                    customers: {
+                        some: {
+                            customer_id: customerId
+                        }
+                        }
+                },
             }),
         ]);
 

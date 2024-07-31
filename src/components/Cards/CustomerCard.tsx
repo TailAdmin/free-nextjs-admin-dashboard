@@ -2,38 +2,35 @@
 
 import React, { useEffect, useState } from 'react';
 import { CustomerEntity } from "@/entities/customer/_domain/types";
-import { CompanyEntity } from "@/entities/company/_domain/types";
-import { GameEntity } from "@/entities/game/_domain/types";
-import Link from 'next/link';
-import { useCompanies } from '@/hooks/useCompaniesData';
 import Loader from '../common/Loader';
-import { useGames } from '@/hooks/useGamesData';
 import { useCustomers } from '@/hooks/useCustomersData';
+import CompaniesTable from '../Tables/CompaniesTable';
+import GamesTable from '../Tables/GamesTable';
 
 interface CustomerDetailFormProps {
-  customerId: string;
+  customerId?: string;
+  companyId?: string;
 }
 
-const CustomerDetailForm: React.FC<CustomerDetailFormProps> = ({ customerId}) => {
+const CustomerDetailForm: React.FC<CustomerDetailFormProps> = ({ customerId, companyId}) => {
     const [activeTab, setActiveTab] = useState('details');
     const[currentPage, setCurrentPage] = useState(1);
     const[customer, setCustomer] = useState<CustomerEntity|null>(null);
     const pageSize = 1;
-    const {customers, isLoadingCustomers, errorCustomers, fetchCustomers} = useCustomers(currentPage, pageSize, customerId);
-    const {companies, isLoadingCompanies, errorCompanies, totalCompanies, fetchCompanies } = useCompanies(currentPage, pageSize, customerId);
-    const {games, isLoadingGames, errorGames, totalGames, fetchGames } = useGames(currentPage, pageSize, customerId);
+    let filter: Record<string, any> = {};
+    if (customerId){
+      filter = JSON.parse(`{"customerId":"${customerId}"}`);
+    }else if(companyId){
 
+      filter = JSON.parse(`{"companyId":"${companyId}"}`);
+    }
+    const {customers, isLoadingCustomers, errorCustomers, fetchCustomers} = useCustomers(currentPage, pageSize, filter);
+    
     useEffect(() => {
-        if (activeTab === 'companies'){
-          fetchCompanies();
-        }else if(activeTab === 'games'){
-          fetchGames();
-        } else if (activeTab === 'details'){
 
             fetchCustomers();
 
-          }
-    },[activeTab]);
+    },[]);
 
     useEffect(() => {
       if (customers.length > 0) {
@@ -42,15 +39,15 @@ const CustomerDetailForm: React.FC<CustomerDetailFormProps> = ({ customerId}) =>
     }, [customers]);
 
 
-    if (errorCompanies || errorGames) {
-      return <div>Error loading {errorCompanies} {errorGames}</div>; 
+    if (errorCustomers ) {
+      return <div>Error loading {errorCustomers}</div>; 
     }
 
     if (!customer) {
     return null;
     }
     if (isLoadingCustomers) {
-       return <Loader /> ;
+      return <Loader /> ;
     } 
     const renderTabContent = () => {
     switch (activeTab) {
@@ -81,19 +78,14 @@ const CustomerDetailForm: React.FC<CustomerDetailFormProps> = ({ customerId}) =>
         );
         case 'companies':
         return (
-            <ul>
-                {companies.map((company) => (
-                <li key={company.id} className="mb-2">{company.name}</li>
-                ))}
-            </ul>
+
+            <CompaniesTable customerId={customerId} /> 
+ 
         );
         case 'games':
         return (
-            <ul>
-                {games.map((game) => (
-                    <li key={game.id} className="mb-2">{game.id} - {game.name} - {game.company_id}</li>
-                ))}
-            </ul>
+
+            <GamesTable customerId={customerId} />
         ); 
         default:
         return null;
@@ -101,12 +93,10 @@ const CustomerDetailForm: React.FC<CustomerDetailFormProps> = ({ customerId}) =>
 };
 
   return (
-    <div className="p-5 rounded-lg shadow-lg max-w-lg w-full mt-16 bg-white"> 
+    <div className="p-5 rounded-lg shadow-lg w-full bg-white"> 
 
       <div className="flex justify-end mb-4">
-        {/* <button onClick={onClose} 
-        className= "mb-4 text-red-500"
-        >Close</button>  */}
+
         </div>
         <h3 className="text-xl font-semibold mb-4">Customer Details</h3>
         <div className="mb-4">

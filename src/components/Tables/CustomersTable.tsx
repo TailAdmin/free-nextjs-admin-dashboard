@@ -1,21 +1,29 @@
 'use client'
 
-import Image from "next/image";
 import { useEffect, useState } from "react";
 import {useCustomers} from '@/hooks/useCustomersData';
 import Loader from "../common/Loader";
 import { CustomerEntity } from "@/entities/customer/_domain/types";
-import { useRouter } from 'next/navigation';
 import Link from "next/link";
 
-const TableCustomer = () => {
+
+interface CustomersTableProps {
+  companyId?: string;
+}
+
+const TableCustomer: React.FC<CustomersTableProps> = ({companyId })  => {
 
 
   const[currentPage, setCurrentPage] = useState(1);
   const [pageSize] = useState(25);
-  const [selectedCustomer, setSelectedCustomer] = useState<CustomerEntity|null>(null);
-  const { customers, isLoadingCustomers, errorCustomers, totalCustomers, fetchCustomers } = useCustomers(currentPage, pageSize);
-  const router = useRouter();
+  let filter: any = {};
+
+  if(companyId){
+      filter = JSON.parse(`{"companyId": "${companyId}"}`);
+  }
+
+  const { customers, isLoadingCustomers, errorCustomers, totalCustomers, fetchCustomers } = useCustomers(currentPage, pageSize, filter);
+  
 
   useEffect(() => { 
 
@@ -24,9 +32,6 @@ const TableCustomer = () => {
   },[currentPage]);
 
   const totalPages = Math.ceil(totalCustomers / pageSize);
-
-
-
 
   const handleNextPage = () => {
     if (currentPage < totalPages) {
@@ -66,12 +71,6 @@ const TableCustomer = () => {
     );
     return `${maxLength }ch`;
   };
-
-
-  const handleCloseCard = () => {
-    setSelectedCustomer(null);
-  };
-
 
   return (
     <div className="rounded-sm border border-stroke bg-white px-5 pb-2.5 pt-6 shadow-default dark:border-strokedark dark:bg-boxdark sm:px-7.5 xl:pb-1">
@@ -145,11 +144,6 @@ const TableCustomer = () => {
       </div>  
 
       </div>
-
-       {/* {selectedCustomer && (
-        <CustomerDetailForm customer={selectedCustomer} onClose={handleCloseCard} />
-      )}  */}
-
 
     </div>
   );

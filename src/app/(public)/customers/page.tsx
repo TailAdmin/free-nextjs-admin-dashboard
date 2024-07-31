@@ -1,5 +1,5 @@
 'use client';
-import TableCustomer from "@/components/Tables/TableCustomers";
+import TableCustomer from "@/components/Tables/CustomersTable";
 import { useSession, signIn } from 'next-auth/react';
 
 

@@ -1,5 +1,6 @@
 import { dbClient } from "@/shared/lib/db";
 import { GameEntity } from "../_domain/types";
+import { Json } from "@google-cloud/bigquery";
 
 export class GameRepository {
 
@@ -55,7 +56,16 @@ export class GameRepository {
 
         return {data, total };
     }
+    async getGamesByFilter(page: number, pageSize: number, filter: Json): Promise<{ data: GameEntity[], total: number }>{
 
+        if (filter['customerId']) {
+
+            return this.getGamesByCustomer(page, pageSize, filter['customerId']);
+        } else{
+            return this.getGamesByCompany(page, pageSize, filter['companyId']);
+        }
+
+    }
     async getGamesByCustomer(page: number, pageSize: number, customerId: string): Promise<{ data: GameEntity[], total: number }> {
         const skip = (page - 1) * pageSize;
         const take = pageSize;
@@ -79,6 +89,24 @@ export class GameRepository {
                 company_id: {
                     in: companyIdsString
                 }
+            },
+            
+        })            
+
+        const data = gamesData.map(this.mapToGameType);
+        const total = gamesData.length;
+
+        return { data, total };
+    }
+
+    async getGamesByCompany(page: number, pageSize: number, companyId: string): Promise<{ data: GameEntity[], total: number }> {
+        const skip = (page - 1) * pageSize;
+        const take = pageSize;  
+
+        const gamesData = await dbClient.aghanim_game.findMany({
+            distinct: ['id'],
+            where: {            
+                company_id: companyId
             },
             
         })            

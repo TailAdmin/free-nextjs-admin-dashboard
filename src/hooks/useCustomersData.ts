@@ -5,7 +5,7 @@ interface ApiResponse {
     total: number;
  
   }
-export const useCustomers = (page?: number, pageSize?: number, customerId?: string) => {
+export const useCustomers = (page?: number, pageSize?: number, filter?: Record<string, any>) => {
     const [customers, setCustomers] = useState<CustomerEntity[]>([]);
     const [isLoadingCustomers, setIsLoading] = useState(true);
     const [errorCustomers, setError] = useState<string | null>(null);
@@ -16,7 +16,7 @@ export const useCustomers = (page?: number, pageSize?: number, customerId?: stri
         setIsLoading(true);
         setError(null);
         try {
-            const response = await fetch(`/api/customer?page=${page}&pageSize=${pageSize}&customerId=${customerId}`);
+            const response = await fetch(`/api/customer?page=${page}&pageSize=${pageSize}&customerId=${JSON.stringify(filter)}`);
             const { data, total }: ApiResponse = await response.json();
 
             setCustomers(data);

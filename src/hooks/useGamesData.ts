@@ -1,7 +1,7 @@
 import { useState } from "react";
 import { GameEntity } from '@/entities/game/_domain/types';
 
-export const useGames = (page: number, pageSize: number, filter?: string | null) => {
+export const useGames = (page: number, pageSize: number, filter?: JSON) => {
     const [games, setGames] = useState<GameEntity[]>([]);
     const [isLoadingGames, setIsLoading] = useState(true);
     const [errorGames, setError] = useState<string | null>(null);
@@ -12,7 +12,7 @@ export const useGames = (page: number, pageSize: number, filter?: string | null)
         setIsLoading(true);
         setError(null);
         try {
-                const response = await fetch(`/api/game?page=${page}&pageSize=${pageSize}&filter=${filter}`);
+                const response = await fetch(`/api/game?page=${page}&pageSize=${pageSize}&filter=${JSON.stringify(filter)}`);
                 const { data, total } = await response.json();
                 setGames(data);
                 setTotal(total);
