@@ -1,18 +1,20 @@
 import { useState } from "react";
 import { GameEntity } from '@/entities/game/_domain/types';
 
-export const useGames = (page: number, pageSize: number, filter?: JSON) => {
+export const useGames = (page: number, pageSize: number, filter?: Record<string, any>) => {
     const [games, setGames] = useState<GameEntity[]>([]);
     const [isLoadingGames, setIsLoading] = useState(true);
     const [errorGames, setError] = useState<string | null>(null);
     const [totalGames, setTotal] = useState(0);
 
 
-    const fetchGames = async () => {
+    const fetchGames = async (selectedFilterValue: Record<string, any>={}) => {
         setIsLoading(true);
         setError(null);
         try {
-                const response = await fetch(`/api/game?page=${page}&pageSize=${pageSize}&filter=${JSON.stringify(filter)}`);
+                let filterFields : any = {};
+                filterFields = {...filter, ...selectedFilterValue};
+                const response = await fetch(`/api/game?page=${page}&pageSize=${pageSize}&filter=${JSON.stringify(filterFields)}`);
                 const { data, total } = await response.json();
                 setGames(data);
                 setTotal(total);

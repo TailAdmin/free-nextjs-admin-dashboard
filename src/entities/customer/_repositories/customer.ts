@@ -1,5 +1,6 @@
 import { dbClient } from "@/shared/lib/db";
 import { CustomerEntity } from "../_domain/types";
+import { decryptECB, encryptECB } from "@/shared/utils/security";
 
 export class CustomerRepository {
 
@@ -9,8 +10,8 @@ export class CustomerRepository {
         const customerData = {
 
             id: data.id,
-            name: data.name,
-            email: data.email,
+            name: decryptECB(data.name),
+            email: decryptECB(data.email),
             sub: data.sub,
             accepted_terms_version: data.accepted_terms_version,
             accepted_terms_at: data.accepted_terms_at,
@@ -37,7 +38,7 @@ export class CustomerRepository {
         const data = [this.mapToCustomerType(rawData)];
         return {data, total};
     }
-    async getCustomers(page: number, pageSize: number): Promise<{data: CustomerEntity[], total: number}> {
+    async getCustomers(page: number, pageSize: number, whereCondition: Record<string, any>): Promise<{data: CustomerEntity[], total: number}> {
         const skip = (page - 1) * pageSize;
         const take = pageSize;
         
@@ -45,6 +46,7 @@ export class CustomerRepository {
             dbClient.aghanim_customer.findMany({
                 skip: skip,
                 take: take,
+                where: whereCondition
             }),
             dbClient.aghanim_customer.count(),
 
@@ -52,34 +54,48 @@ export class CustomerRepository {
         ])
 
         const data = rawData.map(this.mapToCustomerType)
-        console.log(data);
 
         return {data, total };
     }
     
+    async getCustomersByFilter(page: number, pageSize: number, filter: Record<string, any>): Promise<{ data: CustomerEntity[], total: number }> {
+        const whereCondition: Record<string, any> = {};
 
-    async getCustomersByCompany(page: number, pageSize: number, companyId: string): Promise<{ data: CustomerEntity[], total: number }> {
+        if (filter['selectedFields']){
+            
+            whereCondition["OR"] =  [{'id': {contains: filter['selectedFields'], mode:'insensitive'}},
+                            {'name': {contains: encryptECB(filter['selectedFields']), mode:'insensitive'}}
+                            ]
+        }
+        if (filter["companyId"]){
+
+            whereCondition["companies"] = {
+
+                some: {
+                    company_id: filter["companyId"]
+                }
+                
+            }
+
+
+            return this.getCustomersByCompany(page, pageSize, whereCondition);
+        }else{
+
+            return this.getCustomers(page, pageSize, whereCondition);
+        }
+        
+
+    }
+    async getCustomersByCompany(page: number, pageSize: number, whereCondition: Record<string, any>): Promise<{ data: CustomerEntity[], total: number }> {
         const skip = (page - 1) * pageSize;
         const take = pageSize;
 
         const [rawData, total] = await Promise.all([
             dbClient.aghanim_customer.findMany({
-                where: {
-                    companies: {
-                    some: {
-                        company_id: companyId
-                    }
-                    }
-                }
+                where: whereCondition
             }),
             dbClient.aghanim_customer.count({
-                where: {
-                    companies: {
-                    some: {
-                        company_id: companyId
-                    }
-                    }
-                }
+                where: whereCondition
             }),
         ]);
 

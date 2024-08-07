@@ -1,21 +1,23 @@
 
-import { useState, useEffect } from 'react';
-import { transactionsRepository } from '@/entities/transaction/_repositories/transaction';
+import { useState } from 'react';
 import { Transaction } from '@/entities/transaction/_domain/types';
 
-export const useTransactions = (page: number, pageSize: number): {transactions: Transaction[], isLoading: boolean, 
-                                                                error: string|null, total: number, fetchTransactions: () => Promise<void>} => {
+export const useTransactions = (page: number, pageSize: number) => {
     const [transactions, setTransactions] = useState<Transaction[]>([]);
     const [isLoading, setIsLoading] = useState(true);
     const [error, setError] = useState<string | null>(null);
     const [total, setTotal] = useState(0);
 
-    const fetchTransactions = async () => {
+    const fetchTransactions = async (selectedFilterValue: Record<string, any>={}) => {
         setIsLoading(true);
         setError(null);
         try {
-            const response = await fetch(`/api/transaction?page=${page}&pageSize=${pageSize}`);
+            let filterFields : any = {};
+            filterFields = {...selectedFilterValue};
+            const response = await fetch(`/api/transaction?page=${page}&pageSize=${pageSize}&filter=${JSON.stringify(filterFields)}`);
             const { data, total } = await response.json();
+            console.log(`total hook: ${total}`);
+            console.log(`data hook: ${data}`);
             setTotal(total);
             setTransactions(data);
         } catch (err) {

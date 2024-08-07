@@ -111,9 +111,9 @@ model aghanim_company {
   viewer_domains String[] @db.VarChar
   archived_at    Float?
   logo_url       String?  @db.VarChar
-
-  customers      aghanim_customer_company[]
   games          aghanim_game[]
+  customers      aghanim_customer_company[]
+
 
   @@index([domains], map: "ix_aghanim_company_domains", type: Gin)
   @@index([id], map: "ix_aghanim_company_id")
@@ -206,7 +206,7 @@ model aghanim_game {
   login_settings Json?  @db.Json
   locale_default String @default("en") @db.VarChar
   archived_at    Float?
-  company        aghanim_company @relation(fields: [company_id], references: [id])
+  company   aghanim_company @relation(fields: [company_id], references: [id])
 
 
   @@index([id], map: "ix_aghanim_game_id")

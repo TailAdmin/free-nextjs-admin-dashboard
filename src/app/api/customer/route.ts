@@ -13,7 +13,7 @@ export async function GET(request: NextRequest) {
     const { searchParams } = new URL(request.url);
     const page = Number(searchParams.get('page')) || 1;
     const pageSize = Number(searchParams.get('pageSize')) || 10;
-    const filterString = String(searchParams.get('customerId'));
+    const filterString = String(searchParams.get('filter'));
 
     let filter: Record<string, any> = {};
     if (filterString){
@@ -32,13 +32,19 @@ export async function GET(request: NextRequest) {
         if (filter['customerId']){
 
             ( {data, total}  = await customerRepository.getCustomerById(filter['customerId']));  
-        } else if(filter['companyId']){
-            ( {data, total}  = await customerRepository.getCustomersByCompany(page, pageSize,filter['companyId']));  
+        } 
+        else {
 
-        } else {
-
-            ({ data, total } = await customerRepository.getCustomers(page, pageSize));
+            ({data, total} = await customerRepository.getCustomersByFilter(page, pageSize, filter));
         }
+
+        // else if(filter['companyId']){
+        //     ( {data, total}  = await customerRepository.getCustomersByCompany(page, pageSize,filter['companyId']));  
+
+        // } else {
+
+        //     ({ data, total } = await customerRepository.getCustomers(page, pageSize));
+        // }
         
         return NextResponse.json({ data, total });
     } catch (error) {

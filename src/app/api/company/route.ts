@@ -9,7 +9,6 @@ export async function GET(request: NextRequest) {
     if (!token) {
         return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
     }
-    console.log(request.url);
     const { searchParams } = new URL(request.url);
     const page = Number(searchParams.get('page')) || 1;
     const pageSize = Number(searchParams.get('pageSize')) || 10;
@@ -28,18 +27,14 @@ export async function GET(request: NextRequest) {
 
     try {
         let data, total;
-        console.log(JSON.stringify(filter))
+
         if (filter['companyId']){
             (data = await companyRepository.getCompanyById(filter['companyId']));
             total = 1;
-            console.log(data)
-        } else if(filter['customerId']){
-            ({ data, total } = await companyRepository.getCompaniesByCustomer(page, pageSize,filter['customerId']));
-        }else{
-            ({ data, total } = await companyRepository.getCompanies(page, pageSize));
+        } else {
 
+            ({data, total} = await companyRepository.getCompaniesByFilter(page, pageSize, filter));
         }
-
 
         return NextResponse.json({ data, total });
     } catch (error) {

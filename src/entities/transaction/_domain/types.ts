@@ -17,6 +17,7 @@ export interface Transaction {
     country: string;
     order_id: string;
     status_order: string;
+    [key: string]: any;
 
 }  
 

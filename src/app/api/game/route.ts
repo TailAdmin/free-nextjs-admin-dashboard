@@ -28,13 +28,9 @@ export async function GET(request: NextRequest) {
 
     try {
         let data, total;
-        if (typeof filter !== "undefined"){
-            console.log('filter: ' + JSON.stringify(filter));
-            ({ data, total } = await gameRepository.getGamesByFilter(page, pageSize, filter))
-        } else {
-            console.log(filter);
-        ({ data, total } = await gameRepository.getGames(page, pageSize));
-        }
+
+        ({ data, total } = await gameRepository.getGamesByFilter(page, pageSize, filter))
+        
 
         return NextResponse.json({ data, total });
     } catch (error) {

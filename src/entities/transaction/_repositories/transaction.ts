@@ -34,16 +34,44 @@ const mapToTransactionType = (data: any): Transaction =>{
 }
 
 export class TransactionsRepository {
-    async getTransactions(page:number, pageSize:number):Promise<{data: Transaction[], total: number}> {
+
+
+    async getTransactionsByFilter(page:number, pageSize:number, filter: Record<string, any>): Promise<{data: Transaction[], total: number}> {
+
+        const filterFields = [
+            'company_id', 'game_id', 'user_id', 'player_id', 'user_name',
+            'player_name', 'item_id', 'item_name', 'payment_id', 'status',
+            'payment_method_id', 'payment_method_name', 'amount', 'currency',
+            'country', 'order_id', 'status_order'
+        ];
+        let whereCondition = '1=1'
+        if (filter['selectedFields']){
+
+            whereCondition = filterFields
+                .map(field => `${field} LIKE '%${filter['selectedFields']}%'`)
+                .join(' OR ');
+        }
+
+        console.log(`where condition repo: ${whereCondition}`);
+
+
+        return this.getTransactions(page, pageSize, whereCondition);
+    }
+    async getTransactions(page:number, pageSize:number, whereCondition: string):Promise<{data: Transaction[], total: number}> {
         const offset = (page - 1) * pageSize;
-        const query = 'select * from events.payments limit @pageSize offset @offset';
+        const query = `select * from events.payments WHERE ${whereCondition} limit @pageSize offset @offset`;
         const options = {query: query, params: {pageSize: pageSize, offset:offset}}
         const [rows] = await bigquery.query(options);
         const totalQuery = `
         SELECT COUNT(*) as total
-        FROM events.payments`;
+        FROM events.payments
+        WHERE ${whereCondition}`;
+
+        console.log(`total query repo: ${totalQuery}`)
         const [totalRows] = await bigquery.query(totalQuery);
+        console.log(`totalRows repo: ${totalRows}`)
         const total = totalRows[0].total;
+        console.log(`total repo: ${total}`)
         return {data: rows.map(mapToTransactionType), total}
     }
 }
