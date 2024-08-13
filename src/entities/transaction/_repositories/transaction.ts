@@ -2,6 +2,7 @@
 
 import { BigQuery } from '@google-cloud/bigquery';
 import { Transaction } from '../_domain/types';
+import { decryptECB, encryptECB } from "@/shared/utils/security";
 
 const bigquery = new BigQuery();
 
@@ -13,8 +14,8 @@ const mapToTransactionType = (data: any): Transaction =>{
         game_id: data.game_id,
         user_id: data.user_id,
         player_id: data.player_id,
-        user_name: data.user_name,
-        player_name: data.player_name,
+        user_name: decryptECB(data.user_name),
+        player_name: decryptECB(data.player_name),
         item_id: data.item_id,
         item_name: data.item_name,
         payment_id: data.payment_id,
@@ -52,7 +53,7 @@ export class TransactionsRepository {
                 .join(' OR ');
         }
 
-        console.log(`where condition repo: ${whereCondition}`);
+        //console.log(`where condition repo: ${whereCondition}`);
 
 
         return this.getTransactions(page, pageSize, whereCondition);
@@ -67,11 +68,11 @@ export class TransactionsRepository {
         FROM events.payments
         WHERE ${whereCondition}`;
 
-        console.log(`total query repo: ${totalQuery}`)
+        //console.log(`total query repo: ${totalQuery}`)
         const [totalRows] = await bigquery.query(totalQuery);
-        console.log(`totalRows repo: ${totalRows}`)
+        //console.log(`totalRows repo: ${totalRows}`)
         const total = totalRows[0].total;
-        console.log(`total repo: ${total}`)
+        //console.log(`total repo: ${total}`)
         return {data: rows.map(mapToTransactionType), total}
     }
 }

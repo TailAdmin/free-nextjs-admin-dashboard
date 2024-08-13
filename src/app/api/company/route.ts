@@ -1,14 +1,8 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { companyRepository } from '@/entities/company/_repositories/company';
-import { getToken } from 'next-auth/jwt';
 
 export async function GET(request: NextRequest) {
 
-    const token = await getToken({ req: request, secret: process.env.NEXTAUTH_SECRET });
-    
-    if (!token) {
-        return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
-    }
     const { searchParams } = new URL(request.url);
     const page = Number(searchParams.get('page')) || 1;
     const pageSize = Number(searchParams.get('pageSize')) || 10;

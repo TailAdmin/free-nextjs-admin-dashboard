@@ -1,24 +1,32 @@
 import crypto from 'crypto';
 
-const ENCRYPTION_KEY = process.env.DATABASE_ENCRYPTION_KEY || '';
+const ENCRYPTION_KEY = process.env.DATABASE_ENCRYPTION_KEY || 'SIXTEEN BYTE KEY';
 const ALGORITHM = 'aes-128-ecb';
 
 
 export function encryptECB(data: string): string {
     const cipher = crypto.createCipheriv(ALGORITHM, Buffer.from(ENCRYPTION_KEY, 'utf8'), null);
-    const paddedData = Buffer.from(pad(data));
-    let encrypted = cipher.update(paddedData);
-    encrypted = Buffer.concat([encrypted, cipher.final()]);
-    return encrypted.toString('hex');
+    let encrypted = cipher.update(data, 'utf8', 'hex');
+    encrypted += cipher.final('hex');
+    return encrypted;
 }
 
 export function decryptECB(encryptedData: string): string {
-    console.log('encryptECB', encryptedData);
-    const decipher = crypto.createDecipheriv(ALGORITHM, Buffer.from(ENCRYPTION_KEY, 'utf8'), null);
-    const encryptedBuffer = Buffer.from(encryptedData, 'hex');
-    let decrypted = decipher.update(encryptedBuffer);
-    decrypted = Buffer.concat([decrypted, decipher.final()]);
-    return unpad(decrypted.toString('utf8'));
+
+    if (encryptedData === '') {
+        return encryptedData;
+    }
+        try {
+            const decipher = crypto.createDecipheriv(ALGORITHM, Buffer.from(ENCRYPTION_KEY, 'utf8'), null);
+            let decrypted = decipher.update(encryptedData, 'hex', 'utf8');
+            decrypted += decipher.final('utf8');
+            return decrypted;
+        } 
+        catch (error) {
+            console.error('Error decrypting data', error);
+            return encryptedData;
+        } 
+
 }
 
 function pad(data: string): string {
@@ -28,7 +36,3 @@ function pad(data: string): string {
     return data + padString.repeat(padding);
 }
 
-function unpad(data: string): string {
-    const padding = data.charCodeAt(data.length - 1);
-    return data.slice(0, -padding);
-}
