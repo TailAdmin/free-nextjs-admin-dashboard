@@ -1,6 +1,6 @@
 export type CompanyEntity = {
       
-    id: string;
+    id: string; 
     name: string;  
     url: string; 
     size: number;

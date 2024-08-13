@@ -1,17 +1,10 @@
 'use client';
 
 import TableTransaction from "@/components/Tables/TransactionsTable";
-import { signIn, useSession } from "next-auth/react";
 
 
 
 const TablesPage = () => {
-
-  const { data: session, status } = useSession();
-  if (!session) {
-    signIn();
-    return <p>Redirecting...</p>;
-  }
   return (
 
 

@@ -1,15 +1,9 @@
 'use client';
 
 import CompanyDetailForm from '@/components/Cards/CompanyCard';
-import { signIn, useSession } from 'next-auth/react';
-
 
 const CustomerCard = ({ params }: { params: { companyId: string } }) => {
-    const { data: session, status } = useSession();
-    if (!session) {
-    signIn();
-    return <></>;
-    }
+
 
 
 

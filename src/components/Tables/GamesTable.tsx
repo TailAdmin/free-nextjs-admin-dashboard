@@ -1,10 +1,9 @@
 'use client';
 
 import React, { useState, useEffect } from 'react';
-import { GameEntity } from "@/entities/game/_domain/types";
 import { useGames } from '@/hooks/useGamesData';
 import Loader from '../common/Loader';
-import { Json } from '@google-cloud/bigquery';
+import BaseTable from './BaseTable';
 
 interface GamesTableProps {
     customerId?: string;
@@ -14,6 +13,7 @@ interface GamesTableProps {
 const GamesTable: React.FC<GamesTableProps> = ({ customerId, companyId }) => {
     const [currentPage, setCurrentPage] = useState(1);
     const pageSize = 10;
+    const [filterValue, setFilterValue] = useState('');
     let filter: any = {};
 
     if(companyId){
@@ -41,6 +41,15 @@ const GamesTable: React.FC<GamesTableProps> = ({ customerId, companyId }) => {
     }
     };
 
+    const handleFilterChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+        setFilterValue(e.target.value);
+    };
+    
+    const handleFilterSubmit = () => {
+        fetchGames(JSON.parse(`{"selectedFields":"${filterValue}"}`));
+    };
+    
+
     const columns = [
         { key: 'name', label: 'Name' },
         { key: 'description', label: 'Description' },
@@ -63,61 +72,81 @@ const GamesTable: React.FC<GamesTableProps> = ({ customerId, companyId }) => {
 
     return (
         <div>
-            <div className="overflow-x-auto">
-                <table className="w-full border-collapse border border-gray-200">
-                    <thead>
-                        <tr>
-                            {columns.map((column) => (
-                                <th className="border border-gray-200 p-2 min-w-[150px]"
-                                    key={column.key}
-                                >
-                                    {column.label}
-                                </th>
-                            ))}
-
-                        </tr>
-                    </thead>
-                    <tbody>
-
-                        {games.map((game: GameEntity) => (
-                            <tr key={game.id}>
-                                {columns.map((column) => (
-                                    <td className="border border-gray-200 p-2 min-w-[150px]"
-                                        key={column.key}
-                                    >
-                                        <p className="text-black dark:text-white">
-                                            {game[column.key]}
-                                        </p>
-                                    </td>
-                                ))}
-
-                            </tr>
-                        ))}
-
-                    </tbody>
-                </table>
-                <div className="flex justify-between mt-4">
-                    <button
-                        onClick={handlePreviousPage}
-                        disabled={currentPage === 1}
-                        className="px-4 py-2 bg-gray-200 text-black rounded disabled:opacity-50"
-                    >
-                        Previous
-                    </button>
-                    <span className="self-center">
-                        Page {currentPage} of {totalPages}
-                    </span>
-                    <button
-                        onClick={handleNextPage}
-                        disabled={currentPage === totalPages}
-                        className="px-4 py-2 bg-gray-200 text-black rounded disabled:opacity-50"
-                    >
-                        Next
-                    </button>
-                </div>
-            </div>
+            <BaseTable
+                data={games}
+                columns={columns}
+                currentPage={currentPage}
+                totalPages={totalPages}
+                isLoading={isLoadingGames}
+                error={errorGames}
+                filterValue={filterValue}
+                onNextPage={handleNextPage}
+                onPreviousPage={handlePreviousPage}
+                onFilterChange={handleFilterChange}
+                onFilterSubmit={handleFilterSubmit}
+        
+        
+            />
         </div>
     );
+    
+    // (
+    //     <div>
+    //         <div className="overflow-x-auto">
+    //             <table className="w-full border-collapse border border-gray-200">
+    //                 <thead>
+    //                     <tr>
+    //                         {columns.map((column) => (
+    //                             <th className="border border-gray-200 p-2 min-w-[150px]"
+    //                                 key={column.key}
+    //                             >
+    //                                 {column.label}
+    //                             </th>
+    //                         ))}
+
+    //                     </tr>
+    //                 </thead>
+    //                 <tbody>
+
+    //                     {games.map((game: GameEntity) => (
+    //                         <tr key={game.id}>
+    //                             {columns.map((column) => (
+    //                                 <td className="border border-gray-200 p-2 min-w-[150px]"
+    //                                     key={column.key}
+    //                                 >
+    //                                     <p className="text-black dark:text-white">
+    //                                         {game[column.key]}
+    //                                     </p>
+    //                                 </td>
+    //                             ))}
+
+    //                         </tr>
+    //                     ))}
+
+    //                 </tbody>
+    //             </table>
+    //             <div className="flex justify-between mt-4">
+    //                 <button
+    //                     onClick={handlePreviousPage}
+    //                     disabled={currentPage === 1}
+    //                     className="px-4 py-2 bg-gray-200 text-black rounded disabled:opacity-50"
+    //                 >
+    //                     Previous
+    //                 </button>
+    //                 <span className="self-center">
+    //                     Page {currentPage} of {totalPages}
+    //                 </span>
+    //                 <button
+    //                     onClick={handleNextPage}
+    //                     disabled={currentPage === totalPages}
+    //                     className="px-4 py-2 bg-gray-200 text-black rounded disabled:opacity-50"
+    //                 >
+    //                     Next
+    //                 </button>
+    //             </div>
+    //         </div>
+    //     </div>
+    // );
 };
 
 export default GamesTable;

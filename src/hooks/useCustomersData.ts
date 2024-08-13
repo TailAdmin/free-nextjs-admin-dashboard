@@ -12,11 +12,13 @@ export const useCustomers = (page?: number, pageSize?: number, filter?: Record<s
     const [totalCustomers, setTotal] = useState(0);
 
 
-    const fetchCustomers = async () => {
+    const fetchCustomers = async (selectedFilterValue: Record<string, any>={}) => {
         setIsLoading(true);
         setError(null);
         try {
-            const response = await fetch(`/api/customer?page=${page}&pageSize=${pageSize}&customerId=${JSON.stringify(filter)}`);
+            let filterFields : any = {};
+            filterFields = {...filter, ...selectedFilterValue};
+            const response = await fetch(`/api/customer?page=${page}&pageSize=${pageSize}&filter=${JSON.stringify(filterFields)}`);
             const { data, total }: ApiResponse = await response.json();
 
             setCustomers(data);

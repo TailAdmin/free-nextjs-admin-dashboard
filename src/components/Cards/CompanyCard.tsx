@@ -21,7 +21,10 @@ const CompanyDetailForm: React.FC<CompanyDetailFormProps> = ({companyId}) => {
     const[currentPage, setCurrentPage] = useState(1);
     const[company, setCompany] = useState<CompanyEntity|null>(null);
     const pageSize = 1;
-    let filter = JSON.parse(`{"companyId":"${companyId}"}`);
+    let filter: any = {}; 
+    filter = JSON.parse(`{"companyId":"${companyId}"}`);
+
+    console.log(`Company card Filter: ${JSON.stringify(filter)}`)
     const {companies, isLoadingCompanies, errorCompanies, totalCompanies, fetchCompanies } = useCompanies(currentPage, pageSize, filter);
     
     useEffect(() => {

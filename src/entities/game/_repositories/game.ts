@@ -39,7 +39,7 @@ export class GameRepository {
         
         return this.mapToGameType(rawData);;
     }
-    async getGames(page: number, pageSize: number): Promise<{data: GameEntity[], total: number}> {
+    async getGames(page: number, pageSize: number, whereCondition: Record<string, any>): Promise<{data: GameEntity[], total: number}> {
         const skip = (page - 1) * pageSize;
         const take = pageSize;
                 
@@ -47,6 +47,7 @@ export class GameRepository {
             dbClient.aghanim_game.findMany({
                 skip: skip,
                 take: take,
+                where: whereCondition,
             }),
             dbClient.aghanim_game.count(),
 
@@ -56,28 +57,46 @@ export class GameRepository {
 
         return {data, total };
     }
-    async getGamesByFilter(page: number, pageSize: number, filter: Json): Promise<{ data: GameEntity[], total: number }>{
-
-        if (filter['customerId']) {
-
-            return this.getGamesByCustomer(page, pageSize, filter['customerId']);
-        } else{
-            return this.getGamesByCompany(page, pageSize, filter['companyId']);
+    async getGamesByFilter(page: number, pageSize: number, filter: Record<string, any>): Promise<{ data: GameEntity[], total: number }>{
+        const whereCondition: Record<string, any> = {};
+        if (filter['selectedFields']){
+            
+            whereCondition["OR"] =  [{'id': {contains: filter['selectedFields'], mode:'insensitive'}},
+                            {'name': {contains: filter['selectedFields'], mode:'insensitive'}}
+                            ]
         }
+        if (filter["companyId"]){
+
+            whereCondition["company_id"] = filter["companyId"]
+                
+                
+            
+
+            return this.getGamesByCompany(page, pageSize, whereCondition);
+        }else if(filter["customerId"]){
+            whereCondition["customers"] = {
+
+                    some: {
+                        customer_id: filter['customerId']
+                    }
+                
+            }
+
+            return this.getGamesByCustomer(page, pageSize, whereCondition);
+        }else{
+            return this.getGames(page, pageSize, whereCondition);
+        }
+        
 
     }
-    async getGamesByCustomer(page: number, pageSize: number, customerId: string): Promise<{ data: GameEntity[], total: number }> {
+    async getGamesByCustomer(page: number, pageSize: number, whereCondition: Record<string, any>): Promise<{ data: GameEntity[], total: number }> {
         const skip = (page - 1) * pageSize;
         const take = pageSize;
 
         const companyIds = await
             dbClient.aghanim_company.findMany({
                 where: {
-                    customers: {
-                    some: {
-                        customer_id: customerId
-                    }
-                    }
+                    customers: whereCondition["customers"]
                 },
                 select:{ id: true}
             })
@@ -88,7 +107,8 @@ export class GameRepository {
             where: {            
                 company_id: {
                     in: companyIdsString
-                }
+                },
+                'OR': whereCondition['OR']
             },
             
         })            
@@ -99,15 +119,13 @@ export class GameRepository {
         return { data, total };
     }
 
-    async getGamesByCompany(page: number, pageSize: number, companyId: string): Promise<{ data: GameEntity[], total: number }> {
+    async getGamesByCompany(page: number, pageSize: number, whereCondition: Record<string, any>): Promise<{ data: GameEntity[], total: number }> {
         const skip = (page - 1) * pageSize;
         const take = pageSize;  
 
         const gamesData = await dbClient.aghanim_game.findMany({
             distinct: ['id'],
-            where: {            
-                company_id: companyId
-            },
+            where: whereCondition,
             
         })            
         

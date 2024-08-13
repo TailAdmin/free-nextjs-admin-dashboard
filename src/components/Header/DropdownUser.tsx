@@ -37,7 +37,7 @@ const DropdownUser = () => {
           <span className="block text-xs">{userData?.role}</span>
         </span>
 
-        <span className="h-12 w-12 text-xl rounded-full overflow-hidden border border-gray-900 bg-gray-100 bg-gray-100 flex items-center justify-center">
+        <span className="h-12 w-12 text-xl rounded-full overflow-hidden border border-gray-900 bg-gray-100 bg-gray-100 flex items-center justify-center">          
           {!userData ? (
               "?"
                 

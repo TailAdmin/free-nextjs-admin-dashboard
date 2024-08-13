@@ -22,28 +22,29 @@ export class CompanyRepository {
 
         }
 
-        console.log(`companyData: ${companyData}`);
 
         return companyData
     }
 
 
     async getCompanyById(companyId: string): Promise<CompanyEntity[]> {
-
+        console.log(`repo company ID: ${companyId}`);
         const rawData = await dbClient.aghanim_company.findUniqueOrThrow({
             where: {
                 id: companyId,
             },
         });
 
-        console.log(`Repo_RawData: ${( rawData).id}`)
+
         let data = [this.mapToCompanyType(rawData)];
         
-        console.log(`Repo_Data: ${( data[0].id)}`)
+
         
         return data;
     }
-    async getCompanies(page: number, pageSize: number): Promise<{data: CompanyEntity[], total: number}> {
+    async getCompanies(page: number, pageSize: number, whereCondition: Record<string, any>): Promise<{data: CompanyEntity[], total: number}> {
+        
+        console.log("where: " + JSON.stringify(whereCondition));
         const skip = (page - 1) * pageSize;
         const take = pageSize;
                 
@@ -51,6 +52,7 @@ export class CompanyRepository {
             dbClient.aghanim_company.findMany({
                 skip: skip,
                 take: take,
+                where: whereCondition,
             }),
             dbClient.aghanim_company.count(),
 
@@ -60,30 +62,42 @@ export class CompanyRepository {
 
         return {data, total };
     }
+    async getCompaniesByFilter(page: number, pageSize: number, filter: Record<string, any>): Promise<{ data: CompanyEntity[], total: number }> {
+        const whereCondition: Record<string, any> = {};
+        if (filter['selectedFields']){
+            
+            whereCondition["OR"] =  [{'id': {contains: filter['selectedFields'], mode:'insensitive'}},
+                            {'name': {contains: filter['selectedFields'], mode:'insensitive'}}
+                            ]
+        }
+        if (filter["customerId"]){
 
-    async getCompaniesByCustomer(page: number, pageSize: number, customerId: string): Promise<{ data: CompanyEntity[], total: number }> {
+            whereCondition["customers"] = {
+
+                some: {
+                    customer_id: filter["customerId"]
+                }
+                
+            }
+
+            return this.getCompaniesByCustomer(page, pageSize, whereCondition);
+        }else{
+
+            return this.getCompanies(page, pageSize, whereCondition);
+        }
+
+    }
+
+    async getCompaniesByCustomer(page: number, pageSize: number, whereCondition: Record<string, any>): Promise<{ data: CompanyEntity[], total: number }> {
         const skip = (page - 1) * pageSize;
         const take = pageSize;
 
         const [rawData, total] = await Promise.all([
             dbClient.aghanim_company.findMany({
-                where: {
-                    customers: {
-                    some: {
-                        customer_id: customerId
-                    }
-                    }
-                }
+                where: whereCondition
             }),
             dbClient.aghanim_company.count({
-                where: {
-
-                    customers: {
-                        some: {
-                            customer_id: customerId
-                        }
-                        }
-                },
+                where: whereCondition,
             }),
         ]);
 
