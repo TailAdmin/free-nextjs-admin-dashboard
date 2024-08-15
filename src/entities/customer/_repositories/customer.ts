@@ -48,7 +48,7 @@ export class CustomerRepository {
                 take: take,
                 where: whereCondition
             }),
-            dbClient.aghanim_customer.count(),
+            dbClient.aghanim_customer.count({where: whereCondition,}),
 
 
         ])
@@ -92,6 +92,8 @@ export class CustomerRepository {
 
         const [rawData, total] = await Promise.all([
             dbClient.aghanim_customer.findMany({
+                skip: skip,
+                take: take,
                 where: whereCondition
             }),
             dbClient.aghanim_customer.count({

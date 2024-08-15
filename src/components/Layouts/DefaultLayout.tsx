@@ -1,40 +1,33 @@
 "use client";
-import React, { useState, ReactNode } from "react";
-import Sidebar from "@/components/Sidebar";
-import Header from "@/components/Header";
 
-export default function DefaultLayout({
-  children, variant
-}: {
-  children: React.ReactNode; variant: "auth" | "private" | "public";
-}) {
-  const [sidebarOpen, setSidebarOpen] = useState(false);
-  return (
-    <>
-      {/* <!-- ===== Page Wrapper Start ===== --> */}
-      <div className="flex h-screen overflow-hidden">
-        {/* <!-- ===== Sidebar Start ===== --> */}
-        <Sidebar sidebarOpen={sidebarOpen} setSidebarOpen={setSidebarOpen} variant={variant} />
-        {/* <!-- ===== Sidebar End ===== --> */}
+import React from "react";
+import { useLockedBody } from "@/hooks/useBodyLock";
+import { NavbarWrapper } from "../Navbar/navbar";
+import { SidebarWrapper } from "../Sidebar/sidebar";
+import { SidebarContext } from "./layout-context";
 
-        {/* <!-- ===== Content Area Start ===== --> */}
-        <div className="relative flex flex-1 flex-col overflow-y-auto overflow-x-hidden">
-          {/* <!-- ===== Header Start ===== --> */}
-          <Header sidebarOpen={sidebarOpen} setSidebarOpen={setSidebarOpen} />
-          {/* <!-- ===== Header End ===== --> */}
-
-          {/* <!-- ===== Main Content Start ===== --> */}
-          <main>
-            <div className="mx-auto max-w-screen-2xl p-4 md:p-6 2xl:p-10">
-              
-              {children}
-            </div>
-          </main>
-          {/* <!-- ===== Main Content End ===== --> */}
-        </div>
-        {/* <!-- ===== Content Area End ===== --> */}
-      </div>
-      {/* <!-- ===== Page Wrapper End ===== --> */}
-    </>
-  );
+interface Props {
+  children: React.ReactNode;
 }
+
+export const Layout = ({ children }: Props) => {
+  const [sidebarOpen, setSidebarOpen] = React.useState(false);
+  const [_, setLocked] = useLockedBody(false);
+  const handleToggleSidebar = () => {
+    setSidebarOpen(!sidebarOpen);
+    setLocked(!sidebarOpen);
+  };
+
+  return (
+    <SidebarContext.Provider
+      value={{
+        collapsed: sidebarOpen,
+        setCollapsed: handleToggleSidebar,
+      }}>
+      <section className='flex'>
+        <SidebarWrapper />
+        <NavbarWrapper>{children}</NavbarWrapper>
+      </section>
+    </SidebarContext.Provider>
+  );
+};

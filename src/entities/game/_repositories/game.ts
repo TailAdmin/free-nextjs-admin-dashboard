@@ -104,6 +104,8 @@ export class GameRepository {
 
         const gamesData = await dbClient.aghanim_game.findMany({
             distinct: ['id'],
+            skip: skip,
+            take: take,
             where: {            
                 company_id: {
                     in: companyIdsString
@@ -114,8 +116,15 @@ export class GameRepository {
         })            
 
         const data = gamesData.map(this.mapToGameType);
-        const total = gamesData.length;
-
+        const total = await dbClient.aghanim_game.count({
+            where: {            
+                company_id: {
+                    in: companyIdsString
+                },
+                'OR': whereCondition['OR']
+            },
+            
+        })            
         return { data, total };
     }
 
@@ -124,14 +133,19 @@ export class GameRepository {
         const take = pageSize;  
 
         const gamesData = await dbClient.aghanim_game.findMany({
-            distinct: ['id'],
+            skip: skip,
+            take: take,
             where: whereCondition,
             
         })            
         
 
         const data = gamesData.map(this.mapToGameType);
-        const total = gamesData.length;
+        const total = await dbClient.aghanim_game.count({
+
+            where: whereCondition,
+            
+        })            
 
         return { data, total };
     }

@@ -9,6 +9,7 @@ export async function middleware(req: NextRequest) {
       }
 
     if (!token && !req.nextUrl.pathname.startsWith('/api')) {
+
         const url = req.nextUrl.clone();
         url.pathname = '/api/auth/signin/auth0';
         return NextResponse.redirect(url);

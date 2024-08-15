@@ -3,7 +3,8 @@
 import React, { useState, useEffect } from 'react';
 import { useCompanies } from '@/hooks/useCompaniesData';
 import Loader from '../common/Loader';
-import BaseTable from './BaseTable';
+//import BaseTable from './BaseTable';
+import BaseTableNextUI from './BaseTableNextUI';
 
 interface CompaniesTableProps {
     customerId?: string;
@@ -12,7 +13,9 @@ interface CompaniesTableProps {
 const CompaniesTable: React.FC<CompaniesTableProps> = ({ customerId }) => {
     const [currentPage, setCurrentPage] = useState(1);
     const [filterValue, setFilterValue] = useState('');
-    const pageSize = 10;
+    const [totalPages, setTotalPages] = useState(1);
+    const[pageSize, setPageSize] = useState(10);
+
     let filter: any = {};
 
     if(customerId){
@@ -22,9 +25,13 @@ const CompaniesTable: React.FC<CompaniesTableProps> = ({ customerId }) => {
 
     useEffect(() => {
         fetchCompanies(JSON.parse(`{"selectedFields":"${filterValue}"}`));
-    }, [currentPage]);
+    }, [currentPage, pageSize]);
 
-    const totalPages = Math.ceil(totalCompanies / pageSize);
+    useEffect(() => {
+
+        setTotalPages(Math.ceil(totalCompanies / pageSize));
+    }, [totalCompanies, pageSize]);
+
 
     const handleNextPage = () => {
         if (currentPage < totalPages) {
@@ -38,12 +45,16 @@ const CompaniesTable: React.FC<CompaniesTableProps> = ({ customerId }) => {
         }
     };
 
-    const handleFilterChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-        setFilterValue(e.target.value);
+    const handleFilterChange = (filterValue: string) => {
+        setFilterValue(filterValue);
     };
 
+
+
     const handleFilterSubmit = () => {
+        setCurrentPage(1); 
         fetchCompanies(JSON.parse(`{"selectedFields":"${filterValue}"}`));
+
     };
 
     if (isLoadingCompanies) {
@@ -66,25 +77,17 @@ const CompaniesTable: React.FC<CompaniesTableProps> = ({ customerId }) => {
 
 return (
     <div>
-        <BaseTable
+        <BaseTableNextUI
             data={companies}
-            columns={[
-                { key: 'name', label: 'Name' },
-                { key: 'url', label: 'Url' },
-                { key: 'size', label: 'Size' },
-                { key: 'created_at', label: 'Created at' },
-                { key: 'modified_at', label: 'Modified at' },
-                { key: 'deleted_at', label: 'Deleted at' },
-                { key: 'archived_at', label: 'Archived at' },
-            ]}
+            columns={columns}
             currentPage={currentPage}
             totalPages={totalPages}
             isLoading={isLoadingCompanies}
             error={errorCompanies}
             filterValue={filterValue}
             routeName='/company-card/'
-            onNextPage={handleNextPage}
-            onPreviousPage={handlePreviousPage}
+            onSetPageNumber={setCurrentPage}
+            onSetPageSize={setPageSize}
             onFilterChange={handleFilterChange}
             onFilterSubmit={handleFilterSubmit}
 

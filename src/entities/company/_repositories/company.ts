@@ -44,20 +44,19 @@ export class CompanyRepository {
     }
     async getCompanies(page: number, pageSize: number, whereCondition: Record<string, any>): Promise<{data: CompanyEntity[], total: number}> {
         
-        console.log("where: " + JSON.stringify(whereCondition));
+        //console.log("where: " + JSON.stringify(whereCondition));
         const skip = (page - 1) * pageSize;
         const take = pageSize;
                 
-        const[rawData, total] = await Promise.all([
+        const [rawData, total] = await Promise.all([
             dbClient.aghanim_company.findMany({
                 skip: skip,
                 take: take,
                 where: whereCondition,
             }),
-            dbClient.aghanim_company.count(),
-
-
+            dbClient.aghanim_company.count({where: whereCondition,})    
         ])
+        
         const data = rawData.map(this.mapToCompanyType)
 
         return {data, total };
@@ -94,6 +93,8 @@ export class CompanyRepository {
 
         const [rawData, total] = await Promise.all([
             dbClient.aghanim_company.findMany({
+                skip: skip,
+                take: take,
                 where: whereCondition
             }),
             dbClient.aghanim_company.count({
