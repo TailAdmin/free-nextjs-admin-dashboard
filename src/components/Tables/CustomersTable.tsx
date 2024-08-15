@@ -3,9 +3,6 @@
 import { useEffect, useState } from "react";
 import {useCustomers} from '@/hooks/useCustomersData';
 import Loader from "../common/Loader";
-import { CustomerEntity } from "@/entities/customer/_domain/types";
-import Link from "next/link";
-import BaseTable from "./BaseTable";
 import BaseTableNextUI from "./BaseTableNextUI";
 
 

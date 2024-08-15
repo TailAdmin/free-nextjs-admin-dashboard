@@ -3,7 +3,6 @@
 import { useEffect, useState } from "react";
 import {useTransactions} from '@/hooks/useTransactions';
 import Loader from "../common/Loader";
-import BaseTable from "./BaseTable";
 import BaseTableNextUI from "./BaseTableNextUI";
 
 const TableTransaction = () => {

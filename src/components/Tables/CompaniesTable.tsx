@@ -3,7 +3,6 @@
 import React, { useState, useEffect } from 'react';
 import { useCompanies } from '@/hooks/useCompaniesData';
 import Loader from '../common/Loader';
-//import BaseTable from './BaseTable';
 import BaseTableNextUI from './BaseTableNextUI';
 
 interface CompaniesTableProps {
