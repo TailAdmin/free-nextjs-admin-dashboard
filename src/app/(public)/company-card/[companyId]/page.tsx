@@ -2,7 +2,7 @@
 
 import CompanyDetailForm from '@/components/Cards/CompanyCard';
 
-const CustomerCard = ({ params }: { params: { companyId: string } }) => {
+const CompanyCard = ({ params }: { params: { companyId: string } }) => {
 
 
 
@@ -16,4 +16,4 @@ const CustomerCard = ({ params }: { params: { companyId: string } }) => {
     );
 
 };
-export default CustomerCard;
+export default CompanyCard;

@@ -1,16 +1,12 @@
 'use client';
 
 import React, { useEffect, useState } from 'react';
-import { CustomerEntity } from "@/entities/customer/_domain/types";
 import { CompanyEntity } from "@/entities/company/_domain/types";
-import Link from 'next/link';
 import { useCompanies } from '@/hooks/useCompaniesData';
 import Loader from '../common/Loader';
-import { useGames } from '@/hooks/useGamesData';
-import { useCustomers } from '@/hooks/useCustomersData';
-import CompaniesTable from '../Tables/CompaniesTable';
 import GamesTable from '../Tables/GamesTable';
 import CustomersTable from '../Tables/CustomersTable';
+import { Card, CardBody, CardFooter, CardHeader, Divider, Tab, Tabs } from '@nextui-org/react';
 
 interface CompanyDetailFormProps {
   companyId: string;
@@ -53,6 +49,11 @@ const CompanyDetailForm: React.FC<CompanyDetailFormProps> = ({companyId}) => {
     if (isLoadingCompanies) {
       return <Loader /> ;
     } 
+
+    const handleTabChange = (key: any) => {
+      setActiveTab(key); 
+    };
+
     const renderTabContent = () => {
     switch (activeTab) {
         case 'details':
@@ -91,36 +92,57 @@ const CompanyDetailForm: React.FC<CompanyDetailFormProps> = ({companyId}) => {
 };
 
   return (
-    <div className="p-5 rounded-lg shadow-lg w-full bg-white"> 
 
-      <div className="flex justify-end mb-4">
+    <Card className="w-full min-w-[600px]">
+    <CardHeader className="flex gap-3"> 
+      <div className="flex flex-col">
+        <p className="text-lg font-semibold">Company details</p>
+        <p className="text-md text-default-500">{company.name}</p>
+      </div>
 
-        </div>
-        <h3 className="text-xl font-semibold mb-4">Company Details</h3>
-        <div className="mb-4">
-          <button
-            className={`mr-2 ${activeTab === 'details' ? 'text-blue-500' : 'text-gray-500'}`}
-            onClick={() => setActiveTab('details')}
-          >
-            Details
-          </button>
-          <button
-            className={`mr-2 ${activeTab === 'companies' ? 'text-blue-500' : 'text-gray-500'}`}
-            onClick={() => setActiveTab('customers')}
-          >
-            Customers
-          </button>
-          <button
-            className={`${activeTab === 'games' ? 'text-blue-500' : 'text-gray-500'}`}
-            onClick={() => setActiveTab('games')}
-          >
-            Games
-          </button>
-        </div>
-        <div>
-          {renderTabContent()}
-        </div>
-    </div>
+    </CardHeader>
+    <Divider/>
+    {/* <CardBody>
+      <p>Make beautiful websites regardless of your design experience.</p>
+    </CardBody> */}
+
+<div className="flex w-full flex-col" >
+      <Tabs aria-label="Options"
+        onSelectionChange={handleTabChange}
+      >
+        <Tab key="details" title="Details">
+          <Card>
+            <CardBody>
+              {renderTabContent()}
+            </CardBody>
+          </Card>  
+        </Tab>
+        <Tab key="customers" title="Customers">
+          <Card>
+            <CardBody
+              
+            >
+              {renderTabContent()}
+            </CardBody>
+          </Card>  
+        </Tab>
+        <Tab key="games" title="Games">
+          <Card>
+            <CardBody>
+              {renderTabContent()}
+            </CardBody>
+          </Card>  
+        </Tab>
+      </Tabs>
+    </div> 
+
+
+    {/* <Divider/>
+    <CardFooter>
+
+    </CardFooter> */}
+  </Card>
+
   );
 };
 

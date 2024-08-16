@@ -6,6 +6,7 @@ import Loader from '../common/Loader';
 import { useCustomers } from '@/hooks/useCustomersData';
 import CompaniesTable from '../Tables/CompaniesTable';
 import GamesTable from '../Tables/GamesTable';
+import { Card, CardBody, CardHeader, Divider, Tab, Tabs } from '@nextui-org/react';
 
 interface CustomerDetailFormProps {
   customerId?: string;
@@ -49,6 +50,11 @@ const CustomerDetailForm: React.FC<CustomerDetailFormProps> = ({ customerId, com
     if (isLoadingCustomers) {
       return <Loader /> ;
     } 
+
+    const handleTabChange = (key: any) => {
+      setActiveTab(key); 
+    };
+
     const renderTabContent = () => {
     switch (activeTab) {
         case 'details':
@@ -93,36 +99,56 @@ const CustomerDetailForm: React.FC<CustomerDetailFormProps> = ({ customerId, com
 };
 
   return (
-    <div className="p-5 rounded-lg shadow-lg w-full bg-white"> 
+    <Card className="w-full min-w-[600px]">
+    <CardHeader className="flex gap-3"> 
+      <div className="flex flex-col">
+        <p className="text-lg font-semibold">Customer details</p>
+        <p className="text-md text-default-500">{customer.name}</p>
+      </div>
 
-      <div className="flex justify-end mb-4">
+    </CardHeader>
+    <Divider/>
+    {/* <CardBody>
+      <p>Make beautiful websites regardless of your design experience.</p>
+    </CardBody> */}
 
-        </div>
-        <h3 className="text-xl font-semibold mb-4">Customer Details</h3>
-        <div className="mb-4">
-          <button
-            className={`mr-2 ${activeTab === 'details' ? 'text-blue-500' : 'text-gray-500'}`}
-            onClick={() => setActiveTab('details')}
-          >
-            Details
-          </button>
-          <button
-            className={`mr-2 ${activeTab === 'companies' ? 'text-blue-500' : 'text-gray-500'}`}
-            onClick={() => setActiveTab('companies')}
-          >
-            Companies
-          </button>
-          <button
-            className={`${activeTab === 'games' ? 'text-blue-500' : 'text-gray-500'}`}
-            onClick={() => setActiveTab('games')}
-          >
-            Games
-          </button>
-        </div>
-        <div>
-          {renderTabContent()}
-        </div>
-    </div>
+<div className="flex w-full flex-col">
+      <Tabs aria-label="Options"
+        onSelectionChange={handleTabChange}
+      >
+        <Tab key="details" title="Details">
+          <Card>
+            <CardBody>
+              {renderTabContent()}
+            </CardBody>
+          </Card>  
+        </Tab>
+        <Tab key="companies" title="Companies">
+          <Card>
+            <CardBody
+              
+            >
+              {renderTabContent()}
+            </CardBody>
+          </Card>  
+        </Tab>
+        <Tab key="games" title="Games">
+          <Card>
+            <CardBody>
+              {renderTabContent()}
+            </CardBody>
+          </Card>  
+        </Tab>
+      </Tabs>
+    </div> 
+
+
+    {/* <Divider/>
+    <CardFooter>
+
+    </CardFooter> */}
+  </Card>
+
   );
 };
 
