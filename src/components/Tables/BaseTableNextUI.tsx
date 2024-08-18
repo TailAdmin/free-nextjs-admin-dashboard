@@ -182,7 +182,14 @@ const BaseTableNextUI = <T extends Record<string, any>>({
                         {columns.map((column) => (
                             <TableCell key={String(column.key)}>
 
+<div 
+                                className="truncate max-w-xs" 
+                                title={row[column.key] as unknown as string} 
+                            >
                                 {row[column.key] as unknown as ReactNode}
+                            </div>
+
+                                {/* {row[column.key] as unknown as ReactNode} */}
                             </TableCell>
                         ))}
                     </TableRow>

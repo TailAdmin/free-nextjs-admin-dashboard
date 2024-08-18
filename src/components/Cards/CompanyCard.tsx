@@ -59,21 +59,65 @@ const CompanyDetailForm: React.FC<CompanyDetailFormProps> = ({companyId}) => {
         case 'details':
         return (
             <div> 
-            <label className="block text-sm font-medium text-black">Name:</label>
-            <p className="mb-4">{company.name}</p>
+              <div className="flex items-center mb-4">
+                <label className="block text-md font-medium mr-4">ID:</label>
+                <p className="text-sm font-medium">{company.id}</p>
+              </div>
+              <div className="flex items-center mb-4">
+                <label className="block text-md font-medium mr-4">Name:</label>
+                <p className="text-sm font-medium">{company.name}</p>
+              </div>
 
-            <label className="block text-sm font-medium text-black">URL:</label>
-            <p className="mb-4">{company.url}</p>
+              <div className="flex items-center mb-4">
+                <label className="block text-md font-medium mr-4">URL:</label>
+                <a 
+                  href={company.url} 
+                  className="text-sm font-medium text-blue-500 hover:underline" 
+                  target="_blank" 
+                  rel="noopener noreferrer">
+                    {company.url}
+                </a>
+              </div>
 
-            <label className="block text-sm font-medium text-black">Size:</label>
-            <p className="mb-4">{company.size}</p>
+              <div className="flex items-center mb-4">
+                <label className="block text-md font-medium mr-4">Size:</label>
+                <p className="text-sm font-medium">{company.size}</p>
+              </div>
 
-            <label className="block text-sm font-medium text-black">Created At:</label>
-            <p className="mb-4">{company.created_at}</p>
+              <div className="flex items-center mb-4">
+                <label className="block text-md font-medium mr-4">Domains:</label>
+                <p className="text-sm font-medium">{company.domains}</p>
+              </div>
 
-            <label className="block text-sm font-medium text-black">Archived At:</label>
-            <p className="mb-4">{company.archived_at}</p>
-            </div>
+              <div className="flex items-center mb-4">
+                <label className="block text-md font-medium mr-4">Viewer_domains:</label>
+                <p className="text-sm font-medium">{company.viewer_domains}</p>
+              </div>
+
+              <div className="flex items-center mb-4">
+                <label className="block text-md font-medium mr-4">Created At:</label>
+                <p className="text-sm font-medium">{company.created_at}</p>
+              </div>
+
+              <div className="flex items-center mb-4">
+                <label className="block text-md font-medium mr-4">Modified At:</label>
+                <p className="text-sm font-medium">{company.modified_at}</p>
+              </div>
+
+              <div className="flex items-center mb-4">
+                <label className="block text-md font-medium mr-4">Deleted_at:</label>
+                <p className="text-sm font-medium">{company.deleted_at}</p>
+              </div>
+
+
+              <div className="flex items-center mb-4">
+                <label className="block text-md font-medium mr-4">Archived_at:</label>
+                <p className="text-sm font-medium">{company.archived_at}</p>
+              </div>
+
+
+
+            </div>  
         );
         case 'customers':
         return (
@@ -97,44 +141,48 @@ const CompanyDetailForm: React.FC<CompanyDetailFormProps> = ({companyId}) => {
     <CardHeader className="flex gap-3"> 
       <div className="flex flex-col">
         <p className="text-lg font-semibold">Company details</p>
-        <p className="text-md text-default-500">{company.name}</p>
+        <div className="flex items-center">
+          <img 
+            src={company.logo_url} 
+            alt={`${company.name} logo`} 
+            className="h-6 w-auto" 
+          />
+          <p className="text-lg text-default-500" >{company.name}</p>
+        </div>
       </div>
 
     </CardHeader>
     <Divider/>
-    {/* <CardBody>
-      <p>Make beautiful websites regardless of your design experience.</p>
-    </CardBody> */}
 
-<div className="flex w-full flex-col" >
-      <Tabs aria-label="Options"
-        onSelectionChange={handleTabChange}
-      >
-        <Tab key="details" title="Details">
-          <Card>
-            <CardBody>
-              {renderTabContent()}
-            </CardBody>
-          </Card>  
-        </Tab>
-        <Tab key="customers" title="Customers">
-          <Card>
-            <CardBody
-              
-            >
-              {renderTabContent()}
-            </CardBody>
-          </Card>  
-        </Tab>
-        <Tab key="games" title="Games">
-          <Card>
-            <CardBody>
-              {renderTabContent()}
-            </CardBody>
-          </Card>  
-        </Tab>
-      </Tabs>
-    </div> 
+    <div className="flex w-full flex-col" >
+          <Tabs aria-label="Options"
+            onSelectionChange={handleTabChange}
+          >
+            <Tab key="details" title="Details">
+              <Card>
+                <CardBody>
+                  {renderTabContent()}
+                </CardBody>
+              </Card>  
+            </Tab>
+            <Tab key="customers" title="Customers">
+              <Card>
+                <CardBody
+                  
+                >
+                  {renderTabContent()}
+                </CardBody>
+              </Card>  
+            </Tab>
+            <Tab key="games" title="Games">
+              <Card>
+                <CardBody>
+                  {renderTabContent()}
+                </CardBody>
+              </Card>  
+            </Tab>
+          </Tabs>
+        </div> 
 
 
     {/* <Divider/>

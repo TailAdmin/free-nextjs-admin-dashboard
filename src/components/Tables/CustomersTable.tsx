@@ -60,9 +60,6 @@ const handleFilterSubmit = () => {
     { key: 'email', label: 'E-mail' },
     { key: 'is_staff', label: 'Is Staff' },
     { key: 'created_at', label: 'Created at' },
-    { key: 'last_login_at', label: 'Last login at' },
-    { key: 'accepted_privacy_version', label: 'Accepted privacy version' },
-    { key: 'accepted_terms_version', label: 'Accepted terms version' },
   ];
 
 

@@ -1,5 +1,6 @@
 import { dbClient } from "@/shared/lib/db";
 import { CompanyEntity } from "../_domain/types";
+import {convertTimeStampToLocaleDateString} from "@/shared/utils/commonUtils"
 
 export class CompanyRepository {
 
@@ -15,17 +16,16 @@ export class CompanyRepository {
             domains: data.domains,
             viewer_domains: data.viewer_domains,
             logo_url: data.logo_url,
-            created_at: data.created_at,
-            modified_at: data.modified_at,
-            deleted_at: data.deleted_at,
-            archived_at: data.archived_at,
+            created_at: convertTimeStampToLocaleDateString(data.created_at),
+            modified_at: convertTimeStampToLocaleDateString(data.modified_at),
+            deleted_at: convertTimeStampToLocaleDateString(data.deleted_at),
+            archived_at: convertTimeStampToLocaleDateString(data.archived_at),
 
         }
 
 
         return companyData
     }
-
 
     async getCompanyById(companyId: string): Promise<CompanyEntity[]> {
         console.log(`repo company ID: ${companyId}`);

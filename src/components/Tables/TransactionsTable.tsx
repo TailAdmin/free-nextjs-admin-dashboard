@@ -34,20 +34,22 @@ const TableTransaction = () => {
   };
 
   const columns = [
+    { key: 'payment_number', label: 'Payment number' },
+    { key: 'payment_date', label: 'Payment date'},
+    { key: 'billing_email', label: 'Billing Email'},
+    { key: 'status', label: 'Status' },
+    { key: 'amountWithCurrency', label: 'Amount' },
+    { key: 'company_name', label: 'Company Name' },
+    { key: 'game_name', label: 'Game Name' },
+    
     { key: 'company_id', label: 'Company ID' },
     { key: 'game_id', label: 'Game ID' },
     { key: 'user_id', label: 'User ID' },
-    { key: 'player_id', label: 'Player ID' },
-    { key: 'user_name', label: 'User Nsme' },
+    { key: 'user_name', label: 'User Name' },
     { key: 'player_name', label: 'Player Name' },
-    { key: 'item_id', label: 'Item ID' },
     { key: 'item_name', label: 'Item name' },
-    { key: 'payment_id', label: 'Payment ID' },
-    { key: 'status', label: 'Status' },
-    { key: 'payment_method_id', label: 'Payment method ID' },
-    { key: 'payment_method_name', label: 'Payment method name' },
-    { key: 'amount', label: 'Amount' },
-    { key: 'currency', label: 'Currency' },
+
+
     { key: 'country', label: 'Country' },
     { key: 'order_id', label: 'Order ID' },
     { key: 'status_order', label: 'Status order' },

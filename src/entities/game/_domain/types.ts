@@ -3,6 +3,7 @@ export type GameEntity = {
     id: string;
     name: string;    
     company_id: string;
+    company_name?: string;
     description: string;
     url: string;
     logo_url: string;
@@ -11,10 +12,10 @@ export type GameEntity = {
     game_stores: JSON;
     login_settings?: JSON;
     locale_default: string;
-    created_at: number;
-    modified_at?: number
-    deleted_at?: number;
-    archived_at?: number;
+    created_at: string;
+    modified_at?: string
+    deleted_at?: string;
+    archived_at?: string;
 
     [key: string]: any;
 

@@ -66,12 +66,8 @@ const CompaniesTable: React.FC<CompaniesTableProps> = ({ customerId }) => {
 
     const columns = [
         { key: 'name', label: 'Name' },
-        { key: 'url', label: 'Url' },
         { key: 'size', label: 'Size' },
         { key: 'created_at', label: 'Created at' },
-        { key: 'modified_at', label: 'Modified at' },
-        { key: 'deleted_at', label: 'Deleted at' },
-        { key: 'archived_at', label: 'Archived at' },
     ];
 
 return (

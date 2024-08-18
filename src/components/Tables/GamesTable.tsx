@@ -47,11 +47,11 @@ const GamesTable: React.FC<GamesTableProps> = ({ customerId, companyId }) => {
         { key: 'name', label: 'Name' },
         { key: 'description', label: 'Description' },
         { key: 'url', label: 'Url' },
+        { key: 'company_name', label: 'Company name' },
         { key: 'login_type', label: 'Login type' },
         { key: 'created_at', label: 'Created at' },
         { key: 'modified_at', label: 'Modified at' },
-        { key: 'deleted_at', label: 'Deleted at' },
-        { key: 'archived_at', label: 'Archived at' },
+
     ];
 
 

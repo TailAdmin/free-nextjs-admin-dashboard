@@ -7,10 +7,10 @@ export type CompanyEntity = {
     domains: string[];
     viewer_domains: string[];
     logo_url?: string;
-    created_at: number;
-    modified_at?: number
-    deleted_at?: number;
-    archived_at?: number;
+    created_at: string;
+    modified_at?: string
+    deleted_at?: string;
+    archived_at?: string;
     [key: string]: any;
 
   };
