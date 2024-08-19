@@ -22,6 +22,13 @@ providers:
     Auth0Provider({clientId: privateConfig.AUTH_AUTH0_CLIENT_ID ?? '', 
                     clientSecret: privateConfig.AUTH_AUTH0_CLIENT_SECRET ?? '',
                     issuer: `https://${privateConfig.AUTH_AUTH0_DOMAIN}`,
+                    
+                    authorization:{
+                        params: {
+                            prompt: "login",
+                        }
+                    }
+
                     }),                
 ]
 // )

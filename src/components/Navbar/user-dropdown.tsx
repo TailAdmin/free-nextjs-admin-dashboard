@@ -4,12 +4,12 @@ import {
     DropdownItem,
     DropdownMenu,
     DropdownTrigger,
-    Navbar,
     NavbarItem,
 } from "@nextui-org/react";
 import React, { useCallback } from "react";
 import { useRouter } from "next/navigation";
 import useUserData from "@/hooks/useUserData";
+import { signOut } from "next-auth/react";
   //import { deleteAuthCookie } from "@/actions/auth.action";
 
 export const UserDropdown = () => {
@@ -17,10 +17,11 @@ export const UserDropdown = () => {
     const { userData, isLoading, error } = useUserData();
     const userImage = userData?.image || undefined;
     const userInitial = userData?.fullname?.charAt(0).toUpperCase() || "";
-    const handleLogout = useCallback(async () => {
-    //  await deleteAuthCookie();
-        router.replace("/api/auth/signout/auth0");
-    }, [router]);
+    const handleLogout = async () => {
+
+        signOut();
+                
+    };
     return (
         <Dropdown>
             <NavbarItem>
