@@ -1,10 +1,11 @@
-import DefaultLayout from "@/components/Layouts/DefaultLayout";
+import {Layout} from "@/components/Layouts/DefaultLayout";
+import "@/styles/globals.css";
 
-export default async function Layout({children,}:{children: React.ReactNode}){
+export default async function RootLayout({children,}:{children: React.ReactNode}){
     return (
     
-    <DefaultLayout variant="public">
+    <Layout>
     {children}
-    </DefaultLayout>
+    </Layout>
     );
     }

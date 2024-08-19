@@ -1,19 +1,17 @@
 "use client";
-import { UserProvider } from "@auth0/nextjs-auth0/client";
-import { AppSessionProvider } from "@/entities/session/app-session-provider";
-import "jsvectormap/dist/jsvectormap.css";
-import "flatpickr/dist/flatpickr.min.css";
-import "@/css/satoshi.css";
-import "@/css/style.css";
+
+import "@/styles/globals.css";
 import React, { useEffect, useState } from "react";
 import Loader from "@/components/common/Loader";
+import { Providers } from "./providers";
+import { fontSans } from "@/fonts/fonts";
+import clsx from "clsx";
 
 export default function RootLayout({
   children,
 }: Readonly<{
   children: React.ReactNode;
 }>) {
-  const [sidebarOpen, setSidebarOpen] = useState(false);
   const [loading, setLoading] = useState<boolean>(true);
 
   // const pathname = usePathname();
@@ -24,13 +22,15 @@ export default function RootLayout({
 
   return (
     <html lang="en">
-      <AppSessionProvider>
         <body suppressHydrationWarning={true}>
-          <div className="dark:bg-boxdark-2 dark:text-bodydark">
+          <div 
+          className={clsx("font-sans antialiased", fontSans.className)}
+          >
+            <Providers>
             {loading ? <Loader /> : children}
+            </Providers>
           </div>
         </body>
-      </AppSessionProvider>
     </html>
   );
 }

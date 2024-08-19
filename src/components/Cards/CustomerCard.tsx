@@ -6,6 +6,7 @@ import Loader from '../common/Loader';
 import { useCustomers } from '@/hooks/useCustomersData';
 import CompaniesTable from '../Tables/CompaniesTable';
 import GamesTable from '../Tables/GamesTable';
+import { Card, CardBody, CardHeader, Divider, Tab, Tabs } from '@nextui-org/react';
 
 interface CustomerDetailFormProps {
   customerId?: string;
@@ -49,32 +50,87 @@ const CustomerDetailForm: React.FC<CustomerDetailFormProps> = ({ customerId, com
     if (isLoadingCustomers) {
       return <Loader /> ;
     } 
+
+    const handleTabChange = (key: any) => {
+      setActiveTab(key); 
+    };
+
     const renderTabContent = () => {
     switch (activeTab) {
         case 'details':
         return (
             <div> 
-            <label className="block text-sm font-medium text-black">Name:</label>
-            <p className="mb-4">{customer.name}</p>
 
-            <label className="block text-sm font-medium text-black">Email:</label>
-            <p className="mb-4">{customer.email}</p>
 
-            <label className="block text-sm font-medium text-black">Is Staff:</label>
-            <p className="mb-4">{customer.is_staff ? 'Yes' : 'No'}</p>
+              <div className="flex items-center mb-4">
+                  <label className="block text-md font-medium mr-4">Id:</label>
+                  <p className="text-sm font-medium">{customer.id}</p>
+              </div>
+              <div className="flex items-center mb-4">
+                  <label className="block text-md font-medium mr-4">Name:</label>
+                  <p className="text-sm font-medium">{customer.name}</p>
+              </div>
 
-            <label className="block text-sm font-medium text-black">Created At:</label>
-            <p className="mb-4">{customer.created_at}</p>
+              <div className="flex items-center mb-4">
+                  <label className="block text-md font-medium mr-4">E-mail:</label>
+                  <p className="text-sm font-medium">{customer.email}</p>
+              </div>
 
-            <label className="block text-sm font-medium text-black">Last Login At:</label>
-            <p className="mb-4">{customer.last_login_at}</p>
+              <div className="flex items-center mb-4">
+                  <label className="block text-md font-medium mr-4">Sub:</label>
+                  <p className="text-sm font-medium">{customer.sub}</p>
+              </div>
 
-            <label className="block text-sm font-medium text-black">Accepted Privacy Version:</label>
-            <p className="mb-4">{customer.accepted_privacy_version}</p>
+              <div className="flex items-center mb-4">
+                  <label className="block text-md font-medium mr-4">Is staff:</label>
+                  <p className="text-sm font-medium">{customer.is_staff}</p>
+              </div>
 
-            <label className="block text-sm font-medium text-black">Accepted Terms Version:</label>
-            <p className="mb-4">{customer.accepted_terms_version}</p>
+              <div className="flex items-center mb-4">
+                  <label className="block text-md font-medium mr-4">Accepted Privacy Version:</label>
+                  <p className="text-sm font-medium">{customer.accepted_privacy_version}</p>
+              </div>
+
+              <div className="flex items-center mb-4">
+                  <label className="block text-md font-medium mr-4">Accepted privacy version at:</label>
+                  <p className="text-sm font-medium">{customer.accepted_privacy_at}</p>
+              </div>
+
+              <div className="flex items-center mb-4">
+                  <label className="block text-md font-medium mr-4">Accepted Term Version:</label>
+                  <p className="text-sm font-medium">{customer.accepted_terms_version}</p>
+              </div>
+
+              <div className="flex items-center mb-4">
+                  <label className="block text-md font-medium mr-4">Accepted term version at:</label>
+                  <p className="text-sm font-medium">{customer.accepted_terms_at}</p>
+              </div>
+
+              <div className="flex items-center mb-4">
+                  <label className="block text-md font-medium mr-4">Created At:</label>
+                  <p className="text-sm font-medium">{customer.created_at}</p>
+                </div>
+
+                <div className="flex items-center mb-4">
+                  <label className="block text-md font-medium mr-4">Modified At:</label>
+                  <p className="text-sm font-medium">{customer.modified_at}</p>
+                </div>
+
+                <div className="flex items-center mb-4">
+                  <label className="block text-md font-medium mr-4">Deleted_at:</label>
+                  <p className="text-sm font-medium">{customer.deleted_at}</p>
+                </div>
+
+
+                <div className="flex items-center mb-4">
+                  <label className="block text-md font-medium mr-4">Archived_at:</label>
+                  <p className="text-sm font-medium">{customer.archived_at}</p>
+                </div>
+
+
+
             </div>
+
         );
         case 'companies':
         return (
@@ -93,36 +149,54 @@ const CustomerDetailForm: React.FC<CustomerDetailFormProps> = ({ customerId, com
 };
 
   return (
-    <div className="p-5 rounded-lg shadow-lg w-full bg-white"> 
+    <Card className="w-full min-w-[600px]">
+    <CardHeader className="flex gap-3"> 
+      <div className="flex flex-col">
+        <p className="text-lg font-semibold">Customer details</p>
+        <p className="text-md text-default-500">{customer.name}</p>
+      </div>
 
-      <div className="flex justify-end mb-4">
+    </CardHeader>
+    <Divider/>
 
-        </div>
-        <h3 className="text-xl font-semibold mb-4">Customer Details</h3>
-        <div className="mb-4">
-          <button
-            className={`mr-2 ${activeTab === 'details' ? 'text-blue-500' : 'text-gray-500'}`}
-            onClick={() => setActiveTab('details')}
-          >
-            Details
-          </button>
-          <button
-            className={`mr-2 ${activeTab === 'companies' ? 'text-blue-500' : 'text-gray-500'}`}
-            onClick={() => setActiveTab('companies')}
-          >
-            Companies
-          </button>
-          <button
-            className={`${activeTab === 'games' ? 'text-blue-500' : 'text-gray-500'}`}
-            onClick={() => setActiveTab('games')}
-          >
-            Games
-          </button>
-        </div>
-        <div>
-          {renderTabContent()}
-        </div>
-    </div>
+
+<div className="flex w-full flex-col">
+      <Tabs aria-label="Options"
+        onSelectionChange={handleTabChange}
+      >
+        <Tab key="details" title="Details">
+          <Card>
+            <CardBody>
+              {renderTabContent()}
+            </CardBody>
+          </Card>  
+        </Tab>
+        <Tab key="companies" title="Companies">
+          <Card>
+            <CardBody
+              
+            >
+              {renderTabContent()}
+            </CardBody>
+          </Card>  
+        </Tab>
+        <Tab key="games" title="Games">
+          <Card>
+            <CardBody>
+              {renderTabContent()}
+            </CardBody>
+          </Card>  
+        </Tab>
+      </Tabs>
+    </div> 
+
+
+    {/* <Divider/>
+    <CardFooter>
+
+    </CardFooter> */}
+  </Card>
+
   );
 };
 

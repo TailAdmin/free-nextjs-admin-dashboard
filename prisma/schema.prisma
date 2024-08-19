@@ -1,5 +1,6 @@
 generator client {
   provider = "prisma-client-js"
+  previewFeatures = ["relationJoins"]
 }
 
 datasource db {
@@ -8,7 +9,7 @@ datasource db {
 }
 
 model aghanim_customer {
-  name                     String?  @db.VarChar
+  name                     String? @db.VarChar
   email                    String  @db.VarChar
   created_at               Float
   modified_at              Float?
@@ -22,6 +23,7 @@ model aghanim_customer {
   last_login_at            Int?
   archived_at              Float?
   is_staff                 Boolean @default(false)
+  avatar_url               String? @db.VarChar
   companies                aghanim_customer_company[]
 
   @@index([id], map: "ix_aghanim_customer_id")
@@ -38,6 +40,7 @@ model aghanim_achievement {
   name_translations        Json
   description_translations Json
   archived_at              Float?
+  position                 Int    @default(0)
 
   @@index([id], map: "ix_aghanim_achievement_id")
 }
@@ -114,7 +117,6 @@ model aghanim_company {
   games          aghanim_game[]
   customers      aghanim_customer_company[]
 
-
   @@index([domains], map: "ix_aghanim_company_domains", type: Gin)
   @@index([id], map: "ix_aghanim_company_id")
 }
@@ -155,6 +157,7 @@ model aghanim_coupon {
   is_stackable_with_discount_coupons Boolean @default(false)
   stackable_discount_limit_percent   Int?
   archived_at                        Float?
+  requirements_expression            Json?
 
   @@index([id], map: "ix_aghanim_coupon_id")
 }
@@ -170,7 +173,6 @@ model aghanim_customer_company {
   archived_at Float?
   company     aghanim_company   @relation(fields: [company_id], references: [id]) 
   customer    aghanim_customer  @relation(fields: [customer_id], references: [id]) 
-
 
   @@index([company_id], map: "ix_aghanim_customer_company_company_id")
   @@index([id], map: "ix_aghanim_customer_company_id")
@@ -208,23 +210,26 @@ model aghanim_game {
   archived_at    Float?
   company   aghanim_company @relation(fields: [company_id], references: [id])
 
-
   @@index([id], map: "ix_aghanim_game_id")
 }
 
 model aghanim_game_settings {
-  player_attributes                      Json    @db.Json
-  campaign_settings                      Json    @db.Json
+  player_attributes                      Json     @db.Json
+  campaign_settings                      Json     @db.Json
   created_at                             Float
   modified_at                            Float?
   deleted_at                             Float?
-  id                                     String  @id @db.VarChar(32)
-  game_id                                String  @unique(map: "ix_aghanim_game_settings_game_id") @db.VarChar(32)
+  id                                     String   @id @db.VarChar(32)
+  game_id                                String   @unique(map: "ix_aghanim_game_settings_game_id") @db.VarChar(32)
   purchase_successful_text_translations  Json?
   features                               Json?
   receipt_appreciation_text_translations Json?
-  back_to_game_url                       String? @db.VarChar
+  back_to_game_url                       String?  @db.VarChar
   archived_at                            Float?
+  enable_reward_points                   Boolean?
+  reward_points_settings                 Json?
+  onboarding_progress                    Json?
+  use_only_game_player_country           Boolean?
 
   @@index([id], map: "ix_aghanim_game_settings_id")
 }
@@ -283,13 +288,16 @@ model aghanim_item {
   is_stackable             Boolean @default(false)
   is_currency              Boolean @default(false)
   categories               Json?
+  reward_points_price      Int?
+  image_url_featured       String? @db.VarChar
+  meta                     Json?
 
   @@index([id], map: "ix_aghanim_item_id")
 }
 
 model aghanim_item_category {
-  id                       String @id @db.VarChar(32)
-  game_id                  String @db.VarChar(32)
+  id                       String  @id @db.VarChar(32)
+  game_id                  String  @db.VarChar(32)
   name_translations        Json
   description_translations Json
   position                 Int
@@ -297,6 +305,7 @@ model aghanim_item_category {
   modified_at              Float?
   archived_at              Float?
   deleted_at               Float?
+  slug                     String? @db.VarChar
 
   @@index([id], map: "ix_aghanim_item_category_id")
 }
@@ -441,30 +450,33 @@ model aghanim_offer {
 }
 
 model aghanim_order {
-  created_at         Float
-  modified_at        Float?
-  deleted_at         Float?
-  id                 String  @id @db.VarChar(32)
-  company_id         String  @db.VarChar(32)
-  game_id            String  @db.VarChar(32)
-  user_id            String  @db.VarChar(32)
-  player_id          String  @db.VarChar(32)
-  status             String  @db.VarChar
-  amount             Int
-  currency           String  @db.VarChar
-  country            String  @db.VarChar
-  datahouse_user_id  String? @db.VarChar
-  refund_customer_id String? @db.VarChar(32)
-  refund_reason      String? @db.VarChar
-  website_id         String  @db.VarChar(32)
-  ip_address         String? @db.VarChar
-  user_agent         String? @db.VarChar
-  return_url         String? @db.VarChar
-  archived_at        Float?
-  store_item_id      String? @db.VarChar(32)
-  user_campaign_id   String? @db.VarChar(32)
-  campaign_id        String? @db.VarChar(32)
-  locale             String? @db.VarChar
+  created_at                 Float
+  modified_at                Float?
+  deleted_at                 Float?
+  id                         String  @id @db.VarChar(32)
+  company_id                 String  @db.VarChar(32)
+  game_id                    String  @db.VarChar(32)
+  user_id                    String  @db.VarChar(32)
+  player_id                  String  @db.VarChar(255)
+  status                     String  @db.VarChar
+  amount                     Int
+  currency                   String  @db.VarChar
+  country                    String  @db.VarChar
+  datahouse_user_id          String? @db.VarChar
+  refund_customer_id         String? @db.VarChar(32)
+  refund_reason              String? @db.VarChar
+  website_id                 String  @db.VarChar(32)
+  ip_address                 String? @db.VarChar
+  user_agent                 String? @db.VarChar
+  return_url                 String? @db.VarChar
+  archived_at                Float?
+  store_item_id              String? @db.VarChar(32)
+  user_campaign_id           String? @db.VarChar(32)
+  campaign_id                String? @db.VarChar(32)
+  locale                     String? @db.VarChar
+  paylink_user_id            String? @db.VarChar(32)
+  eligible_for_reward_points Int?
+  payment_number             String? @db.VarChar
 
   @@index([game_id], map: "ix_aghanim_order_game_id")
   @@index([id], map: "ix_aghanim_order_id")
@@ -685,20 +697,32 @@ model aghanim_store_graph {
 }
 
 model aghanim_store_item {
-  id                       String  @id @db.VarChar(32)
-  store_id                 String  @db.VarChar(32)
-  item_id                  String  @db.VarChar(32)
-  position                 Int
-  discount_percent         Int?
-  bonus_percent            Int?
-  image_url                String? @db.VarChar
-  name_translations        Json?
-  description_translations Json?
-  created_at               Float
-  modified_at              Float?
-  archived_at              Float?
-  deleted_at               Float?
-  max_purchases            Int?
+  id                        String  @id @db.VarChar(32)
+  store_id                  String  @db.VarChar(32)
+  item_id                   String  @db.VarChar(32)
+  position                  Int
+  discount_percent          Int?
+  bonus_percent             Int?
+  image_url                 String? @db.VarChar
+  name_translations         Json?
+  description_translations  Json?
+  created_at                Float
+  modified_at               Float?
+  archived_at               Float?
+  deleted_at                Float?
+  max_purchases             Int?
+  requirements_expression   Json?
+  custom_badge_translations Json?
+  bond_user_id              String? @db.VarChar(32)
+  start_at                  Int?
+  end_at                    Int?
+  min_amount                Int?
+  campaign_id               String? @db.VarChar(32)
+  user_campaign_id          String? @db.VarChar(32)
+  reward_points_percent     Float?
+  max_reward_points_percent Int?
+  payment_bound             Json?
+  game_id                   String  @db.VarChar(32)
 
   @@index([id], map: "ix_aghanim_store_item_id")
 }
@@ -740,6 +764,8 @@ model aghanim_user {
   banned            Boolean @default(false)
   custom_attributes Json?
   archived_at       Float?
+  last_login_at     Int?
+  last_verified_at  Int?
 
   @@index([email], map: "ix_aghanim_user_email")
   @@index([game_id], map: "ix_aghanim_user_game_id")
@@ -796,6 +822,7 @@ model aghanim_user_communication {
   expires_at            Int?
   campaign_id           String? @db.VarChar(32)
   user_campaign_id      String? @db.VarChar(32)
+  store_item_id         String? @db.VarChar(32)
 
   @@index([id], map: "ix_aghanim_user_communication_id")
 }
@@ -928,4 +955,50 @@ model aghanim_website_template {
 
 model alembic_version {
   version_num String @id(map: "alembic_version_pkc") @db.VarChar(32)
+}
+
+model aghanim_account {
+  id                      String  @id @db.VarChar(32)
+  company_id              String  @unique @db.VarChar(32)
+  details                 String  @db.VarChar
+  details_version         String  @db.VarChar(100)
+  edited_by_customer_id   String  @db.VarChar(32)
+  verify_state            String  @db.VarChar(20)
+  verified_at             Float?
+  verified_by_customer_id String? @db.VarChar(32)
+  created_at              Float
+  modified_at             Float?
+  archived_at             Float?
+  deleted_at              Float?
+
+  @@index([id], map: "ix_aghanim_account_id")
+}
+
+model aghanim_item_property {
+  id                       String  @id @db.VarChar(32)
+  game_id                  String  @db.VarChar(32)
+  name_translations        Json
+  description_translations Json?
+  icon_url                 String? @db.VarChar
+  config                   Json
+  created_at               Float
+  modified_at              Float?
+  archived_at              Float?
+  deleted_at               Float?
+
+  @@index([id], map: "ix_aghanim_item_property_id")
+}
+
+model aghanim_item_property_relation {
+  id          String @id @db.VarChar(32)
+  item_id     String @db.VarChar(32)
+  property_id String @db.VarChar(32)
+  data        Json?
+  position    Int
+  created_at  Float
+  modified_at Float?
+  archived_at Float?
+  deleted_at  Float?
+
+  @@index([id], map: "ix_aghanim_item_property_relation_id")
 }

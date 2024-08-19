@@ -1,5 +1,6 @@
 import { dbClient } from "@/shared/lib/db";
 import { CompanyEntity } from "../_domain/types";
+import {convertTimeStampToLocaleDateString} from "@/shared/utils/commonUtils"
 
 export class CompanyRepository {
 
@@ -15,17 +16,16 @@ export class CompanyRepository {
             domains: data.domains,
             viewer_domains: data.viewer_domains,
             logo_url: data.logo_url,
-            created_at: data.created_at,
-            modified_at: data.modified_at,
-            deleted_at: data.deleted_at,
-            archived_at: data.archived_at,
+            created_at: convertTimeStampToLocaleDateString(data.created_at),
+            modified_at: convertTimeStampToLocaleDateString(data.modified_at),
+            deleted_at: convertTimeStampToLocaleDateString(data.deleted_at),
+            archived_at: convertTimeStampToLocaleDateString(data.archived_at),
 
         }
 
 
         return companyData
     }
-
 
     async getCompanyById(companyId: string): Promise<CompanyEntity[]> {
         console.log(`repo company ID: ${companyId}`);
@@ -44,20 +44,19 @@ export class CompanyRepository {
     }
     async getCompanies(page: number, pageSize: number, whereCondition: Record<string, any>): Promise<{data: CompanyEntity[], total: number}> {
         
-        console.log("where: " + JSON.stringify(whereCondition));
+        //console.log("where: " + JSON.stringify(whereCondition));
         const skip = (page - 1) * pageSize;
         const take = pageSize;
                 
-        const[rawData, total] = await Promise.all([
+        const [rawData, total] = await Promise.all([
             dbClient.aghanim_company.findMany({
                 skip: skip,
                 take: take,
                 where: whereCondition,
             }),
-            dbClient.aghanim_company.count(),
-
-
+            dbClient.aghanim_company.count({where: whereCondition,})    
         ])
+        
         const data = rawData.map(this.mapToCompanyType)
 
         return {data, total };
@@ -94,6 +93,8 @@ export class CompanyRepository {
 
         const [rawData, total] = await Promise.all([
             dbClient.aghanim_company.findMany({
+                skip: skip,
+                take: take,
                 where: whereCondition
             }),
             dbClient.aghanim_company.count({

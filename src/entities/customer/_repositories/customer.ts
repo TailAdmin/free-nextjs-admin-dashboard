@@ -1,6 +1,7 @@
 import { dbClient } from "@/shared/lib/db";
 import { CustomerEntity } from "../_domain/types";
 import { decryptECB, encryptECB } from "@/shared/utils/security";
+import {convertTimeStampToLocaleDateString} from "@/shared/utils/commonUtils"
 
 export class CustomerRepository {
 
@@ -14,15 +15,16 @@ export class CustomerRepository {
             email: decryptECB(data.email),
             sub: data.sub,
             accepted_terms_version: data.accepted_terms_version,
-            accepted_terms_at: data.accepted_terms_at,
+            accepted_terms_at: convertTimeStampToLocaleDateString(data.accepted_terms_at),
             accepted_privacy_version: data.accepted_privacy_version,
-            accepted_privacy_at: data.accepted_privacy_at,
-            is_staff: data.is_staff,
-            created_at: data.created_at,
-            modified_at: data.modified_at,
-            deleted_at: data.deleted_at,
-            last_login_at: data.last_login_at,
-            archived_at: data.archived_at,
+            accepted_privacy_at: convertTimeStampToLocaleDateString(data.accepted_privacy_at),
+            is_staff: data.is_staff ? 'Yes' : 'No',
+            created_at: convertTimeStampToLocaleDateString(data.created_at),
+            modified_at: convertTimeStampToLocaleDateString(data.modified_at),
+            deleted_at: convertTimeStampToLocaleDateString(data.deleted_at),
+            last_login_at: convertTimeStampToLocaleDateString(data.last_login_at),
+            archived_at: convertTimeStampToLocaleDateString(data.archived_at),
+            avatar_url: data.avatar_url,
 
         }
 
@@ -48,7 +50,7 @@ export class CustomerRepository {
                 take: take,
                 where: whereCondition
             }),
-            dbClient.aghanim_customer.count(),
+            dbClient.aghanim_customer.count({where: whereCondition,}),
 
 
         ])
@@ -92,6 +94,8 @@ export class CustomerRepository {
 
         const [rawData, total] = await Promise.all([
             dbClient.aghanim_customer.findMany({
+                skip: skip,
+                take: take,
                 where: whereCondition
             }),
             dbClient.aghanim_customer.count({
