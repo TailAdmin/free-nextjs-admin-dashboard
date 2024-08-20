@@ -142,11 +142,13 @@ const CompanyDetailForm: React.FC<CompanyDetailFormProps> = ({companyId}) => {
       <div className="flex flex-col">
         <p className="text-lg font-semibold">Company details</p>
         <div className="flex items-center">
+          {company.logo_url && (
           <img 
             src={company.logo_url} 
             alt={`${company.name} logo`} 
             className="h-6 w-auto" 
           />
+          )}
           <p className="text-lg text-default-500" >{company.name}</p>
         </div>
       </div>

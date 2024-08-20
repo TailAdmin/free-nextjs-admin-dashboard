@@ -69,6 +69,7 @@ const GamesTable: React.FC<GamesTableProps> = ({ customerId, companyId }) => {
                 data={games}
                 columns={columns}
                 currentPage={currentPage}
+                pageSize={pageSize}
                 totalPages={totalPages}
                 isLoading={isLoadingGames}
                 error={errorGames}

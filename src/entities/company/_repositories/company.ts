@@ -65,7 +65,7 @@ export class CompanyRepository {
         const whereCondition: Record<string, any> = {};
         if (filter['selectedFields']){
             
-            whereCondition["OR"] =  [{'id': {contains: filter['selectedFields'], mode:'insensitive'}},
+            whereCondition["OR"] =  [
                             {'name': {contains: filter['selectedFields'], mode:'insensitive'}}
                             ]
         }

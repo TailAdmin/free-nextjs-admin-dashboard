@@ -2,6 +2,9 @@
 
 import React, { useState, ReactNode } from 'react';
 import { SearchIcon } from '../Icons/Table/search-icon';
+import {parseDate, getLocalTimeZone} from "@internationalized/date";
+import {useDateFormatter} from "@react-aria/i18n";
+
 import {
     Table,
     TableHeader,
@@ -12,7 +15,7 @@ import {
     getKeyValue
 } from "@nextui-org/table"
 
-import { Button, Input, Pagination, Select, SelectItem } from '@nextui-org/react';
+import { Button, DateRangePicker, DateValue, Input, Pagination, RangeValue, Select, SelectItem } from '@nextui-org/react';
 import { useRouter } from 'next/navigation';
 
 type ColorType = "default" | "primary" | "secondary" | "success" | "warning" | "danger";
@@ -21,11 +24,15 @@ interface BaseTableProps<T> {
     data: T[];
     columns: { key: keyof T; label: string }[];
     currentPage: number;
+    pageSize: number;
     totalPages: number;
-    isLoading: boolean;
-    error: string | null;
+    isLoading?: boolean;
+    error?: string | null;
     filterValue: string;
     routeName?: string;
+    isDateRange?: boolean;
+    dateRangeValue?: string[]|null;
+    onSetDateRangeValue?: (dateRangeValue: string[]|null) => void;
     onSetPageNumber(pageNumber: number): void;
     onSetPageSize(pageSize: number): void;
     onFilterChange: (filterValue: string) => void;
@@ -40,24 +47,28 @@ const BaseTableNextUI = <T extends Record<string, any>>({
     data,
     columns,
     currentPage,
+    pageSize,
     totalPages,
     filterValue,
     isLoading,
     error,
     routeName = "none",
+    isDateRange = false,
+    dateRangeValue,
+    onSetDateRangeValue,
     onSetPageNumber,
     onSetPageSize,
     onFilterChange,
     onFilterSubmit,
 
-
 }: BaseTableProps<T>) => {
     const [selectedColor, setSelectedColor] = React.useState<ColorType>("primary");
-    const [pageSize, setPageSize] = useState(10);
     const router = useRouter()
 
+    const [value, setValue] = useState<RangeValue<DateValue> | null>(null);
+    let formatter = useDateFormatter({dateStyle: "long"});  
+
     const handlePageSizeChange = (value:string) => {
-        setPageSize(parseInt(value, 10));
         onSetPageSize(parseInt(value, 10));
     };
     const handleOpenForm = (arr: any) => {
@@ -65,6 +76,27 @@ const BaseTableNextUI = <T extends Record<string, any>>({
             router.push(`${routeName}${arr['id']}`); 
         }    
     };
+
+    const handleDateRangeChange = (value: RangeValue<DateValue>) => {
+        if (isDateRange && onSetDateRangeValue) {
+            onSetDateRangeValue([value.start.toString(), value.end.toString()]);
+        }
+    }
+
+    const getRangeValue = (value: string[]|null|undefined): RangeValue<DateValue> | null=>{
+        if (!value) return null;
+        const startDate: DateValue = parseDate(value[0]);
+        const endDate: DateValue = parseDate(value[1]);
+        const dateRange: RangeValue<DateValue> = { start: startDate, end: endDate };
+        return dateRange;
+    }
+
+    const handleClear=() => {
+        onFilterChange('');
+        if(isDateRange && onSetDateRangeValue) {
+            onSetDateRangeValue(null);
+        }
+    }
 
     const topContent = React.useMemo(() => {
         return (
@@ -84,13 +116,29 @@ const BaseTableNextUI = <T extends Record<string, any>>({
                             }
                         }}
                     />
-                <Button
-                    className={`bg-${"default"}-500 text-white`} 
-                    size="md"
-                    onClick={onFilterSubmit}
+                    {isDateRange && (<div>
+                        <DateRangePicker 
+                            //label="Payment Date Filter" 
+                            labelPlacement={"outside"}
+                            className="max-w-xs ml-2" 
+                            value={getRangeValue(dateRangeValue)}
+                            onChange={handleDateRangeChange}
+                        />
+                    </div>)}
+                    <Button
+                        className={`bg-${"default"}-500 text-white`} 
+                        size="md"
+                        onClick={onFilterSubmit}
                     >   
-                    Apply
-                </Button>
+                        Apply
+                    </Button>
+                    <Button 
+                        onClick={handleClear} 
+                        className={`bg-${"default"}-500 text-white`}
+                    >
+                        Clean
+                    </Button>
+                
 
                 </div>
                 <Select
@@ -114,7 +162,7 @@ const BaseTableNextUI = <T extends Record<string, any>>({
                 </div>
             </div>
         )
-    }, [filterValue]);   
+    }, [filterValue, dateRangeValue, pageSize]);   
 
     const bottomContent = React.useMemo(() => {
         return (
@@ -152,6 +200,7 @@ const BaseTableNextUI = <T extends Record<string, any>>({
                 >
                 <TableHeader columns={columns}>
                     {(column) => <TableColumn key={String(column.key)}>{column.label}</TableColumn>}
+
                 </TableHeader>
                 {/* <TableBody items={data}>
                     
@@ -176,6 +225,17 @@ const BaseTableNextUI = <T extends Record<string, any>>({
                         onDoubleClick={() => {
                             if (routeName !== "none") {
                                 handleOpenForm(row); 
+                            } else{
+                                
+                                {
+                                    const link = document.createElement('a');
+                                    link.href = row.link;
+        
+                                    
+                                    link.target = "_blank";
+                                    link.rel = "noopener noreferrer";
+                                    link.click();
+                                }
                             }
                         }}
                         >

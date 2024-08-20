@@ -66,7 +66,8 @@ export class CustomerRepository {
         if (filter['selectedFields']){
             
             whereCondition["OR"] =  [{'id': {contains: filter['selectedFields'], mode:'insensitive'}},
-                            {'name': {contains: encryptECB(filter['selectedFields']), mode:'insensitive'}}
+                            {'name': {contains: encryptECB(filter['selectedFields']), mode:'insensitive'}},
+                            {'email': {contains: encryptECB(filter['selectedFields']), mode:'insensitive'}}
                             ]
         }
         if (filter["companyId"]){

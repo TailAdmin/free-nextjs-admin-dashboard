@@ -57,6 +57,7 @@ export interface Transaction {
     total_order_currency_billing?: number;
     ps_fail_reason_code?: string;
     state?: string;
+    link?: string;
 
 
 

@@ -29,5 +29,13 @@ export function convertISODateToLocaleDateString(isoDate: string): string {
             hour12: true, 
         })
     return dateString;
-}    
+}   
+
+export function convertDateStringToTimeStampInSeconds(date: string, time: string = "T00:00:00Z"): number {
+    if (!date) return 0;
+    const reformattedDate = date.replace(/(\d{2})-(\d{2})-(\d{4})/,"$3-$1-$2");
+    const dateDate = new Date(reformattedDate + time);
+    const dateTS = Math.floor(dateDate.getTime()/1000);
+    return dateTS;
+}
 

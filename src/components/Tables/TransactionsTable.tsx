@@ -8,20 +8,29 @@ import BaseTableNextUI from "./BaseTableNextUI";
 const TableTransaction = () => {
 
 
-  const[currentPage, setCurrentPage] = useState(1);
+  const [currentPage, setCurrentPage] = useState(1);
   const [totalPages, setTotalPages] = useState(1);
-  const[pageSize, setPageSize] = useState(20);
+  const [pageSize, setPageSize] = useState(50);
   const [filterValue, setFilterValue] = useState('');
+  const [complexFilterValue, setComplexFilterValue] = useState<Record<string, any>>();
+  const [dateRangeValue, setDateRangeValue] = useState<string[] | null>(null);
   const { transactions, isLoading, error, total, fetchTransactions} = useTransactions(currentPage, pageSize);
 
   useEffect(() =>{
-    fetchTransactions(JSON.parse(`{"selectedFields":"${filterValue}"}`));
-  },[currentPage, pageSize])
+
+    fetchTransactions(complexFilterValue);
+  },[currentPage, pageSize, complexFilterValue])
 
   useEffect(() => {
 
     setTotalPages(Math.ceil(total / pageSize));
 }, [total, pageSize]);
+
+
+const handleDateRangeChange = (dateRangeValue: string[]|null) => {
+  setDateRangeValue(dateRangeValue)
+};
+
 
   const handleFilterChange = (filterValue: string) => {
     setFilterValue(filterValue);
@@ -30,7 +39,13 @@ const TableTransaction = () => {
 
   const handleFilterSubmit = () => {
     setCurrentPage(1); 
-    fetchTransactions(JSON.parse(`{"selectedFields":"${filterValue}"}`));
+    const filterFields = {
+      selectedFields: filterValue || "", 
+      payment_date: dateRangeValue ? dateRangeValue : ["", ""] 
+  };
+    setComplexFilterValue(filterFields);
+  
+    //fetchTransactions(filterFields);
   };
 
   const columns = [
@@ -73,9 +88,13 @@ const TableTransaction = () => {
             columns={columns}
             currentPage={currentPage}
             totalPages={totalPages}
+            pageSize={pageSize}
             isLoading={isLoading}
             error={error}
             filterValue={filterValue}
+            isDateRange={true}
+            dateRangeValue={dateRangeValue}
+            onSetDateRangeValue={handleDateRangeChange}
             onSetPageNumber={setCurrentPage}
             onSetPageSize={setPageSize}
             onFilterChange={handleFilterChange}

@@ -76,6 +76,7 @@ return (
             data={companies}
             columns={columns}
             currentPage={currentPage}
+            pageSize={pageSize}
             totalPages={totalPages}
             isLoading={isLoadingCompanies}
             error={errorCompanies}

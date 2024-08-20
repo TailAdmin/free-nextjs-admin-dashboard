@@ -69,6 +69,7 @@ const handleFilterSubmit = () => {
             data={customers}
             columns={columns}
             currentPage={currentPage}
+            pageSize={pageSize}
             totalPages={totalPages}
             isLoading={isLoadingCustomers}
             error={errorCustomers}

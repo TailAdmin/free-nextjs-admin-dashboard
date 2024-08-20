@@ -16,8 +16,7 @@ export const useTransactions = (page: number, pageSize: number) => {
             filterFields = {...selectedFilterValue};
             const response = await fetch(`/api/transaction?page=${page}&pageSize=${pageSize}&filter=${JSON.stringify(filterFields)}`);
             const { data, total } = await response.json();
-            console.log(`total hook: ${total}`);
-            console.log(`data hook: ${data}`);
+
             setTotal(total);
             setTransactions(data);
         } catch (err) {
