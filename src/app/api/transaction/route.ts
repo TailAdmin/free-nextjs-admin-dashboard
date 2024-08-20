@@ -18,7 +18,7 @@ export async function GET(request: NextRequest) {
 
     }
 
-    console.log('route filter', JSON.stringify(filter));
+    //console.log('route filter', JSON.stringify(filter));
     try {
 
         let data, total;

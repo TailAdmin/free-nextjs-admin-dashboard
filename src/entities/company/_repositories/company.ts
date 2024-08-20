@@ -28,7 +28,7 @@ export class CompanyRepository {
     }
 
     async getCompanyById(companyId: string): Promise<CompanyEntity[]> {
-        console.log(`repo company ID: ${companyId}`);
+
         const rawData = await dbClient.aghanim_company.findUniqueOrThrow({
             where: {
                 id: companyId,

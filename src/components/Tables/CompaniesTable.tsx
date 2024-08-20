@@ -13,7 +13,7 @@ const CompaniesTable: React.FC<CompaniesTableProps> = ({ customerId }) => {
     const [currentPage, setCurrentPage] = useState(1);
     const [filterValue, setFilterValue] = useState('');
     const [totalPages, setTotalPages] = useState(1);
-    const[pageSize, setPageSize] = useState(10);
+    const[pageSize, setPageSize] = useState(20);
 
     let filter: any = {};
 

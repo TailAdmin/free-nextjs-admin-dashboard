@@ -13,7 +13,7 @@ interface GamesTableProps {
 const GamesTable: React.FC<GamesTableProps> = ({ customerId, companyId }) => {
     const [currentPage, setCurrentPage] = useState(1);
     const [totalPages, setTotalPages] = useState(1);
-    const[pageSize, setPageSize] = useState(10);
+    const[pageSize, setPageSize] = useState(20);
     const [filterValue, setFilterValue] = useState('');
     let filter: any = {};
     

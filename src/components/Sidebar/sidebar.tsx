@@ -12,6 +12,7 @@ import { CompanyIcon} from "../Icons/Sidebar/company-icon";
 import { FilterIcon } from "../Icons/Sidebar/filter-icon";
 import { useSidebarContext } from "../Layouts/layout-context";
 import { usePathname } from "next/navigation";
+import { AccountsIcon } from "../Icons/Sidebar/accounts-icon";
 
 export const SidebarWrapper = () => {
   const pathname = usePathname();
@@ -51,6 +52,12 @@ export const SidebarWrapper = () => {
  
             <SidebarMenu title="Main Menu">
             <SidebarItem
+                isActive={pathname === "/accounts"}
+                title="Accounts"
+                icon={<AccountsIcon />}
+                href="/accounts"
+            />
+            <SidebarItem
                 isActive={pathname === "/customers"}
                 title="Customers"
                 icon={<CustomersIcon />}
@@ -59,7 +66,7 @@ export const SidebarWrapper = () => {
               <SidebarItem
                 isActive={pathname === "/companies"}
                 title="Companies"
-                 icon={<CompanyIcon />}
+                icon={<CompanyIcon />}
                 href="/companies"
               />
               <SidebarItem

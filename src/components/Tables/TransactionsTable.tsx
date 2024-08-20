@@ -10,7 +10,7 @@ const TableTransaction = () => {
 
   const [currentPage, setCurrentPage] = useState(1);
   const [totalPages, setTotalPages] = useState(1);
-  const [pageSize, setPageSize] = useState(50);
+  const [pageSize, setPageSize] = useState(20);
   const [filterValue, setFilterValue] = useState('');
   const [complexFilterValue, setComplexFilterValue] = useState<Record<string, any>>();
   const [dateRangeValue, setDateRangeValue] = useState<string[] | null>(null);
