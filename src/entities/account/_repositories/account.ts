@@ -1,7 +1,7 @@
 import { dbClient } from "@/shared/lib/db";
 import { AccountEntity } from "../_domain/types";
 import {convertTimeStampToLocaleDateString} from "@/shared/utils/commonUtils"
-import { decryptECB } from "@/shared/utils/security";
+import { decryptECB, decryptECBWithHash } from "@/shared/utils/security";
 
 export class AccountRepository {
 
@@ -12,7 +12,7 @@ export class AccountRepository {
 
             id: data.id,
             company_id: data.company_id,
-            details: decryptECB(data.details),
+            details: decryptECBWithHash(data.details),
             details_version: data.details_version,
             edited_by_customer_id: data.edited_by_customer_id,
             verify_state: data.verify_state,
