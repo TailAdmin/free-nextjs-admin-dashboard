@@ -4,6 +4,7 @@ import { useEffect, useState } from "react";
 import {useCustomers} from '@/hooks/useCustomersData';
 import Loader from "../common/Loader";
 import BaseTableNextUI from "./BaseTableNextUI";
+import {LinkType} from "@/types/linkTypes";
 
 
 interface CustomersTableProps {
@@ -55,7 +56,7 @@ const handleFilterSubmit = () => {
     return <Loader /> ;
   }
 
-  const columns = [
+  const columns: { key: string; label: string; link_type?: LinkType; link?: string|((row: any) => string)  }[] = [
     { key: 'name', label: 'Name' },
     { key: 'email', label: 'E-mail' },
     { key: 'is_staff', label: 'Is Staff' },

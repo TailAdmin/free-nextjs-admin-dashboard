@@ -33,11 +33,8 @@ export const SidebarWrapper = () => {
             {/* {company.logo} */}
                 <div className="flex flex-col gap-4">
                     <h3 className="text-xl font-medium m-0 text-default-900 -mb-4 whitespace-nowrap">
-                        Aghanim
+                    Admin Dashboard
                     </h3>
-                    <span className="text-md font-medium text-default-500">
-                    AdminDashboard
-                    </span>
                 </div>
             </div>
         </div>

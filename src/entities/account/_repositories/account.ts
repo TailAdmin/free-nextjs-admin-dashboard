@@ -1,7 +1,10 @@
 import { dbClient } from "@/shared/lib/db";
 import { AccountEntity } from "../_domain/types";
 import {convertTimeStampToLocaleDateString} from "@/shared/utils/commonUtils"
-import { decryptECB, decryptECBWithHash } from "@/shared/utils/security";
+import { decryptECB, decryptCBC } from "@/shared/utils/security";
+
+let customerMap: {[key: string]: string} = {};
+let companyMap: { [key: string]: string } = {};
 
 export class AccountRepository {
 
@@ -12,7 +15,7 @@ export class AccountRepository {
 
             id: data.id,
             company_id: data.company_id,
-            details: decryptECBWithHash(data.details),
+            details: decryptCBC(data.details),
             details_version: data.details_version,
             edited_by_customer_id: data.edited_by_customer_id,
             verify_state: data.verify_state,
@@ -22,7 +25,11 @@ export class AccountRepository {
             modified_at: convertTimeStampToLocaleDateString(data.modified_at),
             deleted_at: convertTimeStampToLocaleDateString(data.deleted_at),
             archived_at: convertTimeStampToLocaleDateString(data.archived_at),
-            link: `${process.env.AGHANIM_DASHBOARD_URL}/company/${data.company_id}`
+            company_name: companyMap[data.company_id],
+            edited_by_customer_name: decryptECB(customerMap[data.edited_by_customer_id]),
+            verified_by_customer_name: decryptECB(customerMap[data.verified_by_customer_id]),
+            
+            company_link: `${process.env.AGHANIM_DASHBOARD_URL}/company/${data.company_id}`
 
 
         }
@@ -32,11 +39,29 @@ export class AccountRepository {
 
     async getAccountById(accountId: string): Promise<AccountEntity[]> {
 
-        const rawData = await dbClient.aghanim_company.findUniqueOrThrow({
+        const rawData = await dbClient.aghanim_account.findUniqueOrThrow({
             where: {
                 id: accountId,
             },
         });
+
+        const company = await dbClient.aghanim_company.findFirst({ where: { id:  rawData.company_id  } });
+        let customer = await dbClient.aghanim_customer.findFirst({ where: { id:  rawData.edited_by_customer_id  } });
+        if (company){
+            companyMap[company.id] = company.name || '';
+        }
+
+        if (customer){
+            customerMap[customer.id] = customer.name || '';
+        }
+
+        if (rawData.verified_by_customer_id && rawData.edited_by_customer_id !== rawData.verified_by_customer_id ){
+
+            customer = await dbClient.aghanim_customer.findFirst({ where: { id:  rawData.verified_by_customer_id  } });
+            if (customer){
+                customerMap[customer.id] = customer.name || '';
+            }
+        }
 
 
         let data = [this.mapToAccountType(rawData)];
@@ -58,6 +83,25 @@ export class AccountRepository {
             }),
             dbClient.aghanim_account.count({where: whereCondition,})    
         ])
+
+
+        const companyIds = [...new Set(rawData.map((row: any) => row.company_id).filter(value => value !==null))];
+        const customerIds = [...new Set(rawData.map((row: any) => row.edited_by_customer_id).filter(value => value !==null)),
+                            ...new Set(rawData.map((row: any) => row.verified_by_customer_id).filter(value => value !==null))
+                        ];
+
+
+        const [companies, customers] = await Promise.all([
+            
+            dbClient.aghanim_company.findMany({ where: { id: { in: companyIds } } }),
+            dbClient.aghanim_customer.findMany({ where: { id: { in: customerIds } } }),
+
+        ]);  
+
+        companyMap = Object.fromEntries(companies.map((company: any) => [company.id, company.name]));
+        customerMap = Object.fromEntries(customers.map((customer: any) => [customer.id, customer.name]));
+
+
         
         const data = rawData.map(this.mapToAccountType)
 

@@ -16,6 +16,7 @@ export type GameEntity = {
     modified_at?: string
     deleted_at?: string;
     archived_at?: string;
+    company_link: string;
 
     [key: string]: any;
 

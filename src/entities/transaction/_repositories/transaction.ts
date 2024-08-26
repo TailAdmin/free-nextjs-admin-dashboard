@@ -73,8 +73,10 @@ export class TransactionsRepository {
             billing_email: decryptECB(data.billing_email),
             payment_date: convertISODateToLocaleDateString(data.payment_date['value']),
             datahouse_user_id: data.datahouse_user_id,
-            link: `${process.env.AGHANIM_DASHBOARD_URL}/company/${data.company_id}/${data.game_id}/transactions/${data.payment_number}`
-    
+            payment_link: `${process.env.AGHANIM_DASHBOARD_URL}/company/${data.company_id}/${data.game_id}/transactions/${data.payment_number}`,
+            game_link: `${process.env.AGHANIM_DASHBOARD_URL}/company/${data.company_id}/${data.game_id}`,
+            company_link:`${process.env.AGHANIM_DASHBOARD_URL}/company/${data.company_id}`
+
         }
     
         return transactionData;

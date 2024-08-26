@@ -58,6 +58,9 @@ export interface Transaction {
     ps_fail_reason_code?: string;
     state?: string;
     link?: string;
+    payment_link: string;
+    company_link: string;
+    game_link: string;
 
 
 

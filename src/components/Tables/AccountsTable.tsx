@@ -4,6 +4,7 @@ import React, { useState, useEffect } from 'react';
 import { useAccounts } from '@/hooks/useAccountsData';
 import Loader from '../common/Loader';
 import BaseTableNextUI from './BaseTableNextUI';
+import {LinkType} from "@/types/linkTypes"
 
 
 const AccountsTable = () => {
@@ -47,13 +48,13 @@ const AccountsTable = () => {
         return <div>Error loading companies: {error}</div>;
     }
 
-    const columns = [
-        { key: 'id', label: 'ID' },
-        { key: 'details', label: 'Details' },
-        { key: 'details_version', label: 'Details version' },
+    const columns: { key: string; label: string; link_type?: LinkType; link?: string|((row: any) => string)  }[] = [
+       
+        { key: 'company_name', label: 'Company Name', link_type: 'external', link: 'company_link' },
+        { key: 'vefified_by_customer_name', label: 'Verified By Customer', link_type: 'internal', link: (row) => `/customer-card/${row.vefified_by_customer_id}` },
+        { key: 'edited_by_customer_name', label: 'Edited By Customer', link_type: 'internal', link: (row) => `/customer-card/${row.edited_by_customer_id}` },
         { key: 'verify_state', label: 'Verify state' },
         { key: 'verified_at', label: 'Verified at' },
-        { key: 'created_at', label: 'Created at' },
     ];
 
 return (
@@ -66,6 +67,7 @@ return (
             totalPages={totalPages}
             isLoading={isLoading}
             error={error}
+            routeName='/account-card/'
             filterValue={filterValue}
             onSetPageNumber={setCurrentPage}
             onSetPageSize={setPageSize}

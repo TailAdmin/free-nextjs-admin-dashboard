@@ -4,6 +4,7 @@ import React, { useState, useEffect } from 'react';
 import { useCompanies } from '@/hooks/useCompaniesData';
 import Loader from '../common/Loader';
 import BaseTableNextUI from './BaseTableNextUI';
+import {LinkType} from "@/types/linkTypes";
 
 interface CompaniesTableProps {
     customerId?: string;
@@ -32,18 +33,6 @@ const CompaniesTable: React.FC<CompaniesTableProps> = ({ customerId }) => {
     }, [totalCompanies, pageSize]);
 
 
-    const handleNextPage = () => {
-        if (currentPage < totalPages) {
-        setCurrentPage(currentPage + 1);
-        }
-    };
-
-    const handlePreviousPage = () => {
-        if (currentPage > 1) {
-        setCurrentPage(currentPage - 1);
-        }
-    };
-
     const handleFilterChange = (filterValue: string) => {
         setFilterValue(filterValue);
     };
@@ -64,9 +53,8 @@ const CompaniesTable: React.FC<CompaniesTableProps> = ({ customerId }) => {
         return <div>Error loading companies: {errorCompanies}</div>;
     }
 
-    const columns = [
-        { key: 'name', label: 'Name' },
-        { key: 'size', label: 'Size' },
+    const columns: { key: string; label: string; link_type?: LinkType; link?: string|((row: any) => string)  }[] = [
+        { key: 'name', label: 'Name', link_type: 'external', link: 'company_link' },
         { key: 'created_at', label: 'Created at' },
     ];
 

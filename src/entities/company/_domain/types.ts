@@ -12,5 +12,6 @@ export type CompanyEntity = {
     deleted_at?: string;
     archived_at?: string;
     [key: string]: any;
+    company_link: string;
 
   };

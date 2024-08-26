@@ -4,6 +4,7 @@ import React, { useState, ReactNode } from 'react';
 import { SearchIcon } from '../Icons/Table/search-icon';
 import {parseDate, getLocalTimeZone} from "@internationalized/date";
 import {useDateFormatter} from "@react-aria/i18n";
+import {LinkType} from "@/types/linkTypes"
 
 import {
     Table,
@@ -17,12 +18,13 @@ import {
 
 import { Button, DateRangePicker, DateValue, Input, Pagination, RangeValue, Select, SelectItem } from '@nextui-org/react';
 import { useRouter } from 'next/navigation';
+import Link from 'next/link';
 
 type ColorType = "default" | "primary" | "secondary" | "success" | "warning" | "danger";
 
 interface BaseTableProps<T> {
     data: T[];
-    columns: { key: keyof T; label: string }[];
+    columns: { key: keyof T; label: string; link_type?: LinkType; link?: string|((row: any) => string) }[];
     currentPage: number;
     pageSize: number;
     totalPages: number;
@@ -71,9 +73,9 @@ const BaseTableNextUI = <T extends Record<string, any>>({
     const handlePageSizeChange = (value:string) => {
         onSetPageSize(parseInt(value, 10));
     };
-    const handleOpenForm = (arr: any) => {
-        if (routeName !== "none"){
-            router.push(`${routeName}${arr['id']}`); 
+    const handleOpenForm = (route: string, id: string) => {
+        if (route !== "none"){
+            router.push(`${route}${id}`); 
         }    
     };
 
@@ -100,6 +102,7 @@ const BaseTableNextUI = <T extends Record<string, any>>({
 
     const topContent = React.useMemo(() => {
         return (
+            <>
             <div className="flex flex-col gap-4">
                 <div className="flex justify-between items-center">
                 <div className="flex justify-left gap-3 items-center m-4">
@@ -118,7 +121,7 @@ const BaseTableNextUI = <T extends Record<string, any>>({
                     />
                     {isDateRange && (<div>
                         <DateRangePicker 
-                            //label="Payment Date Filter" 
+              
                             labelPlacement={"outside"}
                             className="max-w-xs ml-2" 
                             value={getRangeValue(dateRangeValue)}
@@ -138,6 +141,8 @@ const BaseTableNextUI = <T extends Record<string, any>>({
                     >
                         Clean
                     </Button>
+
+
                 
 
                 </div>
@@ -161,13 +166,9 @@ const BaseTableNextUI = <T extends Record<string, any>>({
                 </Select>
                 </div>
             </div>
-        )
-    }, [filterValue, dateRangeValue, pageSize]);   
 
-    const bottomContent = React.useMemo(() => {
-        return (
-
-            totalPages > 0 ? (
+            <div>
+            {totalPages > 0 ? (
                 <div className="flex w-full justify-center">
                     <Pagination
                         isCompact
@@ -179,7 +180,30 @@ const BaseTableNextUI = <T extends Record<string, any>>({
                         onChange={(page) => onSetPageNumber(page)}
                     />
                 </div>
-                ) : null
+                ) : null}
+            </div>
+
+            </>
+        )
+    }, [filterValue, dateRangeValue, pageSize, totalPages, currentPage]);   
+
+    const bottomContent = React.useMemo(() => {
+        return (
+<>
+</>
+            // totalPages > 0 ? (
+            //     <div className="flex w-full justify-center">
+            //         <Pagination
+            //             isCompact
+            //             showControls
+            //             showShadow
+            //             color="primary"
+            //             page={currentPage}
+            //             total={totalPages}
+            //             onChange={(page) => onSetPageNumber(page)}
+            //         />
+            //     </div>
+            //     ) : null
 
         )
 
@@ -202,20 +226,6 @@ const BaseTableNextUI = <T extends Record<string, any>>({
                     {(column) => <TableColumn key={String(column.key)}>{column.label}</TableColumn>}
 
                 </TableHeader>
-                {/* <TableBody items={data}>
-                    
-                    {(item) => (
-                    <TableRow 
-                        key={item.id}
-
-                        
-                        onDoubleClick={() => handleOpenForm(item)}
-
-                    >
-                        {(columnKey) => <TableCell>{getKeyValue(item, columnKey)}</TableCell>}
-                    </TableRow>
-                    )}
-                </TableBody> */}
 
                     <TableBody>
 
@@ -224,32 +234,47 @@ const BaseTableNextUI = <T extends Record<string, any>>({
                         
                         onDoubleClick={() => {
                             if (routeName !== "none") {
-                                handleOpenForm(row); 
-                            } else{
-                                
-                                {
-                                    const link = document.createElement('a');
-                                    link.href = row.link;
-        
-                                    
-                                    link.target = "_blank";
-                                    link.rel = "noopener noreferrer";
-                                    link.click();
-                                }
-                            }
+                                handleOpenForm(routeName, row.id); 
+                            } 
                         }}
                         >
                         {columns.map((column) => (
                             <TableCell key={String(column.key)}>
 
-<div 
+                            <div 
                                 className="truncate max-w-xs" 
                                 title={row[column.key] as unknown as string} 
                             >
-                                {row[column.key] as unknown as ReactNode}
+
+                                {column.link_type === "external" && column.link && typeof column.link === 'string'  ? (
+                                    <a className='text-blue-500 hover:underline'
+                                        href={row[column.link]} 
+                                        target="_blank" 
+                                        rel="noopener noreferrer"
+                                        onClick={(e) => e.stopPropagation()} 
+                                    >
+                                        {row[column.key]}
+                                    </a>
+                                ) : 
+                                    column.link_type === "internal" && column.link  ? (
+                                        <Link 
+                                        className='text-blue-500 hover:underline'
+                                        href={typeof column.link === 'function' ? column.link(row) : column.link }
+                                        onClick={(e) => e.stopPropagation()}
+                                    >
+                                        {row[column.key]}
+                                    </Link>
+                            ) :
+                            
+                            <span>{row[column.key]}</span>
+                            }
+                                
+                                
+
+
                             </div>
 
-                                {/* {row[column.key] as unknown as ReactNode} */}
+                                
                             </TableCell>
                         ))}
                     </TableRow>

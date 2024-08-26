@@ -15,7 +15,6 @@ interface CustomerDetailFormProps {
 
 const CustomerDetailForm: React.FC<CustomerDetailFormProps> = ({ customerId, companyId}) => {
     const [activeTab, setActiveTab] = useState('details');
-    const[currentPage, setCurrentPage] = useState(1);
     const[customer, setCustomer] = useState<CustomerEntity|null>(null);
     const pageSize = 1;
     let filter: Record<string, any> = {};
@@ -25,7 +24,7 @@ const CustomerDetailForm: React.FC<CustomerDetailFormProps> = ({ customerId, com
 
       filter = JSON.parse(`{"companyId":"${companyId}"}`);
     }
-    const {customers, isLoadingCustomers, errorCustomers, fetchCustomers} = useCustomers(currentPage, pageSize, filter);
+    const {customers, isLoadingCustomers, errorCustomers, fetchCustomers} = useCustomers(1, pageSize, filter);
     
     useEffect(() => {
 
@@ -63,7 +62,7 @@ const CustomerDetailForm: React.FC<CustomerDetailFormProps> = ({ customerId, com
 
 
               <div className="flex items-center mb-4">
-                  <label className="block text-md font-medium mr-4">Id:</label>
+                  <label className="block text-md font-medium mr-4">ID:</label>
                   <p className="text-sm font-medium">{customer.id}</p>
               </div>
               <div className="flex items-center mb-4">
@@ -82,7 +81,7 @@ const CustomerDetailForm: React.FC<CustomerDetailFormProps> = ({ customerId, com
               </div>
 
               <div className="flex items-center mb-4">
-                  <label className="block text-md font-medium mr-4">Is staff:</label>
+                  <label className="block text-md font-medium mr-4">Is Staff:</label>
                   <p className="text-sm font-medium">{customer.is_staff}</p>
               </div>
 
@@ -92,7 +91,7 @@ const CustomerDetailForm: React.FC<CustomerDetailFormProps> = ({ customerId, com
               </div>
 
               <div className="flex items-center mb-4">
-                  <label className="block text-md font-medium mr-4">Accepted privacy version at:</label>
+                  <label className="block text-md font-medium mr-4">Accepted Privacy Version At:</label>
                   <p className="text-sm font-medium">{customer.accepted_privacy_at}</p>
               </div>
 
@@ -102,7 +101,7 @@ const CustomerDetailForm: React.FC<CustomerDetailFormProps> = ({ customerId, com
               </div>
 
               <div className="flex items-center mb-4">
-                  <label className="block text-md font-medium mr-4">Accepted term version at:</label>
+                  <label className="block text-md font-medium mr-4">Accepted Term Version At:</label>
                   <p className="text-sm font-medium">{customer.accepted_terms_at}</p>
               </div>
 
@@ -117,13 +116,13 @@ const CustomerDetailForm: React.FC<CustomerDetailFormProps> = ({ customerId, com
                 </div>
 
                 <div className="flex items-center mb-4">
-                  <label className="block text-md font-medium mr-4">Deleted_at:</label>
+                  <label className="block text-md font-medium mr-4">Deleted At:</label>
                   <p className="text-sm font-medium">{customer.deleted_at}</p>
                 </div>
 
 
                 <div className="flex items-center mb-4">
-                  <label className="block text-md font-medium mr-4">Archived_at:</label>
+                  <label className="block text-md font-medium mr-4">Archived At:</label>
                   <p className="text-sm font-medium">{customer.archived_at}</p>
                 </div>
 
@@ -152,7 +151,7 @@ const CustomerDetailForm: React.FC<CustomerDetailFormProps> = ({ customerId, com
     <Card className="w-full min-w-[600px]">
     <CardHeader className="flex gap-3"> 
       <div className="flex flex-col">
-        <p className="text-lg font-semibold">Customer details</p>
+        <p className="text-lg font-semibold">Customer Details</p>
         <p className="text-md text-default-500">{customer.name}</p>
       </div>
 

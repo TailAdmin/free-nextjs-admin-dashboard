@@ -16,7 +16,7 @@ export class GameRepository {
             id: data.id,
             name: data.name,
             company_id: data.company_id,
-            company_name: data.company ? data.company.name : undefined, // Проверяем наличие компании
+            company_name: data.company ? data.company.name : undefined, 
 
             description: data.description,
             url: data.url,
@@ -30,6 +30,8 @@ export class GameRepository {
             modified_at: convertTimeStampToLocaleDateString(data.modified_at),
             deleted_at: convertTimeStampToLocaleDateString(data.deleted_at),
             archived_at: convertTimeStampToLocaleDateString(data.archived_at),
+            company_link:`${process.env.AGHANIM_DASHBOARD_URL}/company/${data.company_id}`
+
 
         }
 

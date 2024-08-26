@@ -4,6 +4,7 @@ import { useEffect, useState } from "react";
 import {useTransactions} from '@/hooks/useTransactions';
 import Loader from "../common/Loader";
 import BaseTableNextUI from "./BaseTableNextUI";
+import {LinkType} from "@/types/linkTypes"
 
 const TableTransaction = () => {
 
@@ -48,17 +49,15 @@ const handleDateRangeChange = (dateRangeValue: string[]|null) => {
     //fetchTransactions(filterFields);
   };
 
-  const columns = [
-    { key: 'payment_number', label: 'Payment number' },
+  const columns: { key: string; label: string; link_type?: LinkType; link?: string|((row: any) => string)  }[] = [
+    { key: 'payment_number', label: 'Payment number', link_type: "external",link: 'payment_link' },
     { key: 'payment_date', label: 'Payment date'},
     { key: 'billing_email', label: 'Billing Email'},
     { key: 'status', label: 'Status' },
     { key: 'amountWithCurrency', label: 'Amount' },
-    { key: 'company_name', label: 'Company Name' },
-    { key: 'game_name', label: 'Game Name' },
-    
-    { key: 'company_id', label: 'Company ID' },
-    { key: 'game_id', label: 'Game ID' },
+    { key: 'company_name', label: 'Company Name', link_type: "external", link: 'company_link' },
+    { key: 'game_name', label: 'Game Name', link_type: "external", link: 'game_link' },
+  
     { key: 'user_id', label: 'User ID' },
     { key: 'user_name', label: 'User Name' },
     { key: 'player_name', label: 'Player Name' },
@@ -66,8 +65,7 @@ const handleDateRangeChange = (dateRangeValue: string[]|null) => {
 
 
     { key: 'country', label: 'Country' },
-    { key: 'order_id', label: 'Order ID' },
-    { key: 'status_order', label: 'Status order' },
+
   
 ];
 

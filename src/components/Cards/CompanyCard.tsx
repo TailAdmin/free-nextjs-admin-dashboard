@@ -20,7 +20,6 @@ const CompanyDetailForm: React.FC<CompanyDetailFormProps> = ({companyId}) => {
     let filter: any = {}; 
     filter = JSON.parse(`{"companyId":"${companyId}"}`);
 
-    console.log(`Company card Filter: ${JSON.stringify(filter)}`)
     const {companies, isLoadingCompanies, errorCompanies, totalCompanies, fetchCompanies } = useCompanies(currentPage, pageSize, filter);
     
     useEffect(() => {
@@ -32,7 +31,6 @@ const CompanyDetailForm: React.FC<CompanyDetailFormProps> = ({companyId}) => {
     },[]);
 
     useEffect(() => {
-      console.log(`Companies: ${JSON.stringify(companies)}`);
       if (companies.length > 0) {
         setCompany(companies[0]);
       }
@@ -63,9 +61,16 @@ const CompanyDetailForm: React.FC<CompanyDetailFormProps> = ({companyId}) => {
                 <label className="block text-md font-medium mr-4">ID:</label>
                 <p className="text-sm font-medium">{company.id}</p>
               </div>
+
               <div className="flex items-center mb-4">
                 <label className="block text-md font-medium mr-4">Name:</label>
-                <p className="text-sm font-medium">{company.name}</p>
+                <a 
+                  href={company.company_link} 
+                  className="text-sm font-medium text-blue-500 hover:underline" 
+                  target="_blank" 
+                  rel="noopener noreferrer">
+                    {company.name}
+                </a>
               </div>
 
               <div className="flex items-center mb-4">
@@ -90,7 +95,7 @@ const CompanyDetailForm: React.FC<CompanyDetailFormProps> = ({companyId}) => {
               </div>
 
               <div className="flex items-center mb-4">
-                <label className="block text-md font-medium mr-4">Viewer_domains:</label>
+                <label className="block text-md font-medium mr-4">Domains Viewer:</label>
                 <p className="text-sm font-medium">{company.viewer_domains}</p>
               </div>
 
@@ -105,13 +110,13 @@ const CompanyDetailForm: React.FC<CompanyDetailFormProps> = ({companyId}) => {
               </div>
 
               <div className="flex items-center mb-4">
-                <label className="block text-md font-medium mr-4">Deleted_at:</label>
+                <label className="block text-md font-medium mr-4">Deleted At:</label>
                 <p className="text-sm font-medium">{company.deleted_at}</p>
               </div>
 
 
               <div className="flex items-center mb-4">
-                <label className="block text-md font-medium mr-4">Archived_at:</label>
+                <label className="block text-md font-medium mr-4">Archived At:</label>
                 <p className="text-sm font-medium">{company.archived_at}</p>
               </div>
 
@@ -140,7 +145,7 @@ const CompanyDetailForm: React.FC<CompanyDetailFormProps> = ({companyId}) => {
     <Card className="w-full min-w-[600px]">
     <CardHeader className="flex gap-3"> 
       <div className="flex flex-col">
-        <p className="text-lg font-semibold">Company details</p>
+        <p className="text-lg font-semibold">Company Details</p>
         <div className="flex items-center">
           {company.logo_url && (
           <img 

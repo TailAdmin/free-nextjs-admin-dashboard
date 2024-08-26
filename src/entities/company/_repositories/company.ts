@@ -20,6 +20,7 @@ export class CompanyRepository {
             modified_at: convertTimeStampToLocaleDateString(data.modified_at),
             deleted_at: convertTimeStampToLocaleDateString(data.deleted_at),
             archived_at: convertTimeStampToLocaleDateString(data.archived_at),
+            company_link: `${process.env.AGHANIM_DASHBOARD_URL}/company/${data.id}`
 
         }
 
