@@ -65,14 +65,6 @@ const BaseTableNextUI = <T extends Record<string, any>>({
     const selectedColor: ColorType = "primary"
     const router = useRouter()
 
-    if (isLoading) {
-        return <Loader />;
-    } 
-    
-    if (error) {
-        return <div>{error}</div>;
-    }
-
 // rounting by double click to interbal pages (cards)
     const handlePageSizeChange = (value:string) => {
         onSetPageSize(parseInt(value, 10));
@@ -227,6 +219,14 @@ const BaseTableNextUI = <T extends Record<string, any>>({
             </>
         )
     }, [filterValue, dateRangeValue, pageSize, totalPages, currentPage]);     
+
+    if (isLoading) {
+        return <Loader />;
+    } 
+    
+    if (error) {
+        return <div>{error}</div>;
+    }
 
     return (
         <div className="flex flex-col gap-3">
