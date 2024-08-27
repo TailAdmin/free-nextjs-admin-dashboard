@@ -6,7 +6,7 @@ import { useCompanies } from '@/hooks/useCompaniesData';
 import Loader from '../common/Loader';
 import GamesTable from '../Tables/GamesTable';
 import CustomersTable from '../Tables/CustomersTable';
-import { Card, CardBody, CardFooter, CardHeader, Divider, Tab, Tabs } from '@nextui-org/react';
+import { Card, CardBody, CardHeader, Divider, Tab, Tabs } from '@nextui-org/react';
 
 interface CompanyDetailFormProps {
   companyId: string;
@@ -14,19 +14,14 @@ interface CompanyDetailFormProps {
 
 const CompanyDetailForm: React.FC<CompanyDetailFormProps> = ({companyId}) => {
     const [activeTab, setActiveTab] = useState('details');
-    const[currentPage, setCurrentPage] = useState(1);
     const[company, setCompany] = useState<CompanyEntity|null>(null);
-    const pageSize = 1;
-    let filter: any = {}; 
-    filter = JSON.parse(`{"companyId":"${companyId}"}`);
-
-    const {companies, isLoadingCompanies, errorCompanies, totalCompanies, fetchCompanies } = useCompanies(currentPage, pageSize, filter);
+    const filter = JSON.parse(`{"companyId":"${companyId}"}`);
+//getting company details
+    const {companies, isLoading, error, total, fetchCompanies } = useCompanies({filter});
     
     useEffect(() => {
 
-
       fetchCompanies();
-
           
     },[]);
 
@@ -37,21 +32,21 @@ const CompanyDetailForm: React.FC<CompanyDetailFormProps> = ({companyId}) => {
     }, [companies]);
 
 
-    if (errorCompanies) {
-      return <div>Error loading {errorCompanies}</div>; 
+    if (error) {
+      return <div>Error loading {error}</div>; 
     }
 
     if (!company) {
     return null;
     }
-    if (isLoadingCompanies) {
+    if (isLoading) {
       return <Loader /> ;
     } 
 
     const handleTabChange = (key: any) => {
       setActiveTab(key); 
     };
-
+    // tabs rendering
     const renderTabContent = () => {
     switch (activeTab) {
         case 'details':
@@ -64,24 +59,24 @@ const CompanyDetailForm: React.FC<CompanyDetailFormProps> = ({companyId}) => {
 
               <div className="flex items-center mb-4">
                 <label className="block text-md font-medium mr-4">Name:</label>
-                <a 
-                  href={company.company_link} 
-                  className="text-sm font-medium text-blue-500 hover:underline" 
-                  target="_blank" 
-                  rel="noopener noreferrer">
-                    {company.name}
-                </a>
+                  <a 
+                    href={company.company_link} 
+                    className="text-sm font-medium text-blue-500 hover:underline" 
+                    target="_blank" 
+                    rel="noopener noreferrer">
+                      {company.name}
+                  </a>
               </div>
 
               <div className="flex items-center mb-4">
                 <label className="block text-md font-medium mr-4">URL:</label>
-                <a 
-                  href={company.url} 
-                  className="text-sm font-medium text-blue-500 hover:underline" 
-                  target="_blank" 
-                  rel="noopener noreferrer">
-                    {company.url}
-                </a>
+                  <a 
+                    href={company.url} 
+                    className="text-sm font-medium text-blue-500 hover:underline" 
+                    target="_blank" 
+                    rel="noopener noreferrer">
+                      {company.url}
+                  </a>
               </div>
 
               <div className="flex items-center mb-4">
@@ -143,60 +138,50 @@ const CompanyDetailForm: React.FC<CompanyDetailFormProps> = ({companyId}) => {
   return (
 
     <Card className="w-full min-w-[600px]">
-    <CardHeader className="flex gap-3"> 
-      <div className="flex flex-col">
-        <p className="text-lg font-semibold">Company Details</p>
-        <div className="flex items-center">
-          {company.logo_url && (
-          <img 
-            src={company.logo_url} 
-            alt={`${company.name} logo`} 
-            className="h-6 w-auto" 
-          />
-          )}
-          <p className="text-lg text-default-500" >{company.name}</p>
+      <CardHeader className="flex gap-3"> 
+        <div className="flex flex-col">
+          <p className="text-lg font-semibold">Company Details</p>
+          <div className="flex items-center">
+            {company.logo_url && (
+            <img 
+              src={company.logo_url} 
+              alt={`${company.name} logo`} 
+              className="h-6 w-auto" 
+            />
+            )}
+            <p className="text-lg text-default-500" >{company.name}</p>
+          </div>
         </div>
-      </div>
 
-    </CardHeader>
-    <Divider/>
-
-    <div className="flex w-full flex-col" >
-          <Tabs aria-label="Options"
-            onSelectionChange={handleTabChange}
-          >
-            <Tab key="details" title="Details">
-              <Card>
-                <CardBody>
-                  {renderTabContent()}
-                </CardBody>
-              </Card>  
-            </Tab>
-            <Tab key="customers" title="Customers">
-              <Card>
-                <CardBody
-                  
-                >
-                  {renderTabContent()}
-                </CardBody>
-              </Card>  
-            </Tab>
-            <Tab key="games" title="Games">
-              <Card>
-                <CardBody>
-                  {renderTabContent()}
-                </CardBody>
-              </Card>  
-            </Tab>
-          </Tabs>
-        </div> 
-
-
-    {/* <Divider/>
-    <CardFooter>
-
-    </CardFooter> */}
-  </Card>
+      </CardHeader>
+      <Divider/>
+      <Tabs aria-label="Options"
+        onSelectionChange={handleTabChange}
+        className='mt-2'
+      >
+        <Tab key="details" title="Details">
+          <Card>
+            <CardBody>
+              {renderTabContent()}
+            </CardBody>
+          </Card>  
+        </Tab>
+        <Tab key="customers" title="Customers">
+          <Card>
+            <CardBody>
+              {renderTabContent()}
+            </CardBody>
+          </Card>  
+        </Tab>
+        <Tab key="games" title="Games">
+          <Card>
+            <CardBody>
+              {renderTabContent()}
+            </CardBody>
+          </Card>  
+        </Tab>
+      </Tabs>
+    </Card>
 
   );
 };

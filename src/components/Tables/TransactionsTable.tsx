@@ -2,9 +2,9 @@
 
 import { useEffect, useState } from "react";
 import {useTransactions} from '@/hooks/useTransactions';
-import Loader from "../common/Loader";
 import BaseTableNextUI from "./BaseTableNextUI";
-import {LinkType} from "@/types/linkTypes"
+import { ColumnType} from "@/types/tableTypes"
+import { TransactionEntity } from "@/entities/transaction/_domain/types";
 
 const TableTransaction = () => {
 
@@ -15,11 +15,12 @@ const TableTransaction = () => {
   const [filterValue, setFilterValue] = useState('');
   const [complexFilterValue, setComplexFilterValue] = useState<Record<string, any>>();
   const [dateRangeValue, setDateRangeValue] = useState<string[] | null>(null);
-  const { transactions, isLoading, error, total, fetchTransactions} = useTransactions(currentPage, pageSize);
+  const { transactions, isLoading, error, total, fetchTransactions} = useTransactions({page: currentPage, pageSize: pageSize});
 
   useEffect(() =>{
 
     fetchTransactions(complexFilterValue);
+
   },[currentPage, pageSize, complexFilterValue])
 
   useEffect(() => {
@@ -43,13 +44,12 @@ const handleDateRangeChange = (dateRangeValue: string[]|null) => {
     const filterFields = {
       selectedFields: filterValue || "", 
       payment_date: dateRangeValue ? dateRangeValue : ["", ""] 
-  };
+    };
     setComplexFilterValue(filterFields);
   
-    //fetchTransactions(filterFields);
   };
 
-  const columns: { key: string; label: string; link_type?: LinkType; link?: string|((row: any) => string)  }[] = [
+  const columns: ColumnType<TransactionEntity>[] = [
     { key: 'payment_number', label: 'Payment number', link_type: "external",link: 'payment_link' },
     { key: 'payment_date', label: 'Payment date'},
     { key: 'billing_email', label: 'Billing Email'},
@@ -68,15 +68,6 @@ const handleDateRangeChange = (dateRangeValue: string[]|null) => {
 
   
 ];
-
-  if (error) {
-    return <div>Error loading customers {error}</div>; 
-  }
-
-  if (isLoading) {
-    return <Loader /> ;
-  }
-
 
   return (
 

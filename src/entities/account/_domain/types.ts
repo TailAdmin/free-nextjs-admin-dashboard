@@ -13,6 +13,8 @@ export type AccountEntity = {
     deleted_at?: string;
     archived_at?: string;
     company_link: string;
+    edited_by_customer_name: string;
+    verified_by_customer_name?: string;
     [key: string]: any;
 
 

@@ -16,15 +16,15 @@ interface CustomerDetailFormProps {
 const CustomerDetailForm: React.FC<CustomerDetailFormProps> = ({ customerId, companyId}) => {
     const [activeTab, setActiveTab] = useState('details');
     const[customer, setCustomer] = useState<CustomerEntity|null>(null);
-    const pageSize = 1;
     let filter: Record<string, any> = {};
     if (customerId){
       filter = JSON.parse(`{"customerId":"${customerId}"}`);
     }else if(companyId){
 
       filter = JSON.parse(`{"companyId":"${companyId}"}`);
-    }
-    const {customers, isLoadingCustomers, errorCustomers, fetchCustomers} = useCustomers(1, pageSize, filter);
+    } 
+    //getting customer details
+    const {customers, isLoading, error, fetchCustomers} = useCustomers({filter});
     
     useEffect(() => {
 
@@ -39,28 +39,26 @@ const CustomerDetailForm: React.FC<CustomerDetailFormProps> = ({ customerId, com
     }, [customers]);
 
 
-    if (errorCustomers ) {
-      return <div>Error loading {errorCustomers}</div>; 
+    if (error ) {
+      return <div>Error loading {error}</div>; 
     }
 
     if (!customer) {
     return null;
     }
-    if (isLoadingCustomers) {
+    if (isLoading) {
       return <Loader /> ;
     } 
 
     const handleTabChange = (key: any) => {
       setActiveTab(key); 
     };
-
+  // tabs rendering
     const renderTabContent = () => {
     switch (activeTab) {
         case 'details':
         return (
             <div> 
-
-
               <div className="flex items-center mb-4">
                   <label className="block text-md font-medium mr-4">ID:</label>
                   <p className="text-sm font-medium">{customer.id}</p>
@@ -108,23 +106,23 @@ const CustomerDetailForm: React.FC<CustomerDetailFormProps> = ({ customerId, com
               <div className="flex items-center mb-4">
                   <label className="block text-md font-medium mr-4">Created At:</label>
                   <p className="text-sm font-medium">{customer.created_at}</p>
-                </div>
+              </div>
 
-                <div className="flex items-center mb-4">
-                  <label className="block text-md font-medium mr-4">Modified At:</label>
-                  <p className="text-sm font-medium">{customer.modified_at}</p>
-                </div>
+              <div className="flex items-center mb-4">
+                <label className="block text-md font-medium mr-4">Modified At:</label>
+                <p className="text-sm font-medium">{customer.modified_at}</p>
+              </div>
 
-                <div className="flex items-center mb-4">
-                  <label className="block text-md font-medium mr-4">Deleted At:</label>
-                  <p className="text-sm font-medium">{customer.deleted_at}</p>
-                </div>
+              <div className="flex items-center mb-4">
+                <label className="block text-md font-medium mr-4">Deleted At:</label>
+                <p className="text-sm font-medium">{customer.deleted_at}</p>
+              </div>
 
 
-                <div className="flex items-center mb-4">
-                  <label className="block text-md font-medium mr-4">Archived At:</label>
-                  <p className="text-sm font-medium">{customer.archived_at}</p>
-                </div>
+              <div className="flex items-center mb-4">
+                <label className="block text-md font-medium mr-4">Archived At:</label>
+                <p className="text-sm font-medium">{customer.archived_at}</p>
+              </div>
 
 
 
@@ -149,19 +147,17 @@ const CustomerDetailForm: React.FC<CustomerDetailFormProps> = ({ customerId, com
 
   return (
     <Card className="w-full min-w-[600px]">
-    <CardHeader className="flex gap-3"> 
-      <div className="flex flex-col">
-        <p className="text-lg font-semibold">Customer Details</p>
-        <p className="text-md text-default-500">{customer.name}</p>
-      </div>
+      <CardHeader className="flex gap-3"> 
+        <div className="flex flex-col">
+          <p className="text-lg font-semibold">Customer Details</p>
+          <p className="text-md text-default-500">{customer.name}</p>
+        </div>
 
-    </CardHeader>
-    <Divider/>
-
-
-<div className="flex w-full flex-col">
+      </CardHeader>
+      <Divider/>
       <Tabs aria-label="Options"
         onSelectionChange={handleTabChange}
+        className='mt-2'
       >
         <Tab key="details" title="Details">
           <Card>
@@ -172,9 +168,7 @@ const CustomerDetailForm: React.FC<CustomerDetailFormProps> = ({ customerId, com
         </Tab>
         <Tab key="companies" title="Companies">
           <Card>
-            <CardBody
-              
-            >
+            <CardBody>
               {renderTabContent()}
             </CardBody>
           </Card>  
@@ -187,14 +181,7 @@ const CustomerDetailForm: React.FC<CustomerDetailFormProps> = ({ customerId, com
           </Card>  
         </Tab>
       </Tabs>
-    </div> 
-
-
-    {/* <Divider/>
-    <CardFooter>
-
-    </CardFooter> */}
-  </Card>
+    </Card>
 
   );
 };

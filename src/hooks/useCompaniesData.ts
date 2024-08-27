@@ -1,19 +1,19 @@
-import { useState } from "react";
+import { useCallback, useState } from "react";
 import { CompanyEntity } from '@/entities/company/_domain/types';
+import { DataFetchParams } from "@/types/dataHooksTypes";
 
-export const useCompanies = (page: number, pageSize: number, filter?: Record<string, any>) => {
+export const useCompanies = ({page = 1, pageSize = 10, filter = {}}: DataFetchParams) => {
     const [companies, setCompanies] = useState<CompanyEntity[]>([]);
-    const [isLoadingCompanies, setIsLoading] = useState(true);
-    const [errorCompanies, setError] = useState<string | null>(null);
-    const [totalCompanies, setTotal] = useState(0);
+    const [isLoading, setIsLoading] = useState(true);
+    const [error, setError] = useState<string | null>(null);
+    const [total, setTotal] = useState(0);
 
 
-    const fetchCompanies = async (selectedFilterValue: Record<string, any>={}) => {
+    const fetchCompanies = useCallback(async (selectedFilterValue: Record<string, any>={}) => {
         setIsLoading(true);
         setError(null);
         try {
-                let filterFields : any = {};
-                filterFields = {...filter, ...selectedFilterValue};
+                const filterFields = {...filter, ...selectedFilterValue};
                 const response = await fetch(`/api/company?page=${page}&pageSize=${pageSize}&filter=${JSON.stringify(filterFields)}`);
                 const { data, total } = await response.json();
                 setCompanies(data);
@@ -24,7 +24,7 @@ export const useCompanies = (page: number, pageSize: number, filter?: Record<str
             } finally {
                 setIsLoading(false);
             }
-    };
+    },[page, pageSize, filter]);
 
-    return { companies, isLoadingCompanies, errorCompanies, totalCompanies, fetchCompanies };
+    return { companies, isLoading, error, total, fetchCompanies };
 };

@@ -2,9 +2,9 @@
 
 import React, { useState, useEffect } from 'react';
 import { useCompanies } from '@/hooks/useCompaniesData';
-import Loader from '../common/Loader';
 import BaseTableNextUI from './BaseTableNextUI';
-import {LinkType} from "@/types/linkTypes";
+import { ColumnType} from "@/types/tableTypes"
+import { CompanyEntity } from '@/entities/company/_domain/types';
 
 interface CompaniesTableProps {
     customerId?: string;
@@ -15,45 +15,30 @@ const CompaniesTable: React.FC<CompaniesTableProps> = ({ customerId }) => {
     const [filterValue, setFilterValue] = useState('');
     const [totalPages, setTotalPages] = useState(1);
     const[pageSize, setPageSize] = useState(20);
+    const [complexFilterValue, setComplexFilterValue] = useState<Record<string, any>>();
 
-    let filter: any = {};
 
-    if(customerId){
-        filter = JSON.parse(`{"customerId": "${customerId}"}`);
-    }
-    const { companies, isLoadingCompanies, errorCompanies, totalCompanies, fetchCompanies } = useCompanies(currentPage, pageSize, filter);
+    const filter = customerId ? {customerId} : {} 
 
-    useEffect(() => {
-        fetchCompanies(JSON.parse(`{"selectedFields":"${filterValue}"}`));
-    }, [currentPage, pageSize]);
+    const { companies, isLoading, error, total, fetchCompanies } = useCompanies({page: currentPage, pageSize: pageSize, filter: filter});
 
     useEffect(() => {
-
-        setTotalPages(Math.ceil(totalCompanies / pageSize));
-    }, [totalCompanies, pageSize]);
+        fetchCompanies(complexFilterValue);
+        setTotalPages(Math.ceil(total / pageSize));
+    }, [currentPage, pageSize, total, complexFilterValue]);
 
 
     const handleFilterChange = (filterValue: string) => {
         setFilterValue(filterValue);
     };
 
-
-
     const handleFilterSubmit = () => {
         setCurrentPage(1); 
-        fetchCompanies(JSON.parse(`{"selectedFields":"${filterValue}"}`));
-
+        setComplexFilterValue(filterValue ? {"selectedFields": filterValue} :{"selectedFields": ""});
+    
     };
 
-    if (isLoadingCompanies) {
-        return <Loader />;
-    } 
-
-    if (errorCompanies) {
-        return <div>Error loading companies: {errorCompanies}</div>;
-    }
-
-    const columns: { key: string; label: string; link_type?: LinkType; link?: string|((row: any) => string)  }[] = [
+    const columns: ColumnType<CompanyEntity>[] = [
         { key: 'name', label: 'Name', link_type: 'external', link: 'company_link' },
         { key: 'created_at', label: 'Created at' },
     ];
@@ -66,8 +51,8 @@ return (
             currentPage={currentPage}
             pageSize={pageSize}
             totalPages={totalPages}
-            isLoading={isLoadingCompanies}
-            error={errorCompanies}
+            isLoading={isLoading}
+            error={error}
             filterValue={filterValue}
             routeName='/company-card/'
             onSetPageNumber={setCurrentPage}

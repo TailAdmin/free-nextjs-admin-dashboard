@@ -6,7 +6,8 @@ import { useAccounts } from '@/hooks/useAccountsData';
 import Loader from '../common/Loader';
 import GamesTable from '../Tables/GamesTable';
 import CustomersTable from '../Tables/CustomersTable';
-import { Card, CardBody, CardFooter, CardHeader, Divider, Tab, Tabs } from '@nextui-org/react';
+import { Card, CardBody, CardHeader, Divider, Tab, Tabs } from '@nextui-org/react';
+import Link from 'next/link';
 
 interface AccountDetailFormProps {
   accountId: string;
@@ -14,12 +15,10 @@ interface AccountDetailFormProps {
 
 const AccountDetailForm: React.FC<AccountDetailFormProps> = ({accountId}) => {
     const [activeTab, setActiveTab] = useState('details');
-    const[currentPage, setCurrentPage] = useState(1);
     const[account, setAccount] = useState<AccountEntity|null>(null);
-    const pageSize = 1;
-    let filter: any = {}; 
-    filter = JSON.parse(`{"accountId":"${accountId}"}`);
-    const {accounts, isLoading, error, total, fetchAccounts } = useAccounts(currentPage, pageSize, filter);
+    const filter = JSON.parse(`{"accountId":"${accountId}"}`);
+    //getting accounts details
+    const {accounts, isLoading, error, total, fetchAccounts } = useAccounts({filter});
     
     useEffect(() => {
 
@@ -51,7 +50,7 @@ const AccountDetailForm: React.FC<AccountDetailFormProps> = ({accountId}) => {
       setActiveTab(key); 
     };
 
-
+// function for rendering json with recursia
     const renderJson = (data: any, level: number = 0) => {
       if (typeof data === 'string') {
         try {
@@ -95,7 +94,7 @@ const AccountDetailForm: React.FC<AccountDetailFormProps> = ({accountId}) => {
       });
     }
 
-
+    // tabs rendering
     const renderTabContent = () => {
     switch (activeTab) {
         case 'details':
@@ -108,20 +107,20 @@ const AccountDetailForm: React.FC<AccountDetailFormProps> = ({accountId}) => {
 
               <div className="flex items-center mb-4">
                 <label className="block text-md font-medium mr-4">Company:</label>
-                <a 
-                  href={account.company_link} 
-                  className="text-sm font-medium text-blue-500 hover:underline" 
-                  target="_blank" 
-                  rel="noopener noreferrer">
-                    {account.company_name}
-                </a>
+                  <a 
+                    href={account.company_link} 
+                    className="text-sm font-medium text-blue-500 hover:underline" 
+                    target="_blank" 
+                    rel="noopener noreferrer">
+                      {account.company_name}
+                  </a>
               </div>
               <div className="flex items-center mb-4">
                 <label className="block text-md font-medium mr-4">Details:</label>
               </div>
               <Divider className='mt-4 mb-2' />
 
-              {renderJson(account.details)}
+                {renderJson(account.details)}
               <Divider className='mt-2 mb-4' />
 
               <div className="flex items-center mb-4">
@@ -137,12 +136,22 @@ const AccountDetailForm: React.FC<AccountDetailFormProps> = ({accountId}) => {
 
               <div className="flex items-center mb-4">
                 <label className="block text-md font-medium mr-4">Edited by Customer:</label>
-                <p className="text-sm font-medium">{account.edited_by_customer_name}</p>
+                <Link
+                    className='text-blue-500 hover:underline'
+                    href={`/customer-card/${account.edited_by_customer_id}`}
+                >
+                    {account.edited_by_customer_name}
+                </Link>
               </div>
 
               <div className="flex items-center mb-4">
                 <label className="block text-md font-medium mr-4">Verfied by Customer:</label>
-                <p className="text-sm font-medium">{account.verified_by_customer_name}</p>
+                <Link
+                    className='text-blue-500 hover:underline'
+                    href={`/customer-card/${account.verified_by_customer_id}`}
+                >
+                    {account.verified_by_customer_name}
+                </Link>
               </div>
 
               <div className="flex items-center mb-4">
@@ -194,53 +203,43 @@ const AccountDetailForm: React.FC<AccountDetailFormProps> = ({accountId}) => {
   return (
 
     <Card className="w-full min-w-[600px]">
-    <CardHeader className="flex gap-3"> 
-      <div className="flex flex-col">
-        <p className="text-lg font-semibold">Account Details</p>
-        <div className="flex items-center">
-          <p className="text-lg text-default-500" >{account.id}</p>
+      <CardHeader className="flex gap-3"> 
+        <div className="flex flex-col">
+          <p className="text-lg font-semibold">Account Details</p>
+          <div className="flex items-center">
+            <p className="text-lg text-default-500" >{account.id}</p>
+          </div>
         </div>
-      </div>
 
-    </CardHeader>
-    <Divider/>
-
-    <div className="flex w-full flex-col" >
-          <Tabs aria-label="Options"
+      </CardHeader>
+      <Divider />
+      <Tabs aria-label="Options"
             onSelectionChange={handleTabChange}
-          >
-            <Tab key="details" title="Details">
-              <Card>
-                <CardBody>
-                  {renderTabContent()}
-                </CardBody>
-              </Card>  
-            </Tab>
-            <Tab key="customers" title="Customers">
-              <Card>
-                <CardBody
-                  
-                >
-                  {renderTabContent()}
-                </CardBody>
-              </Card>  
-            </Tab>
-            <Tab key="games" title="Games">
-              <Card>
-                <CardBody>
-                  {renderTabContent()}
-                </CardBody>
-              </Card>  
-            </Tab>
-          </Tabs>
-        </div> 
-
-
-    {/* <Divider/>
-    <CardFooter>
-
-    </CardFooter> */}
-  </Card>
+            className='mt-2'
+      >
+        <Tab key="details" title="Details">
+          <Card>
+            <CardBody>
+              {renderTabContent()}
+            </CardBody>
+          </Card>  
+        </Tab>
+        <Tab key="customers" title="Customers">
+          <Card>
+            <CardBody>
+              {renderTabContent()}
+            </CardBody>
+          </Card>  
+        </Tab>
+        <Tab key="games" title="Games">
+          <Card>
+            <CardBody>
+              {renderTabContent()}
+            </CardBody>
+          </Card>  
+        </Tab>
+      </Tabs>
+    </Card>
 
   );
 };

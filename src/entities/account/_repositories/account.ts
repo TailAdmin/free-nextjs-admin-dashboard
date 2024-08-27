@@ -112,7 +112,8 @@ export class AccountRepository {
         if (filter['selectedFields']){
             
             whereCondition["OR"] =  [
-                            {'id': {contains: filter['selectedFields'], mode:'insensitive'}}
+                            {'id': {contains: filter['selectedFields'], mode:'insensitive'}},
+                            {'company_id': {contains: filter['selectedFields'], mode:'insensitive'}}
                             ]
         }
 

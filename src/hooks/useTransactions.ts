@@ -1,19 +1,20 @@
 
-import { useState } from 'react';
-import { Transaction } from '@/entities/transaction/_domain/types';
+import { useCallback, useState } from 'react';
+import { TransactionEntity } from '@/entities/transaction/_domain/types';
+import { DataFetchParams } from '@/types/dataHooksTypes';
 
-export const useTransactions = (page: number, pageSize: number) => {
-    const [transactions, setTransactions] = useState<Transaction[]>([]);
+export const useTransactions = ({page = 1, pageSize = 10, filter = {}}: DataFetchParams) => {
+    const [transactions, setTransactions] = useState<TransactionEntity[]>([]);
     const [isLoading, setIsLoading] = useState(true);
     const [error, setError] = useState<string | null>(null);
     const [total, setTotal] = useState(0);
 
-    const fetchTransactions = async (selectedFilterValue: Record<string, any>={}) => {
+    const fetchTransactions = useCallback(async (selectedFilterValue: Record<string, any>={}) => {
         setIsLoading(true);
         setError(null);
         try {
-            let filterFields : any = {};
-            filterFields = {...selectedFilterValue};
+
+            const filterFields = {...selectedFilterValue};
             const response = await fetch(`/api/transaction?page=${page}&pageSize=${pageSize}&filter=${JSON.stringify(filterFields)}`);
             const { data, total } = await response.json();
 
@@ -26,7 +27,7 @@ export const useTransactions = (page: number, pageSize: number) => {
         } finally {
             setIsLoading(false);
         }
-    };
+    }, [page, pageSize, filter]);
 
 
 

@@ -1,22 +1,22 @@
 // src/entities/transactions/_repositories/transactions.ts
 
 import { BigQuery } from '@google-cloud/bigquery';
-import { Transaction } from '../_domain/types';
+import { TransactionEntity } from '../_domain/types';
 import { decryptECB, encryptECB } from "@/shared/utils/security";
 import { convertTimeStampToLocaleDateString, convertISODateToLocaleDateString, convertDateStringToTimeStampInSeconds } from '@/shared/utils/commonUtils';
 import { dbClient } from '@/shared/lib/db';
 
 const bigquery = new BigQuery();
+
 let companyMap: [];
 let gameMap: [];
-
 export class TransactionsRepository {
 
     AGHANIM_DASHBOARD_URL = process.env.AGHANIM_DASHBOARD_LINK;
 
-    mapToTransactionType = (data: any): Transaction =>{
 
-        //console.log('companyMap', companyMap)
+    mapToTransactionType = (data: any): TransactionEntity =>{
+
         const transactionData = {
             company_id: data.company_id,
             game_id: data.game_id,
@@ -83,7 +83,7 @@ export class TransactionsRepository {
         
     }
 
-    async getTransactionsByFilter(page:number, pageSize:number, filter: Record<string, any>): Promise<{data: Transaction[], total: number}> {
+    async getTransactionsByFilter(page:number, pageSize:number, filter: Record<string, any>): Promise<{data: TransactionEntity[], total: number}> {
 
         const filterFields = [
             'user_id',            
@@ -95,10 +95,10 @@ export class TransactionsRepository {
             const encryptedField = encryptECB(filter['selectedFields']);
             
 
-            whereCondition = `  user_id LIKE '%${filter['selectedFields']}%'
+            whereCondition = `  (user_id LIKE '%${filter['selectedFields']}%'
                                 OR payment_number LIKE '%${filter['selectedFields']}%'
                                 OR billing_email = '${encryptedField}'
-                                OR user_name = '${encryptedField}'`
+                                OR user_name = '${encryptedField}')`
 
         }
 
@@ -109,11 +109,11 @@ export class TransactionsRepository {
             const endTS = (start !== end) ? convertDateStringToTimeStampInSeconds(end) : convertDateStringToTimeStampInSeconds(end, 'T23:59:59Z'); ;
             whereCondition += ` AND payment_date >= TIMESTAMP_SECONDS(${startTS}) AND payment_date <= TIMESTAMP_SECONDS(${endTS})`;
         }
-        //console.log('whereCondition', whereCondition);
+
 
         return this.getTransactions(page, pageSize, whereCondition);
     }
-    async getTransactions(page:number, pageSize:number, whereCondition: string):Promise<{data: Transaction[], total: number}> {
+    async getTransactions(page:number, pageSize:number, whereCondition: string):Promise<{data: TransactionEntity[], total: number}> {
 
         const offset = (page - 1) * pageSize;
         const query = `select * from events.payments WHERE ${whereCondition} ORDER BY payment_date DESC limit @pageSize offset @offset`;

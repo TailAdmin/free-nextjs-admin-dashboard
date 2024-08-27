@@ -1,5 +1,5 @@
 // types/transaction.ts
-export interface Transaction {
+export interface TransactionEntity {
     company_id: string;
     game_id: string;
     user_id: string;

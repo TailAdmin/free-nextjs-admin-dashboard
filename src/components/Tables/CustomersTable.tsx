@@ -2,9 +2,9 @@
 
 import { useEffect, useState } from "react";
 import {useCustomers} from '@/hooks/useCustomersData';
-import Loader from "../common/Loader";
 import BaseTableNextUI from "./BaseTableNextUI";
-import {LinkType} from "@/types/linkTypes";
+import { ColumnType} from "@/types/tableTypes"
+import { CustomerEntity } from "@/entities/customer/_domain/types";
 
 
 interface CustomersTableProps {
@@ -18,26 +18,17 @@ const TableCustomer: React.FC<CustomersTableProps> = ({companyId })  => {
   const [filterValue, setFilterValue] = useState('');
   const [totalPages, setTotalPages] = useState(1);
   const[pageSize, setPageSize] = useState(20);
-  let filter: any = {};
+  const filter = companyId ? { companyId } : {};
+  const [complexFilterValue, setComplexFilterValue] = useState<Record<string, any>>();
 
-  if(companyId){
-      filter = JSON.parse(`{"companyId": "${companyId}"}`);
-  }
-
-  const { customers, isLoadingCustomers, errorCustomers, totalCustomers, fetchCustomers } = useCustomers(currentPage, pageSize, filter);
+  const { customers, isLoading, error, total, fetchCustomers } = useCustomers({page:currentPage, pageSize:pageSize, filter:filter});
   
 
   useEffect(() => { 
 
-    fetchCustomers(JSON.parse(`{"selectedFields":"${filterValue}"}`));
-
-  },[currentPage, pageSize]);
-
-
-  useEffect(() => {
-
-    setTotalPages(Math.ceil(totalCustomers / pageSize));
-}, [totalCustomers, pageSize]);
+    fetchCustomers(complexFilterValue);
+    setTotalPages(Math.ceil(total / pageSize));
+  },[currentPage, pageSize, total, complexFilterValue]);
 
   const handleFilterChange = (filterValue: string) => {
     setFilterValue(filterValue);
@@ -45,18 +36,10 @@ const TableCustomer: React.FC<CustomersTableProps> = ({companyId })  => {
 
 const handleFilterSubmit = () => {
     setCurrentPage(1); 
-    fetchCustomers(JSON.parse(`{"selectedFields":"${filterValue}"}`));
+    setComplexFilterValue(filterValue ? {"selectedFields": filterValue} :{"selectedFields": ""});
 };
 
-  if (errorCustomers) {
-    return <div>Error loading customers {errorCustomers}</div>; 
-  }
-
-  if (isLoadingCustomers) {
-    return <Loader /> ;
-  }
-
-  const columns: { key: string; label: string; link_type?: LinkType; link?: string|((row: any) => string)  }[] = [
+  const columns: ColumnType<CustomerEntity>[] = [
     { key: 'name', label: 'Name' },
     { key: 'email', label: 'E-mail' },
     { key: 'is_staff', label: 'Is Staff' },
@@ -72,8 +55,8 @@ const handleFilterSubmit = () => {
             currentPage={currentPage}
             pageSize={pageSize}
             totalPages={totalPages}
-            isLoading={isLoadingCustomers}
-            error={errorCustomers}
+            isLoading={isLoading}
+            error={error}
             filterValue={filterValue}
             routeName='/customer-card/'
             onSetPageNumber={setCurrentPage}

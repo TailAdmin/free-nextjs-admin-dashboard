@@ -2,9 +2,9 @@
 
 import React, { useState, useEffect } from 'react';
 import { useGames } from '@/hooks/useGamesData';
-import Loader from '../common/Loader';
 import BaseTableNextUI from './BaseTableNextUI';
-import {LinkType} from '@/types/linkTypes';
+import {ColumnType} from "@/types/tableTypes"
+import { GameEntity } from '@/entities/game/_domain/types';
 
 interface GamesTableProps {
     customerId?: string;
@@ -16,6 +16,7 @@ const GamesTable: React.FC<GamesTableProps> = ({ customerId, companyId }) => {
     const [totalPages, setTotalPages] = useState(1);
     const[pageSize, setPageSize] = useState(20);
     const [filterValue, setFilterValue] = useState('');
+    const [complexFilterValue, setComplexFilterValue] = useState<Record<string, any>>();
     let filter: any = {};
     
     if(companyId){
@@ -23,16 +24,12 @@ const GamesTable: React.FC<GamesTableProps> = ({ customerId, companyId }) => {
     }else if(customerId){
         filter = JSON.parse(`{"customerId": "${customerId}"}`);
     }
-    const { games, isLoadingGames, errorGames, totalGames, fetchGames } = useGames(currentPage, pageSize, filter);
+    const { games, isLoading, error, total, fetchGames } = useGames({page: currentPage, pageSize: pageSize, filter: filter});
 
     useEffect(() => {
-        fetchGames(JSON.parse(`{"selectedFields":"${filterValue}"}`));
-    }, [currentPage, pageSize]);
-
-    useEffect(() => {
-
-        setTotalPages(Math.ceil(totalGames / pageSize));
-    }, [totalGames, pageSize]);
+        fetchGames(complexFilterValue);
+        setTotalPages(Math.ceil(total / pageSize));
+    }, [currentPage, pageSize, total, complexFilterValue]);
 
     const handleFilterChange = (filterValue: string) => {
         setFilterValue(filterValue);
@@ -40,29 +37,21 @@ const GamesTable: React.FC<GamesTableProps> = ({ customerId, companyId }) => {
     
     const handleFilterSubmit = () => {
         setCurrentPage(1); 
-        fetchGames(JSON.parse(`{"selectedFields":"${filterValue}"}`));
+        setComplexFilterValue(filterValue ? {"selectedFields": filterValue} :{"selectedFields": ""})
+
     };
     
 
-    const columns: { key: string; label: string; link_type?: LinkType; link?: string|((row: any) => string)  }[] = [
+    const columns: ColumnType<GameEntity>[] = [
         { key: 'name', label: 'Name' },
         { key: 'description', label: 'Description' },
         { key: 'url', label: 'Url', link_type: 'external', link: 'url' },
-        { key: 'company_name', label: 'Company name', link_type: 'internal',link: 'company_link' },
+        { key: 'company_name', label: 'Company name', link_type: 'external',link: 'company_link' },
         { key: 'login_type', label: 'Login type' },
         { key: 'created_at', label: 'Created at' },
         { key: 'modified_at', label: 'Modified at' },
 
     ];
-
-
-    if (isLoadingGames) {
-        return <Loader />;
-    }
-
-    if (errorGames) {
-        return <div>Error loading games: {errorGames}</div>;
-    }
 
     return (
         <div>
@@ -72,8 +61,8 @@ const GamesTable: React.FC<GamesTableProps> = ({ customerId, companyId }) => {
                 currentPage={currentPage}
                 pageSize={pageSize}
                 totalPages={totalPages}
-                isLoading={isLoadingGames}
-                error={errorGames}
+                isLoading={isLoading}
+                error={error}
                 filterValue={filterValue}
                 onSetPageNumber={setCurrentPage}
                 onSetPageSize={setPageSize}

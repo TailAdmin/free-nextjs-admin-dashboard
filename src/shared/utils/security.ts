@@ -17,7 +17,6 @@ export function decryptECB(encryptedData: string): string {
     if (!encryptedData) {
         return encryptedData;
     }
-    console.log(encryptedData)
     if (!ENCRYPTION_KEY){
         ENCRYPTION_KEY = 'SIXTEEN BYTE KEY';
     }

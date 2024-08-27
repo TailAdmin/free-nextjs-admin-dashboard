@@ -1,19 +1,19 @@
-import { useState } from "react";
+import { useCallback, useState } from "react";
 import { GameEntity } from '@/entities/game/_domain/types';
+import { DataFetchParams } from '@/types/dataHooksTypes';
 
-export const useGames = (page: number, pageSize: number, filter?: Record<string, any>) => {
+export const useGames = ({page=1, pageSize=10, filter = {}}: DataFetchParams ) => {
     const [games, setGames] = useState<GameEntity[]>([]);
-    const [isLoadingGames, setIsLoading] = useState(true);
-    const [errorGames, setError] = useState<string | null>(null);
-    const [totalGames, setTotal] = useState(0);
+    const [isLoading, setIsLoading] = useState(true);
+    const [error, setError] = useState<string | null>(null);
+    const [total, setTotal] = useState(0);
 
 
-    const fetchGames = async (selectedFilterValue: Record<string, any>={}) => {
+    const fetchGames = useCallback(async (selectedFilterValue: Record<string, any>={}) => {
         setIsLoading(true);
         setError(null);
         try {
-                let filterFields : any = {};
-                filterFields = {...filter, ...selectedFilterValue};
+                const filterFields = {...filter, ...selectedFilterValue};
                 const response = await fetch(`/api/game?page=${page}&pageSize=${pageSize}&filter=${JSON.stringify(filterFields)}`);
                 const { data, total } = await response.json();
                 setGames(data);
@@ -23,7 +23,7 @@ export const useGames = (page: number, pageSize: number, filter?: Record<string,
             } finally {
                 setIsLoading(false);
             }
-    };
+    },[page, pageSize, filter]);
 
-    return { games, isLoadingGames, errorGames, totalGames, fetchGames };
+    return { games, isLoading, error, total, fetchGames };
 };
