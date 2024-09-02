@@ -5,6 +5,7 @@ import {useCustomers} from '@/hooks/useCustomersData';
 import BaseTableNextUI from "./BaseTableNextUI";
 import { ColumnType} from "@/types/tableTypes"
 import { CustomerEntity } from "@/entities/customer/_domain/types";
+import { useLogger } from "@/hooks/useLogger";
 
 
 interface CustomersTableProps {
@@ -12,7 +13,7 @@ interface CustomersTableProps {
 }
 
 const TableCustomer: React.FC<CustomersTableProps> = ({companyId })  => {
-
+  const [linkValue, setLinkValue] = useState('');
 
   const[currentPage, setCurrentPage] = useState(1);
   const [filterValue, setFilterValue] = useState('');
@@ -22,13 +23,19 @@ const TableCustomer: React.FC<CustomersTableProps> = ({companyId })  => {
   const [complexFilterValue, setComplexFilterValue] = useState<Record<string, any>>();
 
   const { customers, isLoading, error, total, fetchCustomers } = useCustomers({page:currentPage, pageSize:pageSize, filter:filter});
-  
+  const { logMessage } = useLogger();
 
   useEffect(() => { 
 
     fetchCustomers(complexFilterValue);
     setTotalPages(Math.ceil(total / pageSize));
   },[currentPage, pageSize, total, complexFilterValue]);
+
+  useEffect(() =>{
+    if (linkValue){
+        logMessage(`Link fetched: ${linkValue}`)
+    }    
+  },[linkValue]);
 
   const handleFilterChange = (filterValue: string) => {
     setFilterValue(filterValue);
@@ -37,6 +44,9 @@ const TableCustomer: React.FC<CustomersTableProps> = ({companyId })  => {
 const handleFilterSubmit = () => {
     setCurrentPage(1); 
     setComplexFilterValue(filterValue ? {"selectedFields": filterValue} :{"selectedFields": ""});
+};
+const handleLinkClick = (linkValue: string) => {
+  setLinkValue(linkValue);
 };
 
   const columns: ColumnType<CustomerEntity>[] = [
@@ -63,6 +73,7 @@ const handleFilterSubmit = () => {
             onSetPageSize={setPageSize}
             onFilterChange={handleFilterChange}
             onFilterSubmit={handleFilterSubmit}
+            onLinkClick={handleLinkClick}
 
         />
 </div>

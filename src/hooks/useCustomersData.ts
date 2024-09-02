@@ -1,10 +1,7 @@
 import { useCallback, useState } from "react";
 import { CustomerEntity } from '@/entities/customer/_domain/types';
 import { DataFetchParams } from "@/types/dataHooksTypes";
-interface ApiResponse {
-    data: CustomerEntity[];
-    total: number;
-}
+
 
 export const useCustomers = ({page = 1, pageSize = 10, filter={}}: DataFetchParams) => {
     const [customers, setCustomers] = useState<CustomerEntity[]>([]);
@@ -18,13 +15,15 @@ export const useCustomers = ({page = 1, pageSize = 10, filter={}}: DataFetchPara
         setError(null);
         try {
             const filterFields = {...filter, ...selectedFilterValue};
-            const response = await fetch(`/api/customer?page=${page}&pageSize=${pageSize}&filter=${JSON.stringify(filterFields)}`);
-            const { data, total }: ApiResponse = await response.json();
-
+            const response = await fetch(`/api/customer?page=${page}&pageSize=${pageSize}&filter=${encodeURIComponent(JSON.stringify(filterFields))}`);
+            const { success, data, total } = await response.json();
+            if (!success) {
+                throw new Error('Failed to load customers');
+            }
             setCustomers(data);
             setTotal(total);
         } catch (err) {
-                setError(`Failed to load customers ${err}`);
+                setError(`${err}`);
         } finally {
             setIsLoading(false);
         }

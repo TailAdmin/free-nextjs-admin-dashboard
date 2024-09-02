@@ -5,10 +5,11 @@ import { useAccounts } from '@/hooks/useAccountsData';
 import BaseTableNextUI from './BaseTableNextUI';
 import { ColumnType} from "@/types/tableTypes"
 import { AccountEntity } from '@/entities/account/_domain/types';
-
+import { useLogger } from '@/hooks/useLogger';
 
 
 const AccountsTable = () => {
+    const [linkValue, setLinkValue] = useState('');
     const [currentPage, setCurrentPage] = useState(1);
     const [filterValue, setFilterValue] = useState('');
     const [totalPages, setTotalPages] = useState(1);
@@ -19,12 +20,17 @@ const AccountsTable = () => {
 
 
     const { accounts, isLoading, error, total, fetchAccounts } = useAccounts({page: currentPage, pageSize: pageSize, filter: filter});
-
+    const { logMessage } = useLogger();
     useEffect(() => {
         fetchAccounts(complexFilterValue);
         setTotalPages(Math.ceil(total / pageSize));
     }, [currentPage, pageSize, total, complexFilterValue]);
 
+    useEffect(() =>{
+        if (linkValue){
+            logMessage(`Link fetched: ${linkValue}`)
+        }    
+    },[linkValue]);
 
     const handleFilterChange = (filterValue: string) => {
         setFilterValue(filterValue);
@@ -38,6 +44,9 @@ const AccountsTable = () => {
 // store the current text filter        
         setComplexFilterValue(filterValue ? {"selectedFields": filterValue} :{"selectedFields": ""});
 
+    };
+    const handleLinkClick = (linkValue: string) => {
+        setLinkValue(linkValue);
     };
 
     const columns: ColumnType<AccountEntity>[] = [
@@ -64,6 +73,7 @@ return (
             onSetPageSize={setPageSize}
             onFilterChange={handleFilterChange}
             onFilterSubmit={handleFilterSubmit}
+            onLinkClick={handleLinkClick}
 
 
         />

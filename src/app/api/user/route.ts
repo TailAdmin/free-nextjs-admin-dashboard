@@ -1,6 +1,5 @@
 // users data router
 import type { NextRequest } from "next/server";
-import { getAccessToken, getSession } from "@auth0/nextjs-auth0";
 import { getAppServerSession } from "@/entities/session/get-app-session.server";
 import { UserData } from "@/types/user";
 import { userdata } from "@/app/api/user/userdata";

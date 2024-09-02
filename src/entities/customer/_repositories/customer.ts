@@ -1,7 +1,8 @@
 import { dbClient } from "@/shared/lib/db";
 import { CustomerEntity } from "../_domain/types";
-import { decryptECB, encryptECB } from "@/shared/utils/security";
+import { decryptCBC, encryptCBC } from "@/shared/utils/security";
 import {convertTimeStampToLocaleDateString} from "@/shared/utils/commonUtils"
+import logger from "@/shared/utils/logger";
 
 export class CustomerRepository {
 
@@ -11,8 +12,8 @@ export class CustomerRepository {
         const customerData = {
 
             id: data.id,
-            name: decryptECB(data.name),
-            email: decryptECB(data.email),
+            name: decryptCBC(data.name),
+            email: decryptCBC(data.email),
             sub: data.sub,
             accepted_terms_version: data.accepted_terms_version,
             accepted_terms_at: convertTimeStampToLocaleDateString(data.accepted_terms_at),
@@ -31,33 +32,70 @@ export class CustomerRepository {
         return customerData
     }
     async getCustomerById(customerId: string): Promise<{data:CustomerEntity[], total: number}> {
-        const total = 1;
-        const rawData = await dbClient.aghanim_customer.findUnique({
-            where: {
-                id: customerId,
-            },
-        });
-        const data = [this.mapToCustomerType(rawData)];
-        return {data, total};
+        
+        try{
+            const total = 1;
+            const rawData = await dbClient.aghanim_customer.findUnique({
+                where: {
+                    id: customerId,
+                },
+            });
+            const data = [this.mapToCustomerType(rawData)];
+            return {data, total};
+        }    catch(error: unknown)  {
+
+            if (error instanceof Error){
+                logger.error({
+                        msg: `Customer Repository Error. Failed to retrieve Customer data for customerId: ${customerId}`, 
+                        error: error.message,
+                        stack: error.stack,
+                    }
+                );
+            } else{
+
+                logger.error({msg: 'Customer Repository Error. An unknown error occurred'});
+            }    
+            
+            throw new Error(`Failed to retrieve Customer data for customerId: ${customerId}`);
+
+
+        }  
     }
     async getCustomers(page: number, pageSize: number, whereCondition: Record<string, any>): Promise<{data: CustomerEntity[], total: number}> {
-        const skip = (page - 1) * pageSize;
-        const take = pageSize;
-        
-        const[rawData, total] = await Promise.all([
-            dbClient.aghanim_customer.findMany({
-                skip: skip,
-                take: take,
-                where: whereCondition
-            }),
-            dbClient.aghanim_customer.count({where: whereCondition,}),
+        try{
+            const skip = (page - 1) * pageSize;
+            const take = pageSize;
+            
+            const[rawData, total] = await Promise.all([
+                dbClient.aghanim_customer.findMany({
+                    skip: skip,
+                    take: take,
+                    where: whereCondition
+                }),
+                dbClient.aghanim_customer.count({where: whereCondition,}),
 
+            ])
 
-        ])
+            const data = rawData.map(this.mapToCustomerType)
 
-        const data = rawData.map(this.mapToCustomerType)
+            return {data, total };
+        }catch (error: unknown){
 
-        return {data, total };
+            if (error instanceof Error){
+                logger.error(
+                    {
+                        msg: `Customer Repository Error. Failed to retrieve Customer data for customers`, 
+                        error: error.message,
+                        stack: error.stack,
+                    }
+                );
+            } else{
+
+                logger.error({msg: 'Customer Repository Error. An unknown error occurred'});
+            }    
+            
+            throw new Error(`Failed to retrieve Customer data for customers`);
+        }    
     }
     
     async getCustomersByFilter(page: number, pageSize: number, filter: Record<string, any>): Promise<{ data: CustomerEntity[], total: number }> {
@@ -66,8 +104,8 @@ export class CustomerRepository {
         if (filter['selectedFields']){
             
             whereCondition["OR"] =  [{'id': {contains: filter['selectedFields'], mode:'insensitive'}},
-                            {'name': {contains: encryptECB(filter['selectedFields']), mode:'insensitive'}},
-                            {'email': {contains: encryptECB(filter['selectedFields']), mode:'insensitive'}}
+                            {'name': {contains: encryptCBC(filter['selectedFields']), mode:'insensitive'}},
+                            {'email': {contains: encryptCBC(filter['selectedFields']), mode:'insensitive'}}
                             ]
         }
         if (filter["companyId"]){
@@ -90,24 +128,42 @@ export class CustomerRepository {
 
     }
     async getCustomersByCompany(page: number, pageSize: number, whereCondition: Record<string, any>): Promise<{ data: CustomerEntity[], total: number }> {
-        const skip = (page - 1) * pageSize;
-        const take = pageSize;
 
-        const [rawData, total] = await Promise.all([
-            dbClient.aghanim_customer.findMany({
-                skip: skip,
-                take: take,
-                where: whereCondition
-            }),
-            dbClient.aghanim_customer.count({
-                where: whereCondition
-            }),
-        ]);
+        try{
+            const skip = (page - 1) * pageSize;
+            const take = pageSize;
 
-        const data = rawData.map(this.mapToCustomerType);
- 
+            const [rawData, total] = await Promise.all([
+                dbClient.aghanim_customer.findMany({
+                    skip: skip,
+                    take: take,
+                    where: whereCondition
+                }),
+                dbClient.aghanim_customer.count({
+                    where: whereCondition
+                }),
+            ]);
 
-        return { data, total };
+            const data = rawData.map(this.mapToCustomerType);
+    
+
+            return { data, total };
+        }catch(error: unknown) {
+
+            if (error instanceof Error){
+                logger.error(
+                    {msg:`Customer Repository Error. Failed to retrieve Customer data for companyId`, 
+                        error: error.message,
+                        stack: error.stack,
+                    }
+                );
+            } else{
+
+                logger.error({msg:'Customer Repository Error. An unknown error occurred'});
+            }    
+            
+            throw new Error(`Failed to retrieve Customer data for companyId`);
+        }      
     }
 }
 

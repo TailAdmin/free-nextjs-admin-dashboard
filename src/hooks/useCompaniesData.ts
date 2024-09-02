@@ -14,13 +14,17 @@ export const useCompanies = ({page = 1, pageSize = 10, filter = {}}: DataFetchPa
         setError(null);
         try {
                 const filterFields = {...filter, ...selectedFilterValue};
-                const response = await fetch(`/api/company?page=${page}&pageSize=${pageSize}&filter=${JSON.stringify(filterFields)}`);
-                const { data, total } = await response.json();
+                const response = await fetch(`/api/company?page=${page}&pageSize=${pageSize}&filter=${encodeURIComponent(JSON.stringify(filterFields))}`);
+                const { success, data, total } = await response.json();
+                if (!success) {
+                    throw new Error('Failed to load companies');
+                }
+
                 setCompanies(data);
                 setTotal(total);
 
             } catch (err) {
-                setError(`Failed to load companies ${err}`);
+                setError(`${err}`);
             } finally {
                 setIsLoading(false);
             }

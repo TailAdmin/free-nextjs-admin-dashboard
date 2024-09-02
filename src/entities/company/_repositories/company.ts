@@ -1,6 +1,7 @@
 import { dbClient } from "@/shared/lib/db";
 import { CompanyEntity } from "../_domain/types";
 import {convertTimeStampToLocaleDateString} from "@/shared/utils/commonUtils"
+import logger from "@/shared/utils/logger";
 
 export class CompanyRepository {
 
@@ -29,38 +30,74 @@ export class CompanyRepository {
     }
 
     async getCompanyById(companyId: string): Promise<CompanyEntity[]> {
+        try{
+            const rawData = await dbClient.aghanim_company.findUniqueOrThrow({
+                where: {
+                    id: companyId,
+                },
+            });
 
-        const rawData = await dbClient.aghanim_company.findUniqueOrThrow({
-            where: {
-                id: companyId,
-            },
-        });
+
+            let data = [this.mapToCompanyType(rawData)];
+            
+
+            
+            return data;
+        } catch(error: unknown)  {
+
+            if (error instanceof Error){
+                logger.error({
+                        msg: `Company Repository Error. Failed to retrieve Company data for companyId: ${companyId}`, 
+                        error: error.message,
+                        stack: error.stack,
+                    }
+                );
+            } else{
+
+                logger.error({msg: 'Company Repository Error. An unknown error occurred'});
+            }    
+            
+            throw new Error(`Failed to retrieve Company data for companyId: ${companyId}`);
 
 
-        let data = [this.mapToCompanyType(rawData)];
-        
-
-        
-        return data;
+        }  
     }
     async getCompanies(page: number, pageSize: number, whereCondition: Record<string, any>): Promise<{data: CompanyEntity[], total: number}> {
         
-        //console.log("where: " + JSON.stringify(whereCondition));
-        const skip = (page - 1) * pageSize;
-        const take = pageSize;
-                
-        const [rawData, total] = await Promise.all([
-            dbClient.aghanim_company.findMany({
-                skip: skip,
-                take: take,
-                where: whereCondition,
-            }),
-            dbClient.aghanim_company.count({where: whereCondition,})    
-        ])
-        
-        const data = rawData.map(this.mapToCompanyType)
+        try{
+            const skip = (page - 1) * pageSize;
+            const take = pageSize;
+                    
+            const [rawData, total] = await Promise.all([
+                dbClient.aghanim_company.findMany({
+                    skip: skip,
+                    take: take,
+                    where: whereCondition,
+                }),
+                dbClient.aghanim_company.count({where: whereCondition,})    
+            ])
+            
+            const data = rawData.map(this.mapToCompanyType)
 
-        return {data, total };
+            return {data, total };
+        } catch (error: unknown){
+
+            if (error instanceof Error){
+                logger.error(
+                    {
+                        msg: `Company Repository Error. Failed to retrieve Company data for companies`, 
+                        error: error.message,
+                        stack: error.stack,
+                    }
+                );
+            } else{
+
+                logger.error({msg: 'Company Repository Error. An unknown error occurred'});
+            }    
+            
+            throw new Error(`Failed to retrieve Company data for companies`);
+        }
+
     }
     async getCompaniesByFilter(page: number, pageSize: number, filter: Record<string, any>): Promise<{ data: CompanyEntity[], total: number }> {
         const whereCondition: Record<string, any> = {};
@@ -89,24 +126,42 @@ export class CompanyRepository {
     }
 
     async getCompaniesByCustomer(page: number, pageSize: number, whereCondition: Record<string, any>): Promise<{ data: CompanyEntity[], total: number }> {
-        const skip = (page - 1) * pageSize;
-        const take = pageSize;
+        
+        try{
+            const skip = (page - 1) * pageSize;
+            const take = pageSize;
 
-        const [rawData, total] = await Promise.all([
-            dbClient.aghanim_company.findMany({
-                skip: skip,
-                take: take,
-                where: whereCondition
-            }),
-            dbClient.aghanim_company.count({
-                where: whereCondition,
-            }),
-        ]);
+            const [rawData, total] = await Promise.all([
+                dbClient.aghanim_company.findMany({
+                    skip: skip,
+                    take: take,
+                    where: whereCondition
+                }),
+                dbClient.aghanim_company.count({
+                    where: whereCondition,
+                }),
+            ]);
 
-        const data = rawData.map(this.mapToCompanyType);
- 
+            const data = rawData.map(this.mapToCompanyType);
+    
 
-        return { data, total };
+            return { data, total };
+        } catch(error: unknown) {
+
+            if (error instanceof Error){
+                logger.error(
+                    {msg:`Company Repository Error. Failed to retrieve Company data for customerId`, 
+                        error: error.message,
+                        stack: error.stack,
+                    }
+                );
+            } else{
+
+                logger.error({msg:'Company Repository Error. An unknown error occurred'});
+            }    
+            
+            throw new Error(`Failed to retrieve Company data for customerId`);
+        }   
     }
 
     

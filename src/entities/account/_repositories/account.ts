@@ -1,7 +1,8 @@
 import { dbClient } from "@/shared/lib/db";
 import { AccountEntity } from "../_domain/types";
 import {convertTimeStampToLocaleDateString} from "@/shared/utils/commonUtils"
-import { decryptECB, decryptCBC } from "@/shared/utils/security";
+import {decryptCBC } from "@/shared/utils/security";
+import logger from '@/shared/utils/logger';
 
 let customerMap: {[key: string]: string} = {};
 let companyMap: { [key: string]: string } = {};
@@ -26,8 +27,8 @@ export class AccountRepository {
             deleted_at: convertTimeStampToLocaleDateString(data.deleted_at),
             archived_at: convertTimeStampToLocaleDateString(data.archived_at),
             company_name: companyMap[data.company_id],
-            edited_by_customer_name: decryptECB(customerMap[data.edited_by_customer_id]),
-            verified_by_customer_name: decryptECB(customerMap[data.verified_by_customer_id]),
+            edited_by_customer_name: decryptCBC(customerMap[data.edited_by_customer_id]),
+            verified_by_customer_name: decryptCBC(customerMap[data.verified_by_customer_id]),
             
             company_link: `${process.env.AGHANIM_DASHBOARD_URL}/company/${data.company_id}`
 
@@ -39,73 +40,111 @@ export class AccountRepository {
 
     async getAccountById(accountId: string): Promise<AccountEntity[]> {
 
-        const rawData = await dbClient.aghanim_account.findUniqueOrThrow({
-            where: {
-                id: accountId,
-            },
-        });
+        try
+        {
 
-        const company = await dbClient.aghanim_company.findFirst({ where: { id:  rawData.company_id  } });
-        let customer = await dbClient.aghanim_customer.findFirst({ where: { id:  rawData.edited_by_customer_id  } });
-        if (company){
-            companyMap[company.id] = company.name || '';
-        }
+            const rawData = await dbClient.aghanim_account.findUniqueOrThrow({
+                where: {
+                    id: accountId,
+                },
+            });
 
-        if (customer){
-            customerMap[customer.id] = customer.name || '';
-        }
+            const company = await dbClient.aghanim_company.findFirst({ where: { id:  rawData.company_id  } });
+            let customer = await dbClient.aghanim_customer.findFirst({ where: { id:  rawData.edited_by_customer_id  } });
+            
+            if (company){
+                companyMap[company.id] = company.name || '';
+            }
 
-        if (rawData.verified_by_customer_id && rawData.edited_by_customer_id !== rawData.verified_by_customer_id ){
-
-            customer = await dbClient.aghanim_customer.findFirst({ where: { id:  rawData.verified_by_customer_id  } });
             if (customer){
                 customerMap[customer.id] = customer.name || '';
             }
+
+            if (rawData.verified_by_customer_id && rawData.edited_by_customer_id !== rawData.verified_by_customer_id ){
+
+                customer = await dbClient.aghanim_customer.findFirst({ where: { id:  rawData.verified_by_customer_id  } });
+                if (customer){
+                    customerMap[customer.id] = customer.name || '';
+                }
+            }
+
+            let data = [this.mapToAccountType(rawData)];
+            return data;
         }
+        catch(error: unknown)
+        {
+            if (error instanceof Error){
+                logger.error(
+                    {msg:`Account Repository Error. Failed to retrieve account data for accountId: ${accountId}`, 
+                    error: error.message,
+                    stack: error.stack,
+                });
+            } else{
 
+                logger.error({msg: 'Account Repository Error. An unknown error occurred'});
+            }    
+            
+            throw new Error(`Failed to retrieve account data for accountId: ${accountId}`);
+        }    
+    
 
-        let data = [this.mapToAccountType(rawData)];
         
-
-        
-        return data;
+       
     }
     async getAccounts(page: number, pageSize: number, whereCondition: Record<string, any>): Promise<{data: AccountEntity[], total: number}> {
         
-        const skip = (page - 1) * pageSize;
-        const take = pageSize;
+        try{
+            const skip = (page - 1) * pageSize;
+            const take = pageSize;
+                    
+            const [rawData, total] = await Promise.all([
+                dbClient.aghanim_account.findMany({
+                    skip: skip,
+                    take: take,
+                    where: whereCondition,
+                }),
+                dbClient.aghanim_account.count({where: whereCondition,})    
+            ])
+
+
+            const companyIds = [...new Set(rawData.map((row: any) => row.company_id).filter(value => value !==null))];
+            const customerIds = [...new Set(rawData.map((row: any) => row.edited_by_customer_id).filter(value => value !==null)),
+                                ...new Set(rawData.map((row: any) => row.verified_by_customer_id).filter(value => value !==null))
+                            ];
+
+
+            const [companies, customers] = await Promise.all([
                 
-        const [rawData, total] = await Promise.all([
-            dbClient.aghanim_account.findMany({
-                skip: skip,
-                take: take,
-                where: whereCondition,
-            }),
-            dbClient.aghanim_account.count({where: whereCondition,})    
-        ])
+                dbClient.aghanim_company.findMany({ where: { id: { in: companyIds } } }),
+                dbClient.aghanim_customer.findMany({ where: { id: { in: customerIds } } }),
+
+            ]);  
+
+            companyMap = Object.fromEntries(companies.map((company: any) => [company.id, company.name]));
+            customerMap = Object.fromEntries(customers.map((customer: any) => [customer.id, customer.name]));
 
 
-        const companyIds = [...new Set(rawData.map((row: any) => row.company_id).filter(value => value !==null))];
-        const customerIds = [...new Set(rawData.map((row: any) => row.edited_by_customer_id).filter(value => value !==null)),
-                            ...new Set(rawData.map((row: any) => row.verified_by_customer_id).filter(value => value !==null))
-                        ];
-
-
-        const [companies, customers] = await Promise.all([
             
-            dbClient.aghanim_company.findMany({ where: { id: { in: companyIds } } }),
-            dbClient.aghanim_customer.findMany({ where: { id: { in: customerIds } } }),
+            const data = rawData.map(this.mapToAccountType)
 
-        ]);  
+            return {data, total };
+        }
+        catch(error: unknown)
+        {
 
-        companyMap = Object.fromEntries(companies.map((company: any) => [company.id, company.name]));
-        customerMap = Object.fromEntries(customers.map((customer: any) => [customer.id, customer.name]));
+            if (error instanceof Error){
+                logger.error(
+                    {msg: `Account Repository Error. Failed to retrieve account data for accounts`, 
+                    error: error.message,
+                    stack: error.stack,
+                });
+            } else{
 
-
-        
-        const data = rawData.map(this.mapToAccountType)
-
-        return {data, total };
+                logger.error({msg: 'Account Repository Error. An unknown error occurred'});
+            }    
+            
+            throw new Error(`Failed to retrieve account data for accounts`);
+        }    
     }
     async getAccountsByFilter(page: number, pageSize: number, filter: Record<string, any>): Promise<{ data: AccountEntity[], total: number }> {
         const whereCondition: Record<string, any> = {};

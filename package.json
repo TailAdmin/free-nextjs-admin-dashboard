@@ -24,6 +24,8 @@
     "next": "^14.2.5",
     "next-auth": "^4.24.7",
     "next-themes": "0.2.1",
+    "pino": "^9.3.2",
+    "pino-pretty": "^11.2.2",
     "react": "^18",
     "react-apexcharts": "^1.4.1",
     "react-dom": "^18",

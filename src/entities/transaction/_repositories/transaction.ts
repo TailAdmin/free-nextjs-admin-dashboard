@@ -5,6 +5,7 @@ import { TransactionEntity } from '../_domain/types';
 import { decryptECB, encryptECB } from "@/shared/utils/security";
 import { convertTimeStampToLocaleDateString, convertISODateToLocaleDateString, convertDateStringToTimeStampInSeconds } from '@/shared/utils/commonUtils';
 import { dbClient } from '@/shared/lib/db';
+import logger from '@/shared/utils/logger';
 
 const bigquery = new BigQuery();
 
@@ -114,34 +115,52 @@ export class TransactionsRepository {
         return this.getTransactions(page, pageSize, whereCondition);
     }
     async getTransactions(page:number, pageSize:number, whereCondition: string):Promise<{data: TransactionEntity[], total: number}> {
+        try{
+            const offset = (page - 1) * pageSize;
+            const query = `
+                SELECT * from events.payments 
+                WHERE ${whereCondition} 
+                ORDER BY payment_date DESC 
+                LIMIT @pageSize OFFSET @offset`;
+            const options = {query: query, params: {pageSize: pageSize, offset:offset}}
+            const [rows] = await bigquery.query(options);
+            const totalQuery = `
+                SELECT COUNT(*) as total
+                FROM events.payments
+                WHERE ${whereCondition}`;
+            const [totalRows] = await bigquery.query(totalQuery);
+            const total = totalRows[0].total;
 
-        const offset = (page - 1) * pageSize;
-        const query = `select * from events.payments WHERE ${whereCondition} ORDER BY payment_date DESC limit @pageSize offset @offset`;
-        const options = {query: query, params: {pageSize: pageSize, offset:offset}}
-        const [rows] = await bigquery.query(options);
-        const totalQuery = `
-        SELECT COUNT(*) as total
-        FROM events.payments
-        WHERE ${whereCondition}`;
+            // Fetch company and game names from database for mapping purposes.
+            const companyIds = [...new Set(rows.map((row: any) => row.company_id))];
+            const gameIds = [...new Set(rows.map((row: any) => row.game_id))];
 
-        const companyIds = [...new Set(rows.map((row: any) => row.company_id))];
-        const gameIds = [...new Set(rows.map((row: any) => row.game_id))];
+            const [companies, games] = await Promise.all([
+                dbClient.aghanim_company.findMany({ where: { id: { in: companyIds } } }),
+                dbClient.aghanim_game.findMany({ where: { id: { in: gameIds } } }),
 
-        const [companies, games] = await Promise.all([
-            dbClient.aghanim_company.findMany({ where: { id: { in: companyIds } } }),
-            dbClient.aghanim_game.findMany({ where: { id: { in: gameIds } } }),
+            ]);  
 
-        ]);  
+            companyMap = Object.fromEntries(companies.map((company: any) => [company.id, company.name]));
+            gameMap = Object.fromEntries(games.map((game: any) => [game.id, game.name]));
 
-        companyMap = Object.fromEntries(companies.map((company: any) => [company.id, company.name]));
-        gameMap = Object.fromEntries(games.map((game: any) => [game.id, game.name]));
 
-        //console.log(`total query repo: ${totalQuery}`)
-        const [totalRows] = await bigquery.query(totalQuery);
-        //console.log(`totalRows repo: ${totalRows}`)
-        const total = totalRows[0].total;
-        //console.log(`total repo: ${total}`)
-        return {data: rows.map(this.mapToTransactionType), total}
+            return {data: rows.map(this.mapToTransactionType), total}
+        }
+        catch(error: unknown){
+            if (error instanceof Error){
+                logger.error({
+                    msg: 'Transaction Entity Error. Failed to retrieve transactions data',
+                    error: error.message,
+                    stack: error.stack
+
+                });
+            }    
+            else{
+                logger.error({msg: 'An unknown error occurred in AccountReppository'});
+            }
+            throw new Error('Failed to retrieve transactions data');
+        }    
     }
 }
 

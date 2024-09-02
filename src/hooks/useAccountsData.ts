@@ -14,13 +14,19 @@ export const useAccounts = ({page = 1, pageSize = 10, filter = {}}: DataFetchPar
         setError(null);
         try {
                 const filterFields = {...filter, ...selectedFilterValue};
-                const response = await fetch(`/api/account?page=${page}&pageSize=${pageSize}&filter=${JSON.stringify(filterFields)}`);
-                const { data, total } = await response.json();
+                const response = await fetch(`/api/account?page=${page}&pageSize=${pageSize}&filter=${encodeURIComponent(JSON.stringify(filterFields))}`);
+
+                
+                
+                const {success, data, total } = await response.json();
+                if (!success) {
+                    throw new Error('Failed to load accounts');
+                }
                 setAccounts(data);
                 setTotal(total);
 
             } catch (err) {
-                setError(`Failed to load accounts ${err}`);
+                setError(`${err}`);
             } finally {
                 setIsLoading(false);
                 

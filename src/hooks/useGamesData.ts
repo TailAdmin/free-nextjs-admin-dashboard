@@ -14,12 +14,15 @@ export const useGames = ({page=1, pageSize=10, filter = {}}: DataFetchParams ) =
         setError(null);
         try {
                 const filterFields = {...filter, ...selectedFilterValue};
-                const response = await fetch(`/api/game?page=${page}&pageSize=${pageSize}&filter=${JSON.stringify(filterFields)}`);
-                const { data, total } = await response.json();
+                const response = await fetch(`/api/game?page=${page}&pageSize=${pageSize}&filter=${encodeURIComponent(JSON.stringify(filterFields))}`);
+                const { success, data, total } = await response.json();
+                if (!success) {
+                    throw new Error('Failed to load games');
+                }
                 setGames(data);
                 setTotal(total);
             } catch (err) {
-                setError(`Failed to load games ${err}`);
+                setError(`${err}`);
             } finally {
                 setIsLoading(false);
             }

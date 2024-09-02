@@ -8,6 +8,7 @@ import GamesTable from '../Tables/GamesTable';
 import CustomersTable from '../Tables/CustomersTable';
 import { Card, CardBody, CardHeader, Divider, Tab, Tabs } from '@nextui-org/react';
 import Link from 'next/link';
+import { useLogger } from '@/hooks/useLogger';
 
 interface AccountDetailFormProps {
   accountId: string;
@@ -17,9 +18,11 @@ const AccountDetailForm: React.FC<AccountDetailFormProps> = ({accountId}) => {
     const [activeTab, setActiveTab] = useState('details');
     const[account, setAccount] = useState<AccountEntity|null>(null);
     const filter = JSON.parse(`{"accountId":"${accountId}"}`);
+    const [linkValue, setLinkValue] = useState('');
     //getting accounts details
     const {accounts, isLoading, error, total, fetchAccounts } = useAccounts({filter});
-    
+    //getting function for posting logs
+    const { logMessage } = useLogger();
     useEffect(() => {
 
 
@@ -33,6 +36,17 @@ const AccountDetailForm: React.FC<AccountDetailFormProps> = ({accountId}) => {
         setAccount(accounts[0]);
       }
     }, [accounts]);
+
+
+    useEffect(() =>{
+      if (linkValue){
+          logMessage(`Link fetched: ${linkValue}`)
+      }    
+    },[linkValue]);
+    const handleLinkClick = (linkValue: string) => {
+      setLinkValue(linkValue);
+
+    };
 
 
     if (error) {
@@ -111,7 +125,9 @@ const AccountDetailForm: React.FC<AccountDetailFormProps> = ({accountId}) => {
                     href={account.company_link} 
                     className="text-sm font-medium text-blue-500 hover:underline" 
                     target="_blank" 
-                    rel="noopener noreferrer">
+                    rel="noopener noreferrer"
+                    onClick={() => {
+                      handleLinkClick(account.company_link)}}>
                       {account.company_name}
                   </a>
               </div>

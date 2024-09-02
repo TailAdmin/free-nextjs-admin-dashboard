@@ -5,10 +5,11 @@ import {useTransactions} from '@/hooks/useTransactions';
 import BaseTableNextUI from "./BaseTableNextUI";
 import { ColumnType} from "@/types/tableTypes"
 import { TransactionEntity } from "@/entities/transaction/_domain/types";
+import { useLogger } from "@/hooks/useLogger";
 
 const TableTransaction = () => {
 
-
+  const [linkValue, setLinkValue] = useState('');
   const [currentPage, setCurrentPage] = useState(1);
   const [totalPages, setTotalPages] = useState(1);
   const [pageSize, setPageSize] = useState(20);
@@ -16,17 +17,18 @@ const TableTransaction = () => {
   const [complexFilterValue, setComplexFilterValue] = useState<Record<string, any>>();
   const [dateRangeValue, setDateRangeValue] = useState<string[] | null>(null);
   const { transactions, isLoading, error, total, fetchTransactions} = useTransactions({page: currentPage, pageSize: pageSize});
-
+  const { logMessage } = useLogger();
   useEffect(() =>{
 
     fetchTransactions(complexFilterValue);
-
-  },[currentPage, pageSize, complexFilterValue])
-
-  useEffect(() => {
-
     setTotalPages(Math.ceil(total / pageSize));
-}, [total, pageSize]);
+  },[currentPage, pageSize, total, complexFilterValue])
+
+useEffect(() =>{
+  if (linkValue){
+      logMessage(`Link fetched: ${linkValue}`)
+  }    
+},[linkValue]);
 
 
 const handleDateRangeChange = (dateRangeValue: string[]|null) => {
@@ -36,6 +38,9 @@ const handleDateRangeChange = (dateRangeValue: string[]|null) => {
 
   const handleFilterChange = (filterValue: string) => {
     setFilterValue(filterValue);
+};
+const handleLinkClick = (linkValue: string) => {
+  setLinkValue(linkValue);
 };
 
 
@@ -88,6 +93,7 @@ const handleDateRangeChange = (dateRangeValue: string[]|null) => {
             onSetPageSize={setPageSize}
             onFilterChange={handleFilterChange}
             onFilterSubmit={handleFilterSubmit}
+            onLinkClick={handleLinkClick}
 
         />
 </div>

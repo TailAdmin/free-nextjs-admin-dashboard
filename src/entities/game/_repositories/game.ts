@@ -2,6 +2,7 @@ import { dbClient } from "@/shared/lib/db";
 import { GameEntity } from "../_domain/types";
 import { Json } from "@google-cloud/bigquery";
 import { convertTimeStampToLocaleDateString } from "@/shared/utils/commonUtils";
+import logger from "@/shared/utils/logger";
 
 export class GameRepository {
 
@@ -39,38 +40,76 @@ export class GameRepository {
         return gameData
     }
     async getGameById(gameId: string): Promise<GameEntity> {
+        try{
+            const rawData = dbClient.aghanim_game.findUniqueOrThrow({
+                where: {
+                    id: gameId,
+                },
+            });
+            
+            return this.mapToGameType(rawData);
+        }    catch(error: unknown)  {
 
-        const rawData = dbClient.aghanim_game.findUniqueOrThrow({
-            where: {
-                id: gameId,
-            },
-        });
-        
-        return this.mapToGameType(rawData);;
+
+            if (error instanceof Error){
+                logger.error({
+                        msg: `Game Repository Error. Failed to retrieve Game data for gameId: ${gameId}`, 
+                        error: error.message,
+                        stack: error.stack,
+                    }
+                );
+            } else{
+
+                logger.error({msg: 'Game Repository Error. An unknown error occurred'});
+            }    
+            
+            throw new Error(`Failed to retrieve Game data for gameId: ${gameId}`);
+
+
+        }
     }
     async getGames(page: number, pageSize: number, whereCondition: Record<string, any>): Promise<{data: GameEntity[], total: number}> {
-        const skip = (page - 1) * pageSize;
-        const take = pageSize;
-                
-        const[rawData, total] = await Promise.all([
-            dbClient.aghanim_game.findMany({
-                
-                skip: skip,
-                take: take,
-                where: whereCondition,
-                include: {
-                    company: true
-                },
-            }),
-            dbClient.aghanim_game.count({
-                where: whereCondition,
-            }),
+        try{
+            const skip = (page - 1) * pageSize;
+            const take = pageSize;
+                    
+            const[rawData, total] = await Promise.all([
+                dbClient.aghanim_game.findMany({
+                    
+                    skip: skip,
+                    take: take,
+                    where: whereCondition,
+                    include: {
+                        company: true
+                    },
+                }),
+                dbClient.aghanim_game.count({
+                    where: whereCondition,
+                }),
 
 
-        ])
-        const data = rawData.map(this.mapToGameType)
+            ])
+            const data = rawData.map(this.mapToGameType)
 
-        return {data, total };
+            return {data, total };
+        }catch (error: unknown){
+
+            if (error instanceof Error){
+                logger.error(
+                    {
+                        msg: `Game Repository Error. Failed to retrieve Game data for games`, 
+                        error: error.message,
+                        stack: error.stack,
+                    }
+                );
+            } else{
+
+                logger.error({msg: 'Game Repository Error. An unknown error occurred'});
+            }    
+            
+            throw new Error(`Failed to retrieve Game data for games`);
+        }
+    
     }
     async getGamesByFilter(page: number, pageSize: number, filter: Record<string, any>): Promise<{ data: GameEntity[], total: number }>{
         const whereCondition: Record<string, any> = {};
@@ -105,71 +144,107 @@ export class GameRepository {
 
     }
     async getGamesByCustomer(page: number, pageSize: number, whereCondition: Record<string, any>): Promise<{ data: GameEntity[], total: number }> {
-        const skip = (page - 1) * pageSize;
-        const take = pageSize;
+        
+        try{
+            const skip = (page - 1) * pageSize;
+            const take = pageSize;
 
-        const companyIds = await
-            dbClient.aghanim_company.findMany({
-                where: {
-                    customers: whereCondition["customers"]
-                },
-                select:{ id: true}
-            })
-        const companyIdsString = companyIds.map(company =>company.id);    
+            const companyIds = await
+                dbClient.aghanim_company.findMany({
+                    where: {
+                        customers: whereCondition["customers"]
+                    },
+                    select:{ id: true}
+                })
+            const companyIdsString = companyIds.map(company =>company.id);    
 
-        const gamesData = await dbClient.aghanim_game.findMany({
-            distinct: ['id'],
-            skip: skip,
-            take: take,
-            where: {            
-                company_id: {
-                    in: companyIdsString
+            const gamesData = await dbClient.aghanim_game.findMany({
+                distinct: ['id'],
+                skip: skip,
+                take: take,
+                where: {            
+                    company_id: {
+                        in: companyIdsString
+                    },
+                    'OR': whereCondition['OR']
                 },
-                'OR': whereCondition['OR']
-            },
-            include: {
-                company: true
-            },
-            
-        })            
+                include: {
+                    company: true
+                },
+                
+            })            
 
-        const data = gamesData.map(this.mapToGameType);
-        const total = await dbClient.aghanim_game.count({
-            where: {            
-                company_id: {
-                    in: companyIdsString
+            const data = gamesData.map(this.mapToGameType);
+            const total = await dbClient.aghanim_game.count({
+                where: {            
+                    company_id: {
+                        in: companyIdsString
+                    },
+                    'OR': whereCondition['OR']
                 },
-                'OR': whereCondition['OR']
-            },
+                
+                
+            })            
+            return { data, total };
+        }catch(error: unknown) {
+
+            if (error instanceof Error){
+                logger.error(
+                    {msg:`Game Repository Error. Failed to retrieve Game data for customerId`, 
+                        error: error.message,
+                        stack: error.stack,
+                    }
+                );
+            } else{
+
+                logger.error({msg:'Game Repository Error. An unknown error occurred'});
+            }    
             
-            
-        })            
-        return { data, total };
+            throw new Error(`Failed to retrieve Game data for customerId`);
+        }     
     }
 
     async getGamesByCompany(page: number, pageSize: number, whereCondition: Record<string, any>): Promise<{ data: GameEntity[], total: number }> {
-        const skip = (page - 1) * pageSize;
-        const take = pageSize;  
-
-        const gamesData = await dbClient.aghanim_game.findMany({
-            skip: skip,
-            take: take,
-            where: whereCondition,
-            include: {
-                company: true
-            },
-            
-        })            
         
+        try{
+            const skip = (page - 1) * pageSize;
+            const take = pageSize;  
 
-        const data = gamesData.map(this.mapToGameType);
-        const total = await dbClient.aghanim_game.count({
-
-            where: whereCondition,
+            const gamesData = await dbClient.aghanim_game.findMany({
+                skip: skip,
+                take: take,
+                where: whereCondition,
+                include: {
+                    company: true
+                },
+                
+            })            
             
-        })            
 
-        return { data, total };
+            const data = gamesData.map(this.mapToGameType);
+            const total = await dbClient.aghanim_game.count({
+
+                where: whereCondition,
+                
+            })            
+
+            return { data, total };
+        }catch(error: unknown) {
+
+            if (error instanceof Error){
+                logger.error(
+                    {msg:`Game Repository Error. Failed to retrieve Game data for companyId`, 
+                        error: error.message,
+                        stack: error.stack,
+                    }
+                );
+            } else{
+
+                logger.error({msg:'Game Repository Error. An unknown error occurred'});
+            }    
+            
+            throw new Error(`Failed to retrieve Game data for companyId`);
+        }     
     }
 
     

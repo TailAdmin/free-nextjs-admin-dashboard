@@ -15,15 +15,16 @@ export const useTransactions = ({page = 1, pageSize = 10, filter = {}}: DataFetc
         try {
 
             const filterFields = {...selectedFilterValue};
-            const response = await fetch(`/api/transaction?page=${page}&pageSize=${pageSize}&filter=${JSON.stringify(filterFields)}`);
-            const { data, total } = await response.json();
+            const response = await fetch(`/api/transaction?page=${page}&pageSize=${pageSize}&filter=${encodeURIComponent(JSON.stringify(filterFields))}`);
+            const { success, data, total } = await response.json();
+            if (!success) {
+                throw new Error('Failed to load transactions');
+            }
 
             setTotal(total);
             setTransactions(data);
         } catch (err) {
-            const error = err as Error;
-            console.error('Error loading transactions', error);
-            setError(`Failed to load transactions: ${error.message}`);
+            setError(`${err}`);
         } finally {
             setIsLoading(false);
         }

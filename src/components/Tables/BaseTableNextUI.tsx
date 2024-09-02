@@ -3,7 +3,7 @@
 import React, { useState } from 'react';
 import { SearchIcon } from '../Icons/Table/search-icon';
 import {parseDate} from "@internationalized/date";
-import {useDateFormatter} from "@react-aria/i18n";
+
 
 import {LinkType, ColumnType} from "@/types/tableTypes"
 import {
@@ -38,6 +38,7 @@ interface BaseTableProps<T> {
     onSetPageSize(pageSize: number): void;
     onFilterChange: (filterValue: string) => void;
     onFilterSubmit: () => void;
+    onLinkClick: (link:string) => void;
  
 }
 
@@ -60,6 +61,7 @@ const BaseTableNextUI = <T extends Record<string, any>>({
     onSetPageSize,
     onFilterChange,
     onFilterSubmit,
+    onLinkClick,
 
 }: BaseTableProps<T>) => {
     const selectedColor: ColorType = "primary"
@@ -96,6 +98,10 @@ const BaseTableNextUI = <T extends Record<string, any>>({
         }
     }
 
+    const handleLinkClick=(link: string)=>{
+        onLinkClick(link);
+    }
+
 // rendering table cell content
     const TableCellContent = (
         {
@@ -114,7 +120,13 @@ const BaseTableNextUI = <T extends Record<string, any>>({
                     href={row[column.link]}
                     target="_blank"
                     rel="noopener noreferrer"
-                    onClick={(e) => e.stopPropagation()} 
+                    onClick={(e) => {
+                        
+                        handleLinkClick(row[column.link as string]);                        
+                        
+                        e.stopPropagation();
+
+                    }} 
                 >
                     {row[column.key]}
                 </a>
@@ -225,8 +237,15 @@ const BaseTableNextUI = <T extends Record<string, any>>({
     } 
     
     if (error) {
-        return <div>{error}</div>;
+        
+        return (
+            <div className="flex items-center justify-center min-h-screen">
+
+                <div className="text-red-500">{error}</div>
+            </div>
+        );
     }
+
 
     return (
         <div className="flex flex-col gap-3">

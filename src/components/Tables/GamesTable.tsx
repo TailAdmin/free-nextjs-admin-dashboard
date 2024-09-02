@@ -5,6 +5,7 @@ import { useGames } from '@/hooks/useGamesData';
 import BaseTableNextUI from './BaseTableNextUI';
 import {ColumnType} from "@/types/tableTypes"
 import { GameEntity } from '@/entities/game/_domain/types';
+import { useLogger } from '@/hooks/useLogger';
 
 interface GamesTableProps {
     customerId?: string;
@@ -12,6 +13,7 @@ interface GamesTableProps {
 }
 
 const GamesTable: React.FC<GamesTableProps> = ({ customerId, companyId }) => {
+    const [linkValue, setLinkValue] = useState('');
     const [currentPage, setCurrentPage] = useState(1);
     const [totalPages, setTotalPages] = useState(1);
     const[pageSize, setPageSize] = useState(20);
@@ -25,11 +27,17 @@ const GamesTable: React.FC<GamesTableProps> = ({ customerId, companyId }) => {
         filter = JSON.parse(`{"customerId": "${customerId}"}`);
     }
     const { games, isLoading, error, total, fetchGames } = useGames({page: currentPage, pageSize: pageSize, filter: filter});
-
+    const { logMessage } = useLogger();
     useEffect(() => {
         fetchGames(complexFilterValue);
         setTotalPages(Math.ceil(total / pageSize));
     }, [currentPage, pageSize, total, complexFilterValue]);
+
+    useEffect(() =>{
+        if (linkValue){
+            logMessage(`Link fetched: ${linkValue}`)
+        }    
+    },[linkValue]);
 
     const handleFilterChange = (filterValue: string) => {
         setFilterValue(filterValue);
@@ -39,6 +47,10 @@ const GamesTable: React.FC<GamesTableProps> = ({ customerId, companyId }) => {
         setCurrentPage(1); 
         setComplexFilterValue(filterValue ? {"selectedFields": filterValue} :{"selectedFields": ""})
 
+    };
+
+    const handleLinkClick = (linkValue: string) => {
+        setLinkValue(linkValue);
     };
     
 
@@ -68,6 +80,7 @@ const GamesTable: React.FC<GamesTableProps> = ({ customerId, companyId }) => {
                 onSetPageSize={setPageSize}
                 onFilterChange={handleFilterChange}
                 onFilterSubmit={handleFilterSubmit}
+                onLinkClick={handleLinkClick}
 
             />
         </div>

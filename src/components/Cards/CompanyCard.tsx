@@ -7,6 +7,7 @@ import Loader from '../common/Loader';
 import GamesTable from '../Tables/GamesTable';
 import CustomersTable from '../Tables/CustomersTable';
 import { Card, CardBody, CardHeader, Divider, Tab, Tabs } from '@nextui-org/react';
+import { useLogger } from '@/hooks/useLogger';
 
 interface CompanyDetailFormProps {
   companyId: string;
@@ -16,9 +17,11 @@ const CompanyDetailForm: React.FC<CompanyDetailFormProps> = ({companyId}) => {
     const [activeTab, setActiveTab] = useState('details');
     const[company, setCompany] = useState<CompanyEntity|null>(null);
     const filter = JSON.parse(`{"companyId":"${companyId}"}`);
+    const [linkValue, setLinkValue] = useState('');
 //getting company details
     const {companies, isLoading, error, total, fetchCompanies } = useCompanies({filter});
-    
+    //getting function for posting logs
+    const { logMessage } = useLogger();
     useEffect(() => {
 
       fetchCompanies();
@@ -31,6 +34,15 @@ const CompanyDetailForm: React.FC<CompanyDetailFormProps> = ({companyId}) => {
       }
     }, [companies]);
 
+    useEffect(() =>{
+      if (linkValue){
+          logMessage(`Link fetched: ${linkValue}`)
+      }    
+    },[linkValue]);
+    const handleLinkClick = (linkValue: string) => {
+      setLinkValue(linkValue);
+
+    };
 
     if (error) {
       return <div>Error loading {error}</div>; 
@@ -63,7 +75,8 @@ const CompanyDetailForm: React.FC<CompanyDetailFormProps> = ({companyId}) => {
                     href={company.company_link} 
                     className="text-sm font-medium text-blue-500 hover:underline" 
                     target="_blank" 
-                    rel="noopener noreferrer">
+                    rel="noopener noreferrer"
+                    onClick={()=>{handleLinkClick(company.company_link)}}>
                       {company.name}
                   </a>
               </div>

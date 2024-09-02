@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { companyRepository } from '@/entities/company/_repositories/company';
+import logger from '@/shared/utils/logger';
 
 export async function GET(request: NextRequest) {
 
@@ -11,14 +12,32 @@ export async function GET(request: NextRequest) {
     let filter: Record<string, any> = {};
 
     if (isNaN(page) || isNaN(pageSize)) {
-        return NextResponse.json({success: false, error: 'Invalid page or pageSize parameter' }, { status: 400 });
+        logger.error({
+            msg: 'Company API Error. Invalid page or pageSize parameter',
+
+        });
+        return NextResponse.json({success: false, error: 'Company API Error. Invalid page or pageSize parameter' }, { status: 400 });
     }
 
     if (filterString){
         try{
             filter = JSON.parse(filterString);
         } catch(error){
-            return NextResponse.json({success: false, error: 'Invalid json parametr' }, { status: 400 });
+
+            if (error instanceof Error) {
+                logger.error({
+                    msg: 'Company API Error. Invalid json string',
+                    error: error.message,
+                    stack: error.stack,
+                });
+                return NextResponse.json({ success: false, message: 'Company API Error. Invalid json string' }, { status: 400 });
+
+            }
+            else{
+                logger.error({msg: 'Company API Error. An unknown error occurred'});
+                return NextResponse.json({ success: false, message: 'Company API Error. An unknown error occurred' }, { status: 500 });
+            }
+
 
         }
 
@@ -37,7 +56,20 @@ export async function GET(request: NextRequest) {
 
         return NextResponse.json({ success: true, data, total });
     } catch (error) {
-        console.error('Error loading companies', error);
-        return NextResponse.json({ success: false, error: 'Failed to load companies' }, { status: 500 });
+
+
+        if (error instanceof Error) {
+            logger.error({
+                msg: 'Company API Error. Companies loading error',
+                error: error.message,
+                stack: error.stack,
+            });
+            return NextResponse.json({ success: false, message: 'Company API Error. Companies loading error'}, { status: 500 });
+
+        } else{
+                logger.error({msg: 'Company API Error. An unknown error occurred'});
+                return NextResponse.json({ success: false, message: 'Company API Error. An unknown error occurred' }, { status: 500 });
+        }
+
     }
 }

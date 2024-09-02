@@ -1,16 +1,35 @@
 import crypto from 'crypto';
+import logger from '@/shared/utils/logger';
 
 let ENCRYPTION_KEY = process.env.DATABASE_ENCRYPTION_KEY;
 const ALGORITHM = 'aes-128-ecb';
 
 export function encryptECB(data: string): string {
-    if (!ENCRYPTION_KEY){
-        ENCRYPTION_KEY = 'SIXTEEN BYTE KEY';
+    
+    try{
+        if (!ENCRYPTION_KEY){
+            ENCRYPTION_KEY = 'SIXTEEN BYTE KEY';
+        }
+        const cipher = crypto.createCipheriv(ALGORITHM, Buffer.from(ENCRYPTION_KEY, 'utf8'), null);
+        let encrypted = cipher.update(data, 'utf8', 'hex');
+        encrypted += cipher.final('hex');
+        return encrypted;
     }
-    const cipher = crypto.createCipheriv(ALGORITHM, Buffer.from(ENCRYPTION_KEY, 'utf8'), null);
-    let encrypted = cipher.update(data, 'utf8', 'hex');
-    encrypted += cipher.final('hex');
-    return encrypted;
+    catch(error: unknown) {
+        if (error instanceof Error) {
+            logger.error( {
+                msg: 'Error encrypting data',
+                value: data,
+                error: error.message,
+            });
+        }
+        else{
+
+            logger.error('An unknown error occurred during encrypting');
+        } 
+        return data;
+
+    }   
 }
 
 export function decryptECB(encryptedData: string): string {
@@ -29,8 +48,19 @@ export function decryptECB(encryptedData: string): string {
             decrypted += decipher.final('utf8');
             return decrypted;
         } 
-        catch (error) {
-            console.error('Error decrypting data as hex', error);
+        catch (error:unknown) {
+            if (error instanceof Error) {
+                logger.error( {
+                    msg: 'Error decrypting data as hex',
+                    value: encryptedData,
+                    error: error.message,
+                });
+            }
+            else{
+
+                logger.error('An unknown error occurred during decrypting ECB');
+            } 
+            
         } 
 
         try {
@@ -39,10 +69,59 @@ export function decryptECB(encryptedData: string): string {
             decrypted += decipher.final('utf8');
             return decrypted;
         } 
-        catch (error) {
-            console.error('Error decrypting data as base64', error);
-            return encryptedData;
+        catch (error:unknown) {
+            if (error instanceof Error) {
+                logger.error({
+                    msg: 'Error decrypting data as base64',
+                    value: encryptedData,
+                    error: error.message,
+                });
+            }else{
+
+                logger.error('An unknown error occurred during decrypting ECB');
+            }
+            return encryptedData; 
         } 
+
+}
+export function encryptCBC(data: string):string{
+
+    if (!data) {
+        return data;
+    }
+    let cbcEnctyptionKey = '';
+    if(ENCRYPTION_KEY){
+        const cbcEnctyptionKey = ENCRYPTION_KEY
+    }
+    const secretKey = hashSecretKey(cbcEnctyptionKey)
+    try{
+        console.log('secretKey', secretKey)
+        console.log('cbcEnctyptionKey', cbcEnctyptionKey)
+        console.log('data', data)
+        const cipher = crypto.createCipheriv('aes-256-cbc', secretKey, secretKey.slice(0,16));
+        
+        let encrypted = cipher.update(data, 'utf8', 'base64');
+        encrypted += cipher.final('base64');
+
+        console.log("encrypted", encrypted);
+        
+        return encrypted;
+
+    }catch(error:unknown){
+        if (error instanceof Error) {
+            logger.error( {
+                msg: 'Error encrypting data',
+                value: data,
+                error: error.message,
+            });
+        }
+        else{
+
+            logger.error('An unknown error occurred during encrypting');
+        } 
+        return data;
+
+    }
 
 }
 
@@ -50,9 +129,9 @@ export function decryptCBC(encryptedData: string): string {
     if (!encryptedData) {
         return encryptedData;
     }
-    const cbcEnctyptionKey = '';
+    let cbcEnctyptionKey = '';
     if(ENCRYPTION_KEY){
-        const cbcEnctyptionKey = ENCRYPTION_KEY
+        cbcEnctyptionKey = ENCRYPTION_KEY
     }
 
     const secretKey = hashSecretKey(cbcEnctyptionKey)
@@ -65,10 +144,20 @@ export function decryptCBC(encryptedData: string): string {
         decryptedData = Buffer.concat([decryptedData, decipher.final()]);
         
         return decryptedData.toString('utf8');
-    } catch (err) {
-        console.error(err);
-        return encryptedData;
-    }
+    } 
+    catch (error:unknown) {
+        if (error instanceof Error) {
+            logger.error({
+                msg: 'Error decrypting data',
+                value: encryptedData,
+                error: error.message,
+            });
+        }else{
+
+            logger.error('An unknown error occurred during decrypting CBC');
+        }
+        return encryptedData; 
+    } 
 }
 
 function hashSecretKey(secretKey: string): Buffer {
