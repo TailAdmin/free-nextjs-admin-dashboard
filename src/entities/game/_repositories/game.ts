@@ -1,7 +1,6 @@
 import { dbClient } from "@/shared/lib/db";
 import { GameEntity } from "../_domain/types";
-import { Json } from "@google-cloud/bigquery";
-import { convertTimeStampToLocaleDateString } from "@/shared/utils/commonUtils";
+import { convertDateStringToTimeStampInSeconds, convertTimeStampToLocaleDateString } from "@/shared/utils/commonUtils";
 import logger from "@/shared/utils/logger";
 
 export class GameRepository {
@@ -31,7 +30,8 @@ export class GameRepository {
             modified_at: convertTimeStampToLocaleDateString(data.modified_at),
             deleted_at: convertTimeStampToLocaleDateString(data.deleted_at),
             archived_at: convertTimeStampToLocaleDateString(data.archived_at),
-            company_link:`${process.env.AGHANIM_DASHBOARD_URL}/company/${data.company_id}`
+            company_link:`${process.env.AGHANIM_DASHBOARD_URL}/company/${data.company_id}`,
+            game_link:`${process.env.AGHANIM_DASHBOARD_URL}/company/${data.company_id}/${data.id}`
 
 
         }
@@ -82,6 +82,10 @@ export class GameRepository {
                     include: {
                         company: true
                     },
+
+                    orderBy: {
+                        created_at: 'desc',
+                      }
                 }),
                 dbClient.aghanim_game.count({
                     where: whereCondition,
@@ -89,6 +93,7 @@ export class GameRepository {
 
 
             ])
+
             const data = rawData.map(this.mapToGameType)
 
             return {data, total };
@@ -119,13 +124,21 @@ export class GameRepository {
                             {'name': {contains: filter['selectedFields'], mode:'insensitive'}}
                             ]
         }
+
+        if (filter['dateRange'] && filter['dateRange'][0]){
+
+            whereCondition['created_at'] = {
+                gte: convertDateStringToTimeStampInSeconds(filter['dateRange'][0]), 
+                lte: convertDateStringToTimeStampInSeconds(filter['dateRange'][1], 'T23:59:59Z') , 
+            };
+        }
+
         if (filter["companyId"]){
 
             whereCondition["company_id"] = filter["companyId"]
                 
                 
             
-
             return this.getGamesByCompany(page, pageSize, whereCondition);
         }else if(filter["customerId"]){
             whereCondition["customers"] = {
@@ -138,6 +151,7 @@ export class GameRepository {
 
             return this.getGamesByCustomer(page, pageSize, whereCondition);
         }else{
+
             return this.getGames(page, pageSize, whereCondition);
         }
         
@@ -166,6 +180,7 @@ export class GameRepository {
                     company_id: {
                         in: companyIdsString
                     },
+                    created_at: whereCondition['created_at'],
                     'OR': whereCondition['OR']
                 },
                 include: {
@@ -180,6 +195,7 @@ export class GameRepository {
                     company_id: {
                         in: companyIdsString
                     },
+                    created_at: whereCondition['created_at'],
                     'OR': whereCondition['OR']
                 },
                 

@@ -95,15 +95,13 @@ export function encryptCBC(data: string):string{
     }
     const secretKey = hashSecretKey(cbcEnctyptionKey)
     try{
-        console.log('secretKey', secretKey)
-        console.log('cbcEnctyptionKey', cbcEnctyptionKey)
-        console.log('data', data)
+ 
         const cipher = crypto.createCipheriv('aes-256-cbc', secretKey, secretKey.slice(0,16));
         
         let encrypted = cipher.update(data, 'utf8', 'base64');
         encrypted += cipher.final('base64');
 
-        console.log("encrypted", encrypted);
+
         
         return encrypted;
 

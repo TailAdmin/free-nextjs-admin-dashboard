@@ -2,6 +2,7 @@ import { useCallback, useState } from "react";
 import { GameEntity } from '@/entities/game/_domain/types';
 import { DataFetchParams } from '@/types/dataHooksTypes';
 
+
 export const useGames = ({page=1, pageSize=10, filter = {}}: DataFetchParams ) => {
     const [games, setGames] = useState<GameEntity[]>([]);
     const [isLoading, setIsLoading] = useState(true);

@@ -1,7 +1,7 @@
 import { dbClient } from "@/shared/lib/db";
 import { CustomerEntity } from "../_domain/types";
 import { decryptCBC, encryptCBC } from "@/shared/utils/security";
-import {convertTimeStampToLocaleDateString} from "@/shared/utils/commonUtils"
+import {convertDateStringToTimeStampInSeconds, convertTimeStampToLocaleDateString} from "@/shared/utils/commonUtils"
 import logger from "@/shared/utils/logger";
 
 export class CustomerRepository {
@@ -70,7 +70,11 @@ export class CustomerRepository {
                 dbClient.aghanim_customer.findMany({
                     skip: skip,
                     take: take,
-                    where: whereCondition
+                    where: whereCondition,
+                    orderBy: {
+                        created_at: 'desc', 
+                      }
+
                 }),
                 dbClient.aghanim_customer.count({where: whereCondition,}),
 
@@ -108,6 +112,18 @@ export class CustomerRepository {
                             {'email': {contains: encryptCBC(filter['selectedFields']), mode:'insensitive'}}
                             ]
         }
+
+
+        if (filter['dateRange'] && filter['dateRange'][0]){
+
+            whereCondition['created_at'] = {
+                gte: convertDateStringToTimeStampInSeconds(filter['dateRange'][0]), 
+                lte: convertDateStringToTimeStampInSeconds(filter['dateRange'][1],  'T23:59:59Z') , 
+            };
+        }
+
+    
+
         if (filter["companyId"]){
 
             whereCondition["companies"] = {
@@ -117,7 +133,6 @@ export class CustomerRepository {
                 }
                 
             }
-
 
             return this.getCustomersByCompany(page, pageSize, whereCondition);
         }else{

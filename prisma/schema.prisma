@@ -208,6 +208,8 @@ model aghanim_game {
   login_settings Json?  @db.Json
   locale_default String @default("en") @db.VarChar
   archived_at    Float?
+
+  users     aghanim_user[]
   company   aghanim_company @relation(fields: [company_id], references: [id])
 
   @@index([id], map: "ix_aghanim_game_id")
@@ -766,6 +768,8 @@ model aghanim_user {
   archived_at       Float?
   last_login_at     Int?
   last_verified_at  Int?
+
+  game   aghanim_game @relation(fields: [game_id], references: [id])
 
   @@index([email], map: "ix_aghanim_user_email")
   @@index([game_id], map: "ix_aghanim_user_game_id")

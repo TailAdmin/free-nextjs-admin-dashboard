@@ -1,6 +1,6 @@
 import { dbClient } from "@/shared/lib/db";
 import { CompanyEntity } from "../_domain/types";
-import {convertTimeStampToLocaleDateString} from "@/shared/utils/commonUtils"
+import {convertDateStringToTimeStampInSeconds, convertTimeStampToLocaleDateString} from "@/shared/utils/commonUtils"
 import logger from "@/shared/utils/logger";
 
 export class CompanyRepository {
@@ -73,6 +73,9 @@ export class CompanyRepository {
                     skip: skip,
                     take: take,
                     where: whereCondition,
+                    orderBy: {
+                        created_at: 'desc', 
+                      }
                 }),
                 dbClient.aghanim_company.count({where: whereCondition,})    
             ])
@@ -107,6 +110,15 @@ export class CompanyRepository {
                             {'name': {contains: filter['selectedFields'], mode:'insensitive'}}
                             ]
         }
+
+        if (filter['dateRange'] && filter['dateRange'][0]){
+
+            whereCondition['created_at'] = {
+                gte: convertDateStringToTimeStampInSeconds(filter['dateRange'][0]), 
+                lte: convertDateStringToTimeStampInSeconds(filter['dateRange'][1], 'T23:59:59Z') , 
+            };
+        }
+
         if (filter["customerId"]){
 
             whereCondition["customers"] = {
@@ -135,7 +147,10 @@ export class CompanyRepository {
                 dbClient.aghanim_company.findMany({
                     skip: skip,
                     take: take,
-                    where: whereCondition
+                    where: whereCondition,
+                    orderBy: {
+                        created_at: 'desc', 
+                      }
                 }),
                 dbClient.aghanim_company.count({
                     where: whereCondition,

@@ -36,8 +36,8 @@ interface BaseTableProps<T> {
     onSetDateRangeValue?: (dateRangeValue: string[]|null) => void;
     onSetPageNumber(pageNumber: number): void;
     onSetPageSize(pageSize: number): void;
-    onFilterChange: (filterValue: string) => void;
-    onFilterSubmit: () => void;
+    onFilterChange?: (filterValue: string) => void;
+    onFilterSubmit?: () => void;
     onLinkClick: (link:string) => void;
  
 }
@@ -92,7 +92,9 @@ const BaseTableNextUI = <T extends Record<string, any>>({
     }
 // clear filter values in the parent component
     const handleClear=() => {
-        onFilterChange('');
+        if (onFilterChange){
+            onFilterChange('');
+        }
         if(isDateRange && onSetDateRangeValue) {
             onSetDateRangeValue(null);
         }
@@ -150,12 +152,12 @@ const BaseTableNextUI = <T extends Record<string, any>>({
     const topContent = React.useMemo(() => {
         return (
             <>
-                <div className="flex flex-col gap-4">
+                <div className="flex flex-col gap-4 ">
                     <div className="flex justify-between items-center">
-                        <div className="flex justify-left gap-3 items-center m-4"> 
+                        {/* <div className="flex justify-berween gap-3  items-center m-2"> 
                             <Input
                                 isClearable
-                                className="w-full sm:max-w-[90%]"
+                                className="w-full sm:max-w-[100%]"
                                 placeholder="Search by text..."
                                 startContent={<SearchIcon />}
                                 value={filterValue}
@@ -178,7 +180,7 @@ const BaseTableNextUI = <T extends Record<string, any>>({
                                 </div>
                             )}
                             <Button
-                                className={`bg-${"default"}-500 text-white`} 
+                                className={`bg-${"default"}-500 text-white ml-2`} 
                                 size="md"
                                 onClick={onFilterSubmit}
                             >   
@@ -190,9 +192,33 @@ const BaseTableNextUI = <T extends Record<string, any>>({
                             >
                                 Clean
                             </Button>
+                        </div> */}
+                        
+                    </div>
+
+                    
+                </div>
+
+                <div className='flex w-full justify-between'>
+                    {totalPages > 0 ? (
+                        <div className='flex w-full justify-between'>
+                        <div className="flex w-full justify-center">
+                            <Pagination
+                                size='sm'
+                                isCompact
+                                showControls
+                                showShadow
+                                color="primary"
+                                page={currentPage}
+                                total={totalPages}
+                                onChange={(page) => onSetPageNumber(page)}
+                            />
                         </div>
+                        
+
+
                         <Select
-                            
+                            size='sm'
                             defaultSelectedKeys={[String(pageSize)]}
                             onSelectionChange={(keys) => 
 
@@ -202,28 +228,13 @@ const BaseTableNextUI = <T extends Record<string, any>>({
                                     }
 
                             }
-                            className="w-auto min-w-[80px] m-4"
+                            className="w-auto min-w-[80px]"
                         >
                             <SelectItem key="10">10</SelectItem>
                             <SelectItem key="20">20</SelectItem>
                             <SelectItem key="50">50</SelectItem>
                             <SelectItem key="100">100</SelectItem>
                         </Select>
-                    </div>
-                </div>
-
-                <div>
-                    {totalPages > 0 ? (
-                        <div className="flex w-full justify-center">
-                            <Pagination
-                                isCompact
-                                showControls
-                                showShadow
-                                color="primary"
-                                page={currentPage}
-                                total={totalPages}
-                                onChange={(page) => onSetPageNumber(page)}
-                            />
                         </div>
                         ) : null}
                 </div>

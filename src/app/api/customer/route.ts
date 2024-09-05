@@ -10,8 +10,6 @@ export async function GET(request: NextRequest) {
     const pageSize = Number(searchParams.get('pageSize')) || 10;
     const filterString = searchParams.get('filter');
 
-    console.log('filterString', filterString);
-
     if (isNaN(page) || isNaN(pageSize)) {
 
         logger.error({
@@ -24,7 +22,6 @@ export async function GET(request: NextRequest) {
     if (filterString){
         try{
             filter = JSON.parse(filterString);
-            console.log('parsed filter',filter);
         } catch(error){
 
             if (error instanceof Error) {

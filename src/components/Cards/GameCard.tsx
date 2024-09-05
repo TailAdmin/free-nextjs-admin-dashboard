@@ -1,26 +1,25 @@
 'use client';
 
 import React, { useEffect, useState } from 'react';
-import { CompanyEntity } from "@/entities/company/_domain/types";
+import { GameEntity } from "@/entities/game/_domain/types";
 import { useDataFetcher } from '@/hooks/useDataFetcher';
 import Loader from '../common/Loader';
-import GamesTable from '../Tables/GamesTable';
 import CustomersTable from '../Tables/CustomersTable';
 import { Card, CardBody, CardHeader, Divider, Tab, Tabs } from '@nextui-org/react';
 import { useLogger } from '@/hooks/useLogger';
 import { API_ENDPOINTS } from '@/shared/config/apiEndpoints';
 
-interface CompanyDetailFormProps {
-  companyId: string;
+interface GameDetailFormProps {
+  gameId: string;
 }
 
-const CompanyDetailForm: React.FC<CompanyDetailFormProps> = ({companyId}) => {
+const GameDetailForm: React.FC<GameDetailFormProps> = ({gameId}) => {
     const [activeTab, setActiveTab] = useState('details');
-    const[company, setCompany] = useState<CompanyEntity|null>(null);
-    const filter = JSON.parse(`{"companyId":"${companyId}"}`);
+    const[game, setGame] = useState<GameEntity|null>(null);
+    const filter: any = JSON.parse(`{"gameId":"${gameId}"}`);
     const [linkValue, setLinkValue] = useState('');
-//getting company details
-    const {data, isLoading, error, total, fetchData } = useDataFetcher<CompanyEntity>({endpoint: API_ENDPOINTS.COMPANIES, filter});
+//getting game details
+    const {data, isLoading, error, total, fetchData } = useDataFetcher<GameEntity>({endpoint: API_ENDPOINTS.GAMES, filter});
     //getting function for posting logs
     const { logMessage } = useLogger();
     useEffect(() => {
@@ -31,7 +30,7 @@ const CompanyDetailForm: React.FC<CompanyDetailFormProps> = ({companyId}) => {
 
     useEffect(() => {
       if (data.length > 0) {
-        setCompany(data[0]);
+        setGame(data[0]);
       }
     }, [data]);
 
@@ -49,7 +48,7 @@ const CompanyDetailForm: React.FC<CompanyDetailFormProps> = ({companyId}) => {
       return <div>Error loading {error}</div>; 
     }
 
-    if (!company) {
+    if (!game) {
     return null;
     }
     if (isLoading) {
@@ -67,66 +66,92 @@ const CompanyDetailForm: React.FC<CompanyDetailFormProps> = ({companyId}) => {
             <div> 
               <div className="flex items-center mb-4">
                 <label className="block text-md font-medium mr-4">ID:</label>
-                <p className="text-sm font-medium">{company.id}</p>
+                <p className="text-sm font-medium">{game.id}</p>
               </div>
 
               <div className="flex items-center mb-4">
                 <label className="block text-md font-medium mr-4">Name:</label>
                   <a 
-                    href={company.company_link} 
+                    href={game.game_link} 
                     className="text-sm font-medium text-blue-500 hover:underline" 
                     target="_blank" 
                     rel="noopener noreferrer"
-                    onClick={()=>{handleLinkClick(company.company_link)}}>
-                      {company.name}
+                    onClick={()=>{handleLinkClick(game.game_link)}}>
+                      {game.name}
                   </a>
               </div>
 
               <div className="flex items-center mb-4">
                 <label className="block text-md font-medium mr-4">URL:</label>
                   <a 
-                    href={company.url} 
+                    href={game.url} 
                     className="text-sm font-medium text-blue-500 hover:underline" 
                     target="_blank" 
                     rel="noopener noreferrer">
-                      {company.url}
+                      {game.url}
                   </a>
               </div>
 
               <div className="flex items-center mb-4">
-                <label className="block text-md font-medium mr-4">Size:</label>
-                <p className="text-sm font-medium">{company.size}</p>
+                <label className="block text-md font-medium mr-4">Description:</label>
+                <p className="text-sm font-medium">{game.description}</p>
               </div>
 
               <div className="flex items-center mb-4">
-                <label className="block text-md font-medium mr-4">Domains:</label>
-                <p className="text-sm font-medium">{company.domains}</p>
+                <label className="block text-md font-medium mr-4">Company:</label>
+                  <a 
+                    href={game.company_link} 
+                    className="text-sm font-medium text-blue-500 hover:underline" 
+                    target="_blank" 
+                    rel="noopener noreferrer">
+                      {game.company_name}
+                  </a>
               </div>
 
               <div className="flex items-center mb-4">
-                <label className="block text-md font-medium mr-4">Domains Viewer:</label>
-                <p className="text-sm font-medium">{company.viewer_domains}</p>
+                <label className="block text-md font-medium mr-4">Social Medias:</label>
+                <p className="text-sm font-medium">{game.social_medias ? JSON.stringify(game.social_medias) : ""}</p>
+              </div>
+
+              <div className="flex items-center mb-4">
+                <label className="block text-md font-medium mr-4">Game Stores:</label>
+                <p className="text-sm font-medium">{JSON.stringify(game.game_stores)}</p>
+              </div>
+
+              <div className="flex items-center mb-4">
+                <label className="block text-md font-medium mr-4">Login Type:</label>
+                <p className="text-sm font-medium">{game.login_type}</p>
+              </div>
+
+              <div className="flex items-center mb-4">
+                <label className="block text-md font-medium mr-4">Locale Default:</label>
+                <p className="text-sm font-medium">{game.locale_default}</p>
+              </div>
+
+              <div className="flex items-center mb-4">
+                <label className="block text-md font-medium mr-4">Login Settings:</label>
+                <p className="text-sm font-medium">{game.login_settings ? JSON.stringify(game.login_settings): ""}</p>
               </div>
 
               <div className="flex items-center mb-4">
                 <label className="block text-md font-medium mr-4">Created At:</label>
-                <p className="text-sm font-medium">{company.created_at}</p>
+                <p className="text-sm font-medium">{game.created_at}</p>
               </div>
 
               <div className="flex items-center mb-4">
                 <label className="block text-md font-medium mr-4">Modified At:</label>
-                <p className="text-sm font-medium">{company.modified_at}</p>
+                <p className="text-sm font-medium">{game.modified_at}</p>
               </div>
 
               <div className="flex items-center mb-4">
                 <label className="block text-md font-medium mr-4">Deleted At:</label>
-                <p className="text-sm font-medium">{company.deleted_at}</p>
+                <p className="text-sm font-medium">{game.deleted_at}</p>
               </div>
 
 
               <div className="flex items-center mb-4">
                 <label className="block text-md font-medium mr-4">Archived At:</label>
-                <p className="text-sm font-medium">{company.archived_at}</p>
+                <p className="text-sm font-medium">{game.archived_at}</p>
               </div>
 
 
@@ -136,14 +161,9 @@ const CompanyDetailForm: React.FC<CompanyDetailFormProps> = ({companyId}) => {
         case 'customers':
         return (
 
-            <CustomersTable companyId={companyId} /> 
+            <CustomersTable companyId={game.company_id} /> 
  
         );
-        case 'games':
-        return (
-
-            <GamesTable companyId={companyId} />
-        ); 
         default:
         return null;
     }
@@ -154,16 +174,16 @@ const CompanyDetailForm: React.FC<CompanyDetailFormProps> = ({companyId}) => {
     <Card className="w-full min-w-[600px]">
       <CardHeader className="flex gap-3"> 
         <div className="flex flex-col">
-          <p className="text-lg font-semibold">Company Details</p>
-          <div className="flex items-center">
-            {company.logo_url && (
+          <p className="text-lg font-semibold">Game Details</p>
+          <div className="flex items-center" >
+            {game.logo_url && (
             <img 
-              src={company.logo_url} 
-              alt={`${company.name} logo`} 
+              src={game.logo_url} 
+              alt={`${game.name} logo`} 
               className="h-6 w-auto" 
             />
             )}
-            <p className="text-lg text-default-500 ml-2" >{company.name}</p>
+            <p className="text-lg text-default-500 ml-2" >{game.name}</p>
           </div>
         </div>
 
@@ -187,17 +207,10 @@ const CompanyDetailForm: React.FC<CompanyDetailFormProps> = ({companyId}) => {
             </CardBody>
           </Card>  
         </Tab>
-        <Tab key="games" title="Games">
-          <Card>
-            <CardBody>
-              {renderTabContent()}
-            </CardBody>
-          </Card>  
-        </Tab>
       </Tabs>
     </Card>
 
   );
 };
 
-export default CompanyDetailForm;
+export default GameDetailForm;

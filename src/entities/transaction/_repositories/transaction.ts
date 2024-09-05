@@ -24,7 +24,7 @@ export class TransactionsRepository {
             user_id: data.user_id,
             company_name: companyMap[data.company_id],
             game_name: gameMap[data.game_id],
-            player_id: data.player_id,
+            player_id: decryptECB(data.player_id),
             user_name: decryptECB(data.user_name),
             player_name: decryptECB(data.player_name),
             item_id: data.item_id,
@@ -103,9 +103,9 @@ export class TransactionsRepository {
 
         }
 
-        if (filter['payment_date'] && filter['payment_date'][0] && filter['payment_date'][1]) {
-            const start = filter['payment_date'][0];
-            const end = filter['payment_date'][1];
+        if (filter['dateRange'] && filter['dateRange'][0] && filter['dateRange'][1]) {
+            const start = filter['dateRange'][0];
+            const end = filter['dateRange'][1];
             const startTS = convertDateStringToTimeStampInSeconds(start);
             const endTS = (start !== end) ? convertDateStringToTimeStampInSeconds(end) : convertDateStringToTimeStampInSeconds(end, 'T23:59:59Z'); ;
             whereCondition += ` AND payment_date >= TIMESTAMP_SECONDS(${startTS}) AND payment_date <= TIMESTAMP_SECONDS(${endTS})`;
@@ -116,6 +116,7 @@ export class TransactionsRepository {
     }
     async getTransactions(page:number, pageSize:number, whereCondition: string):Promise<{data: TransactionEntity[], total: number}> {
         try{
+
             const offset = (page - 1) * pageSize;
             const query = `
                 SELECT * from events.payments 

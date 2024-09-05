@@ -1,11 +1,13 @@
 'use client'
 
 import { useEffect, useState } from "react";
-import {useTransactions} from '@/hooks/useTransactions';
 import BaseTableNextUI from "./BaseTableNextUI";
 import { ColumnType} from "@/types/tableTypes"
 import { TransactionEntity } from "@/entities/transaction/_domain/types";
 import { useLogger } from "@/hooks/useLogger";
+import { API_ENDPOINTS } from '@/shared/config/apiEndpoints';
+import { useDataFetcher } from '@/hooks/useDataFetcher';
+import { useFilter } from "../Navbar/filter-context";
 
 const TableTransaction = () => {
 
@@ -14,13 +16,37 @@ const TableTransaction = () => {
   const [totalPages, setTotalPages] = useState(1);
   const [pageSize, setPageSize] = useState(20);
   const [filterValue, setFilterValue] = useState('');
-  const [complexFilterValue, setComplexFilterValue] = useState<Record<string, any>>();
+//  const [complexFilterValue, setComplexFilterValue] = useState<Record<string, any>>();
   const [dateRangeValue, setDateRangeValue] = useState<string[] | null>(null);
-  const { transactions, isLoading, error, total, fetchTransactions} = useTransactions({page: currentPage, pageSize: pageSize});
   const { logMessage } = useLogger();
+
+  const {complexFilterValue, setShowFilters, handleContextInit} = useFilter();
+
+  useEffect(() => {
+
+    if (setShowFilters)
+      {setShowFilters(true);}
+
+    return () => {
+      if (setShowFilters)
+        {setShowFilters(false);}
+      if (handleContextInit) {
+        handleContextInit();
+      }
+    };
+  }, [setShowFilters]);
+
+  const { data: transactions, isLoading, error, total, fetchData } = useDataFetcher<TransactionEntity>({
+    endpoint: API_ENDPOINTS.TRANSACTIONS, 
+    page: currentPage,
+    pageSize: pageSize,
+    filter: {}
+  }); 
+  
   useEffect(() =>{
 
-    fetchTransactions(complexFilterValue);
+
+    fetchData(complexFilterValue);
     setTotalPages(Math.ceil(total / pageSize));
   },[currentPage, pageSize, total, complexFilterValue])
 
@@ -50,9 +76,11 @@ const handleLinkClick = (linkValue: string) => {
       selectedFields: filterValue || "", 
       payment_date: dateRangeValue ? dateRangeValue : ["", ""] 
     };
-    setComplexFilterValue(filterFields);
+    //setComplexFilterValue(filterFields);
   
   };
+
+  
 
   const columns: ColumnType<TransactionEntity>[] = [
     { key: 'payment_number', label: 'Payment number', link_type: "external",link: 'payment_link' },
@@ -65,6 +93,7 @@ const handleLinkClick = (linkValue: string) => {
   
     { key: 'user_id', label: 'User ID' },
     { key: 'user_name', label: 'User Name' },
+    { key: 'player_id', label: 'Player ID' },
     { key: 'player_name', label: 'Player Name' },
     { key: 'item_name', label: 'Item name' },
 

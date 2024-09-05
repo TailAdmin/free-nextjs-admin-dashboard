@@ -3,10 +3,11 @@
 import React, { useEffect, useState } from 'react';
 import { CustomerEntity } from "@/entities/customer/_domain/types";
 import Loader from '../common/Loader';
-import { useCustomers } from '@/hooks/useCustomersData';
+import { useDataFetcher } from '@/hooks/useDataFetcher';
 import CompaniesTable from '../Tables/CompaniesTable';
 import GamesTable from '../Tables/GamesTable';
 import { Card, CardBody, CardHeader, Divider, Tab, Tabs } from '@nextui-org/react';
+import { API_ENDPOINTS } from '@/shared/config/apiEndpoints';
 
 interface CustomerDetailFormProps {
   customerId?: string;
@@ -16,27 +17,23 @@ interface CustomerDetailFormProps {
 const CustomerDetailForm: React.FC<CustomerDetailFormProps> = ({ customerId, companyId}) => {
     const [activeTab, setActiveTab] = useState('details');
     const[customer, setCustomer] = useState<CustomerEntity|null>(null);
-    let filter: Record<string, any> = {};
-    if (customerId){
-      filter = JSON.parse(`{"customerId":"${customerId}"}`);
-    }else if(companyId){
+    let filter: Record<string, any> = customerId ? JSON.parse(`{"customerId":"${customerId}"}`) :
+                                      companyId ?  JSON.parse(`{"companyId":"${companyId}"}`) : {}
 
-      filter = JSON.parse(`{"companyId":"${companyId}"}`);
-    } 
     //getting customer details
-    const {customers, isLoading, error, fetchCustomers} = useCustomers({filter});
+    const {data, isLoading, error, fetchData} = useDataFetcher<CustomerEntity>({endpoint: API_ENDPOINTS.CUSTOMERS, filter});
     
     useEffect(() => {
 
-            fetchCustomers();
+      fetchData();
 
     },[]);
 
     useEffect(() => {
-      if (customers.length > 0) {
-        setCustomer(customers[0]);
+      if (data.length > 0) {
+        setCustomer(data[0]);
       }
-    }, [customers]);
+    }, [data]);
 
 
     if (error ) {

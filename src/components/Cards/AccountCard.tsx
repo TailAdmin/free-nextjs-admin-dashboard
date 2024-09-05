@@ -2,13 +2,14 @@
 
 import React, { useEffect, useState } from 'react';
 import { AccountEntity } from "@/entities/account/_domain/types";
-import { useAccounts } from '@/hooks/useAccountsData';
+import { useDataFetcher } from '@/hooks/useDataFetcher';
 import Loader from '../common/Loader';
 import GamesTable from '../Tables/GamesTable';
 import CustomersTable from '../Tables/CustomersTable';
 import { Card, CardBody, CardHeader, Divider, Tab, Tabs } from '@nextui-org/react';
 import Link from 'next/link';
 import { useLogger } from '@/hooks/useLogger';
+import { API_ENDPOINTS } from '@/shared/config/apiEndpoints';
 
 interface AccountDetailFormProps {
   accountId: string;
@@ -20,22 +21,22 @@ const AccountDetailForm: React.FC<AccountDetailFormProps> = ({accountId}) => {
     const filter = JSON.parse(`{"accountId":"${accountId}"}`);
     const [linkValue, setLinkValue] = useState('');
     //getting accounts details
-    const {accounts, isLoading, error, total, fetchAccounts } = useAccounts({filter});
+    const {data, isLoading, error, total, fetchData } = useDataFetcher<AccountEntity>({endpoint: API_ENDPOINTS.ACCOUNTS ,filter});
     //getting function for posting logs
     const { logMessage } = useLogger();
     useEffect(() => {
 
 
-      fetchAccounts();
+      fetchData();
 
           
     },[]);
 
     useEffect(() => {
-      if (accounts.length > 0) {
-        setAccount(accounts[0]);
+      if (data.length > 0) {
+        setAccount(data[0]);
       }
-    }, [accounts]);
+    }, [data]);
 
 
     useEffect(() =>{

@@ -1,6 +1,6 @@
 import { dbClient } from "@/shared/lib/db";
 import { AccountEntity } from "../_domain/types";
-import {convertTimeStampToLocaleDateString} from "@/shared/utils/commonUtils"
+import {convertDateStringToTimeStampInSeconds, convertTimeStampToLocaleDateString} from "@/shared/utils/commonUtils"
 import {decryptCBC } from "@/shared/utils/security";
 import logger from '@/shared/utils/logger';
 
@@ -102,6 +102,9 @@ export class AccountRepository {
                     skip: skip,
                     take: take,
                     where: whereCondition,
+                    orderBy: {
+                        created_at: 'desc', 
+                      }
                 }),
                 dbClient.aghanim_account.count({where: whereCondition,})    
             ])
@@ -155,6 +158,14 @@ export class AccountRepository {
                             {'company_id': {contains: filter['selectedFields'], mode:'insensitive'}}
                             ]
         }
+        if (filter['dateRange'] && filter['dateRange'][0]){
+
+            whereCondition['created_at'] = {
+                gte: convertDateStringToTimeStampInSeconds(filter['dateRange'][0]), 
+                lte: convertDateStringToTimeStampInSeconds(filter['dateRange'][1], 'T23:59:59Z') , 
+            };
+        }
+
 
         return this.getAccounts(page, pageSize, whereCondition);
         

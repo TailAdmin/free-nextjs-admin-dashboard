@@ -1,11 +1,13 @@
 'use client';
 
 import React, { useState, useEffect } from 'react';
-import { useGames } from '@/hooks/useGamesData';
 import BaseTableNextUI from './BaseTableNextUI';
 import {ColumnType} from "@/types/tableTypes"
 import { GameEntity } from '@/entities/game/_domain/types';
 import { useLogger } from '@/hooks/useLogger';
+import { API_ENDPOINTS } from '@/shared/config/apiEndpoints';
+import { useDataFetcher } from '@/hooks/useDataFetcher';
+import { useFilter } from '../Navbar/filter-context';
 
 interface GamesTableProps {
     customerId?: string;
@@ -18,7 +20,10 @@ const GamesTable: React.FC<GamesTableProps> = ({ customerId, companyId }) => {
     const [totalPages, setTotalPages] = useState(1);
     const[pageSize, setPageSize] = useState(20);
     const [filterValue, setFilterValue] = useState('');
-    const [complexFilterValue, setComplexFilterValue] = useState<Record<string, any>>();
+    //const [complexFilterValue, setComplexFilterValue] = useState<Record<string, any>>();
+    const [dateRangeValue, setDateRangeValue] = useState<string[] | null>(null);
+    
+    const {complexFilterValue, setShowFilters, handleContextInit} = useFilter();
     let filter: any = {};
     
     if(companyId){
@@ -26,12 +31,35 @@ const GamesTable: React.FC<GamesTableProps> = ({ customerId, companyId }) => {
     }else if(customerId){
         filter = JSON.parse(`{"customerId": "${customerId}"}`);
     }
-    const { games, isLoading, error, total, fetchGames } = useGames({page: currentPage, pageSize: pageSize, filter: filter});
+    const { data: games, isLoading, error, total, fetchData } = useDataFetcher<GameEntity>({
+        endpoint: API_ENDPOINTS.GAMES, 
+        page: currentPage,
+        pageSize: pageSize,
+        filter: filter
+    });    
     const { logMessage } = useLogger();
+ 
+    // settings for global filter context
     useEffect(() => {
-        fetchGames(complexFilterValue);
-        setTotalPages(Math.ceil(total / pageSize));
-    }, [currentPage, pageSize, total, complexFilterValue]);
+
+        if (setShowFilters)
+            {setShowFilters(true);}
+
+        return () => {
+            if (setShowFilters)
+            {setShowFilters(false);}
+            if (handleContextInit) {
+                handleContextInit();
+            }
+        };
+        }, [setShowFilters]);
+
+    useEffect(() => {
+            fetchData(complexFilterValue);
+            setTotalPages(Math.ceil(total / pageSize));
+        }, [currentPage, pageSize, total, complexFilterValue]);
+
+
 
     useEffect(() =>{
         if (linkValue){
@@ -45,7 +73,12 @@ const GamesTable: React.FC<GamesTableProps> = ({ customerId, companyId }) => {
     
     const handleFilterSubmit = () => {
         setCurrentPage(1); 
-        setComplexFilterValue(filterValue ? {"selectedFields": filterValue} :{"selectedFields": ""})
+        const filterFields = {
+            selectedFields: filterValue || "", 
+            created_at: dateRangeValue ? dateRangeValue : ["", ""] 
+        };   
+        //setComplexFilterValue(filterFields);
+        
 
     };
 
@@ -53,15 +86,15 @@ const GamesTable: React.FC<GamesTableProps> = ({ customerId, companyId }) => {
         setLinkValue(linkValue);
     };
     
+    const handleDateRangeChange = (dateRangeValue: string[]|null) => {
+        setDateRangeValue(dateRangeValue)
+    };
 
     const columns: ColumnType<GameEntity>[] = [
         { key: 'name', label: 'Name' },
-        { key: 'description', label: 'Description' },
-        { key: 'url', label: 'Url', link_type: 'external', link: 'url' },
         { key: 'company_name', label: 'Company name', link_type: 'external',link: 'company_link' },
-        { key: 'login_type', label: 'Login type' },
         { key: 'created_at', label: 'Created at' },
-        { key: 'modified_at', label: 'Modified at' },
+
 
     ];
 
@@ -76,11 +109,15 @@ const GamesTable: React.FC<GamesTableProps> = ({ customerId, companyId }) => {
                 isLoading={isLoading}
                 error={error}
                 filterValue={filterValue}
+                routeName='/game-card/'
                 onSetPageNumber={setCurrentPage}
                 onSetPageSize={setPageSize}
                 onFilterChange={handleFilterChange}
                 onFilterSubmit={handleFilterSubmit}
                 onLinkClick={handleLinkClick}
+                isDateRange={true}
+                dateRangeValue={dateRangeValue}
+                onSetDateRangeValue={handleDateRangeChange}
 
             />
         </div>

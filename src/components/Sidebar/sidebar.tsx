@@ -1,6 +1,5 @@
 import React from "react";
 import { Sidebar } from "./sidebar.styles";
-import { Avatar, Tooltip } from "@nextui-org/react";
 import { HomeIcon } from "../Icons/Sidebar/home-icon";
 import { PaymentsIcon } from "../Icons/Sidebar/payments-icon";
 import { CustomersIcon } from "../Icons/Sidebar/customers-icon";
@@ -13,6 +12,8 @@ import { FilterIcon } from "../Icons/Sidebar/filter-icon";
 import { useSidebarContext } from "../Layouts/layout-context";
 import { usePathname } from "next/navigation";
 import { AccountsIcon } from "../Icons/Sidebar/accounts-icon";
+import { GameIcon } from "../Icons/Sidebar/game-icon";
+import { PlayerIcon } from "../Icons/Sidebar/player-icon";
 
 export const SidebarWrapper = () => {
   const pathname = usePathname();
@@ -60,18 +61,31 @@ export const SidebarWrapper = () => {
                 icon={<CustomersIcon />}
                 href="/customers"
             />
-              <SidebarItem
-                isActive={pathname === "/companies"}
-                title="Companies"
-                icon={<CompanyIcon />}
-                href="/companies"
+            <SidebarItem
+              isActive={pathname === "/companies"}
+              title="Companies"
+              icon={<CompanyIcon />}
+              href="/companies"
+            />
+            <SidebarItem
+                isActive={pathname === "/players"}
+                title="Players"
+                icon={<PlayerIcon />}
+                href="/players"
               />
-              <SidebarItem
-                isActive={pathname === "/transactions"}
-                title="Transactions"
-                icon={<PaymentsIcon />}
-                href="/transactions"
+            <SidebarItem
+                isActive={pathname === "/games"}
+                title="Games"
+                icon={<GameIcon />}
+                href="/games"
               />
+
+            <SidebarItem
+              isActive={pathname === "/transactions"}
+              title="Transactions"
+              icon={<PaymentsIcon />}
+              href="/transactions"
+            />
 
               {/* <SidebarItem
                 isActive={pathname === "/reports"}
