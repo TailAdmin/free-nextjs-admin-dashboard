@@ -44,7 +44,7 @@ export function decryptECB(encryptedData: string): string {
         return encryptedData;
     }
         try {
-            const decipher = crypto.createDecipheriv(ALGORITHM, Buffer.from(ENCRYPTION_KEY, 'utf8'), null);
+            const decipher = crypto.createDecipheriv('aes-128-ecb', Buffer.from(ENCRYPTION_KEY, 'utf8'), null);
             let decrypted = decipher.update(encryptedData, 'hex', 'utf8');
             decrypted += decipher.final('utf8');
             return decrypted;
@@ -65,7 +65,7 @@ export function decryptECB(encryptedData: string): string {
         } 
 
         try {
-            const decipher = crypto.createDecipheriv(ALGORITHM, Buffer.from(ENCRYPTION_KEY, 'utf8'), null);
+            const decipher = crypto.createDecipheriv('aes-128-ecb', Buffer.from(ENCRYPTION_KEY, 'utf8'), null);
             let decrypted = decipher.update(encryptedData, 'base64', 'utf8');
             decrypted += decipher.final('utf8');
             return decrypted;
