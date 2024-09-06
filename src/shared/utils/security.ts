@@ -91,7 +91,7 @@ export function encryptCBC(data: string):string{
     }
     let cbcEnctyptionKey = '';
     if(ENCRYPTION_KEY){
-        const cbcEnctyptionKey = ENCRYPTION_KEY
+        cbcEnctyptionKey = ENCRYPTION_KEY
     }
     const secretKey = hashSecretKey(cbcEnctyptionKey)
     try{
@@ -146,7 +146,7 @@ export function decryptCBC(encryptedData: string): string {
     catch (error:unknown) {
         if (error instanceof Error) {
             logger.error({
-                msg: 'Error decrypting data',
+                msg: 'Error CBC decrypting data',
                 value: encryptedData,
                 error: error.message,
             });
@@ -162,6 +162,8 @@ function hashSecretKey(secretKey: string): Buffer {
     const hash = crypto.createHash('sha256');   
     
     hash.update(secretKey);
+    const hashKey = hash.digest()
+    console.log("hash length:",hashKey.length)
     
-    return hash.digest();
+    return hashKey;
 }
