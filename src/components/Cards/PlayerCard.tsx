@@ -12,6 +12,17 @@ interface PlayerDetailFormProps {
   userId: string;
 }
 
+interface PlayerAttributes {
+  level: number;
+  saved_ach: boolean;
+  saved_card: boolean;
+  appsflyer_id: string | null;
+  appsflyer_meta: string | null;
+  appsflyer_app_id: string | null;
+  hard_currency_count: number;
+  soft_currency_count: number;
+}
+
 const GameDetailForm: React.FC<PlayerDetailFormProps> = ({userId}) => {
     const [activeTab, setActiveTab] = useState('details');
     const[player, setPlayer] = useState<UserEntity|null>(null);
@@ -57,6 +68,8 @@ const GameDetailForm: React.FC<PlayerDetailFormProps> = ({userId}) => {
     const handleTabChange = (key: any) => {
       setActiveTab(key); 
     };
+
+
     // tabs rendering
     const renderTabContent = () => {
     switch (activeTab) {
@@ -64,24 +77,31 @@ const GameDetailForm: React.FC<PlayerDetailFormProps> = ({userId}) => {
         return (
             <div> 
               <div className="flex items-center mb-4">
-                <label className="block text-md font-medium mr-4">ID:</label>
+                <label className="block text-md font-medium mr-4">User ID:</label>
                 <p className="text-sm font-medium">{player.id}</p>
-              </div>
-
-              <div className="flex items-center mb-4">
-                <label className="block text-md font-medium mr-4">Name:</label>
-                <p className="text-sm font-medium">{player.name}</p>
-              </div>
-
-              <div className="flex items-center mb-4">
-                <label className="block text-md font-medium mr-4">E-mail:</label>
-                <p className="text-sm font-medium">{player.email}</p>
               </div>
 
               <div className="flex items-center mb-4">
                 <label className="block text-md font-medium mr-4">Player ID:</label>
                 <p className="text-sm font-medium">{player.player_id}</p>
               </div>
+
+              <div className="flex items-center mb-4">
+                <label className="block text-md font-medium mr-4">User Name:</label>
+                <p className="text-sm font-medium">{player.name}</p>
+              </div>
+
+              <div className="flex items-center mb-4">
+                <label className="block text-md font-medium mr-4">Email:</label>
+                <p className="text-sm font-medium">{player.email}</p>
+              </div>
+
+              <div className="flex items-center mb-4">
+                <label className="block text-md font-medium mr-4">Country:</label>
+                <p className="text-sm font-medium">{player.country}</p>
+              </div>  
+
+
 
               <div className="flex items-center mb-4">
                 <label className="block text-md font-medium mr-4">Game:</label>
@@ -107,31 +127,10 @@ const GameDetailForm: React.FC<PlayerDetailFormProps> = ({userId}) => {
                   </a>
               </div>
 
-
-              <div className="flex items-center mb-4">
-                <label className="block text-md font-medium mr-4">Sub:</label>
-                <p className="text-sm font-medium">{player.sub}</p>
-              </div>  
-
-              <div className="flex items-center mb-4">
-                <label className="block text-md font-medium mr-4">Country:</label>
-                <p className="text-sm font-medium">{player.country}</p>
-              </div>  
-
               <div className="flex items-center mb-4">
                 <label className="block text-md font-medium mr-4">Banned:</label>
                 <p className="text-sm font-medium">{player.banned}</p>
               </div>   
-
-              <div className="flex items-center mb-4">
-                <label className="block text-md font-medium mr-4">Attributes:</label>
-                <p className="text-sm font-medium">{JSON.stringify(player.attributes)}</p>
-              </div>  
-
-              <div className="flex items-center mb-4">
-                <label className="block text-md font-medium mr-4">Custom Attributes:</label>
-                <p className="text-sm font-medium">{JSON.stringify(player.custom_attributes)}</p>
-              </div> 
 
               <div className="flex items-center mb-4">
                 <label className="block text-md font-medium mr-4">Last Login At:</label>
@@ -168,6 +167,75 @@ const GameDetailForm: React.FC<PlayerDetailFormProps> = ({userId}) => {
 
             </div>  
         );
+        case 'attributes':
+          return(
+            <div> 
+              <div className="flex items-center mb-4">
+                <label className="block text-md font-medium mr-4">Saved Bank Account:</label>
+                <p className="text-sm font-medium">
+                  {player.attributes && (player.attributes as unknown as PlayerAttributes).saved_ach
+                    ? (player.attributes as unknown as PlayerAttributes).saved_ach
+                    : "false"}
+                </p>
+              </div>
+              <div className="flex items-center mb-4">
+                <label className="block text-md font-medium mr-4">Saved Card:</label>
+                <p className="text-sm font-medium">
+                  {player.attributes && (player.attributes as unknown as PlayerAttributes).saved_card
+                    ? (player.attributes as unknown as PlayerAttributes).saved_card
+                    : "false"}
+                </p>
+              </div>
+
+              <div className="flex items-center mb-4">
+                <label className="block text-md font-medium mr-4">Soft Currency Count:</label>
+                <p className="text-sm font-medium">
+                  {player.attributes !== null && (player.attributes as unknown as PlayerAttributes).soft_currency_count !==null
+                    ? (player.attributes as unknown as PlayerAttributes).soft_currency_count
+                    : "false"}
+                </p>
+              </div>
+              <div className="flex items-center mb-4">
+                <label className="block text-md font-medium mr-4">Hard Currency Count:</label>
+            
+                <p className="text-sm font-medium">
+                  {player.attributes !== null && (player.attributes as unknown as PlayerAttributes).hard_currency_count !== null
+                    ? (player.attributes as unknown as PlayerAttributes).hard_currency_count
+                    : "No data"}
+                </p>
+
+              
+              </div>
+              <div className="flex items-center mb-4">
+                <label className="block text-md font-medium mr-4">Level:</label>
+                <p className="text-sm font-medium">
+                  {player.attributes !==null && (player.attributes as unknown as PlayerAttributes).level !==null
+                    ? (player.attributes as unknown as PlayerAttributes).level
+                    : "false"}
+                </p>
+              </div>
+              <div className="flex items-center mb-4">
+                <label className="block text-md font-medium mr-4">Appsflyer ID:</label>
+                <p className="text-sm font-medium">
+                  {player.attributes !==null && (player.attributes as unknown as PlayerAttributes).appsflyer_id !==null
+                    ? (player.attributes as unknown as PlayerAttributes).appsflyer_id
+                    : "false"}
+                </p>
+              </div>
+              <div className="flex items-center mb-4">
+                <label className="block text-md font-medium mr-4">Appsflyer App ID:</label>
+                <p className="text-sm font-medium">
+                  {player.attributes !==null && (player.attributes as unknown as PlayerAttributes).appsflyer_app_id !==null
+                    ? (player.attributes as unknown as PlayerAttributes).appsflyer_app_id
+                    : "false"}
+                </p>
+              </div>
+
+            </div>  
+
+            
+
+          );
 
         default:
         return null;
@@ -199,6 +267,13 @@ const GameDetailForm: React.FC<PlayerDetailFormProps> = ({userId}) => {
         className='mt-2'
       >
         <Tab key="details" title="Details">
+          <Card>
+            <CardBody>
+              {renderTabContent()}
+            </CardBody>
+          </Card>  
+        </Tab>
+        <Tab key="attributes" title="Attributes">
           <Card>
             <CardBody>
               {renderTabContent()}
