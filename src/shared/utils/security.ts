@@ -39,7 +39,7 @@ export function decryptECB(encryptedData: string): string {
     if (!ENCRYPTION_KEY){
         ENCRYPTION_KEY = 'SIXTEEN BYTE KEY';
     }
-    console.log('ENCRYPTION_KEY ECB', ENCRYPTION_KEY)
+
     if (encryptedData === '') {
         return encryptedData;
     }
@@ -133,12 +133,11 @@ export function decryptCBC(encryptedData: string): string {
         cbcEnctyptionKey = ENCRYPTION_KEY
     }
 
-    console.log('cbcEnctyptionKey', cbcEnctyptionKey);
     
 
     const secretKey = hashSecretKey(cbcEnctyptionKey)
 
-    console.log('secretKey CBC', secretKey);
+
     try {
 
         const decipher = crypto.createDecipheriv('aes-256-cbc', secretKey, secretKey.slice(0,16));
@@ -169,7 +168,6 @@ function hashSecretKey(secretKey: string): Buffer {
     
     hash.update(secretKey);
     const hashKey = hash.digest()
-    console.log("hash length:",hashKey.length)
     
     return hashKey;
 }
