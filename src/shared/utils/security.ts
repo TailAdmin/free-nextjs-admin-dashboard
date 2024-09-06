@@ -1,16 +1,15 @@
 import crypto from 'crypto';
 import logger from '@/shared/utils/logger';
 
-let ENCRYPTION_KEY = process.env.DATABASE_ENCRYPTION_KEY;
-const ALGORITHM = 'aes-128-ecb';
+
 
 export function encryptECB(data: string): string {
-    
+    let ENCRYPTION_KEY = process.env.DATABASE_ENCRYPTION_KEY;
     try{
         if (!ENCRYPTION_KEY){
             ENCRYPTION_KEY = 'SIXTEEN BYTE KEY';
         }
-        const cipher = crypto.createCipheriv(ALGORITHM, Buffer.from(ENCRYPTION_KEY, 'utf8'), null);
+        const cipher = crypto.createCipheriv('aes-128-ecb', Buffer.from(ENCRYPTION_KEY, 'utf8'), null);
         let encrypted = cipher.update(data, 'utf8', 'hex');
         encrypted += cipher.final('hex');
         return encrypted;
@@ -33,6 +32,7 @@ export function encryptECB(data: string): string {
 }
 
 export function decryptECB(encryptedData: string): string {
+    let ENCRYPTION_KEY = process.env.DATABASE_ENCRYPTION_KEY;
     if (!encryptedData) {
         return encryptedData;
     }
@@ -86,7 +86,7 @@ export function decryptECB(encryptedData: string): string {
 
 }
 export function encryptCBC(data: string):string{
-
+    let ENCRYPTION_KEY = process.env.DATABASE_ENCRYPTION_KEY;
     if (!data) {
         return data;
     }
@@ -125,6 +125,7 @@ export function encryptCBC(data: string):string{
 }
 
 export function decryptCBC(encryptedData: string): string {
+    let ENCRYPTION_KEY = process.env.DATABASE_ENCRYPTION_KEY;
     if (!encryptedData) {
         return encryptedData;
     }
