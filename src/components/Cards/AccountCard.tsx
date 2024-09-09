@@ -6,20 +6,23 @@ import { useDataFetcher } from '@/hooks/useDataFetcher';
 import Loader from '../common/Loader';
 import GamesTable from '../Tables/GamesTable';
 import CustomersTable from '../Tables/CustomersTable';
-import { Card, CardBody, CardHeader, Divider, Tab, Tabs } from '@nextui-org/react';
+import { Card, CardBody, CardHeader, Divider, Select, SelectItem, Tab, Tabs } from '@nextui-org/react';
 import Link from 'next/link';
 import { useLogger } from '@/hooks/useLogger';
 import { API_ENDPOINTS } from '@/shared/config/apiEndpoints';
+import { color } from 'framer-motion';
 
 interface AccountDetailFormProps {
   accountId: string;
 }
-
+type ColorType = "default" | "primary" | "secondary" | "success" | "warning" | "danger";
 const AccountDetailForm: React.FC<AccountDetailFormProps> = ({accountId}) => {
     const [activeTab, setActiveTab] = useState('details');
     const[account, setAccount] = useState<AccountEntity|null>(null);
     const filter = JSON.parse(`{"accountId":"${accountId}"}`);
     const [linkValue, setLinkValue] = useState('');
+    const [verifyState, setVerifyState] = useState('');
+    const [selectedColor, setSelectedColor] = useState<ColorType>('primary');
     //getting accounts details
     const {data, isLoading, error, total, fetchData } = useDataFetcher<AccountEntity>({endpoint: API_ENDPOINTS.ACCOUNTS ,filter});
     //getting function for posting logs
@@ -35,6 +38,8 @@ const AccountDetailForm: React.FC<AccountDetailFormProps> = ({accountId}) => {
     useEffect(() => {
       if (data.length > 0) {
         setAccount(data[0]);
+
+        handleVerifyStateChanging(data[0].verify_state)
       }
     }, [data]);
 
@@ -47,6 +52,22 @@ const AccountDetailForm: React.FC<AccountDetailFormProps> = ({accountId}) => {
     const handleLinkClick = (linkValue: string) => {
       setLinkValue(linkValue);
 
+    };
+
+    const handleVerifyStateChanging = (verifyStateValue:string)=>{
+      setVerifyState(verifyStateValue);
+      switch (verifyStateValue) {
+        case 'verified':
+          setSelectedColor('success');
+          break;
+        case 'unverified':
+          setSelectedColor('danger');
+          break;
+        case 'under_review':
+        default:
+          setSelectedColor('primary');
+          break;
+      }
     };
 
 
@@ -115,11 +136,45 @@ const AccountDetailForm: React.FC<AccountDetailFormProps> = ({accountId}) => {
         case 'details':
         return (
             <div> 
-              <div className="flex items-center mb-4">
-                <label className="block text-md font-medium mr-4">Account ID:</label>
-                <p className="text-sm font-medium">{account.id}</p>
-              </div>
+              <div className='flex justify-left gap-20'>
+                <div className="flex items-center mb-4">
+                  <label className="block text-md font-medium mr-4">Account ID:</label>
+                  <p className="text-sm font-medium">{account.id}</p>
+                </div>
 
+                <div className="flex items-center mb-4">
+                  <label className="block text-md font-medium mr-4">Verify State:</label>
+                  <Select
+                            size='sm'
+
+                            color={selectedColor}
+                            defaultSelectedKeys={[verifyState]}
+                            onSelectionChange={(keys) => 
+
+
+                                    {
+                                        const selectedValue = Array.from(keys).join(""); 
+                                        handleVerifyStateChanging(selectedValue);
+                                        
+                                    }
+
+                            }
+                            className="w-auto min-w-[150px]"
+                        >
+                            <SelectItem color='primary' key="under_review">under_review</SelectItem>
+                            <SelectItem color='success' key="verified">verified</SelectItem>
+                            <SelectItem color='danger' key="unverified">unverified</SelectItem>
+
+                        </Select>
+
+                  {/* <p className="text-sm font-medium">{account.verify_state}</p> */}
+                </div>
+
+
+
+
+
+              </div>
               <div className="flex items-center mb-4">
                 <label className="block text-md font-medium mr-4">Company:</label>
                   <a 
@@ -145,10 +200,7 @@ const AccountDetailForm: React.FC<AccountDetailFormProps> = ({accountId}) => {
                 <p className="text-sm font-medium">{account.details_version}</p>
               </div>
 
-              <div className="flex items-center mb-4">
-                <label className="block text-md font-medium mr-4">Verify State:</label>
-                <p className="text-sm font-medium">{account.verify_state}</p>
-              </div>
+
 
 
               <div className="flex items-center mb-4">
