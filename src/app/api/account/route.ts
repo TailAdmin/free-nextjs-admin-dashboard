@@ -71,3 +71,28 @@ export async function GET(request: NextRequest) {
         
     }
 }
+
+export async function PATCH(request: NextRequest){
+    try{
+        const {dataId, data} = await request.json();
+
+        const updatedData = accountRepository.updateAccount(dataId, data)
+        return NextResponse.json({success: true, data: updatedData, message: 'Account API. Data saved'}, { status: 200 });
+
+    }catch(error: unknown){
+        if (error instanceof Error) {
+            logger.error({
+                msg: 'Account API Error. Data saving error',
+                error: error.message,
+                stack: error.stack,
+            });
+            return NextResponse.json({ success: false, message: 'Account API Error. Data saving error'}, { status: 500 });
+
+        }
+        else{
+            logger.error('Account API Error. An unknown error occurred');
+            return NextResponse.json({ success: false, message: 'Account API Error. An unknown error occurred' }, { status: 500 });
+        }
+    }      
+    
+}

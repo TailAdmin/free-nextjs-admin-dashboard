@@ -12,7 +12,7 @@ export async function POST(request: NextRequest) {
             return NextResponse.json({success: false, message: 'Log API error. Invalid parameters'}, { status: 400 });
         }
         logger.info({ msg: message, userData: user });
-        return NextResponse.json({success: true,message: 'Log API. Log saved'}, { status: 200 });
+        return NextResponse.json({success: true,message: 'Log API. Log saved'}, { status: 201 });
     }
     catch(error: unknown){
         if (error instanceof Error) {

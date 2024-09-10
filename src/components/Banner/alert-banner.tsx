@@ -1,7 +1,6 @@
 export const AlertBanner = () => {
 
     const envValue = process.env.NEXT_PUBLIC_ENVIRONMENT;
-    console.log(envValue)
 
 
     return(

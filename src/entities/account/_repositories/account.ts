@@ -173,6 +173,31 @@ export class AccountRepository {
 
     }
 
+    async updateAccount(accountId:string, data:  Record<string, any>): Promise<AccountEntity[]>{
+ 
+        try{
+             await dbClient.aghanim_account.update({
+                                        where: {id: accountId},
+                                        data: data})
+            return this.getAccountById(accountId);
+        } catch(error: unknown)
+        {
+
+            if (error instanceof Error){
+                logger.error(
+                    {msg: `Account Repository Error. Failed to update account data for accountId ${accountId}`, 
+                    error: error.message,
+                    stack: error.stack,
+                });
+            } else{
+
+                logger.error({msg: 'Account Repository Error. An unknown error occurred'});
+            }    
+            
+            throw new Error(`Failed to update account data for accountId ${accountId}`);
+        }                                
+    }
+
     
 }
 

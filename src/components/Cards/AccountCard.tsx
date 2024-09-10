@@ -6,11 +6,11 @@ import { useDataFetcher } from '@/hooks/useDataFetcher';
 import Loader from '../common/Loader';
 import GamesTable from '../Tables/GamesTable';
 import CustomersTable from '../Tables/CustomersTable';
-import { Card, CardBody, CardHeader, Divider, Select, SelectItem, Tab, Tabs } from '@nextui-org/react';
+import { Button, Card, CardBody, CardHeader, Divider, Modal, ModalBody, ModalContent, ModalFooter, ModalHeader, Select, SelectItem, Tab, Tabs, useDisclosure } from '@nextui-org/react';
 import Link from 'next/link';
 import { useLogger } from '@/hooks/useLogger';
 import { API_ENDPOINTS } from '@/shared/config/apiEndpoints';
-import { color } from 'framer-motion';
+import { useSaveData } from '@/hooks/useSaveData';
 
 interface AccountDetailFormProps {
   accountId: string;
@@ -22,11 +22,14 @@ const AccountDetailForm: React.FC<AccountDetailFormProps> = ({accountId}) => {
     const filter = JSON.parse(`{"accountId":"${accountId}"}`);
     const [linkValue, setLinkValue] = useState('');
     const [verifyState, setVerifyState] = useState('');
-    const [selectedColor, setSelectedColor] = useState<ColorType>('primary');
+    const [tempVerifyState, setTempVerifyState] = useState('');
+    const [selectedColor, setSelectedColor] = useState<ColorType>("default");
     //getting accounts details
     const {data, isLoading, error, total, fetchData } = useDataFetcher<AccountEntity>({endpoint: API_ENDPOINTS.ACCOUNTS ,filter});
     //getting function for posting logs
     const { logMessage } = useLogger();
+    const {isOpen, onOpen, onOpenChange} = useDisclosure();
+    const  {isSaving, errorSaving, saveData } = useSaveData(API_ENDPOINTS.ACCOUNTS);
     useEffect(() => {
 
 
@@ -38,8 +41,9 @@ const AccountDetailForm: React.FC<AccountDetailFormProps> = ({accountId}) => {
     useEffect(() => {
       if (data.length > 0) {
         setAccount(data[0]);
-
-        handleVerifyStateChanging(data[0].verify_state)
+        setSelectedColor(getSelectorColor(data[0].verify_state));
+        setVerifyState(data[0].verify_state);
+        
       }
     }, [data]);
 
@@ -49,26 +53,54 @@ const AccountDetailForm: React.FC<AccountDetailFormProps> = ({accountId}) => {
           logMessage(`Link fetched: ${linkValue}`)
       }    
     },[linkValue]);
+    // function for logging links click
     const handleLinkClick = (linkValue: string) => {
       setLinkValue(linkValue);
 
     };
 
-    const handleVerifyStateChanging = (verifyStateValue:string)=>{
-      setVerifyState(verifyStateValue);
+    const handleTempVerifyStateChanging =(verifyStateValue:string)=>{
+      if (verifyState === verifyStateValue || !verifyStateValue) {
+        return;
+      }
+      setTempVerifyState(verifyStateValue);
+      onOpen();
+    }  
+
+    const getSelectorColor = (verifyStateValue:string): ColorType =>{
       switch (verifyStateValue) {
         case 'verified':
-          setSelectedColor('success');
-          break;
+          return 'success';
+
         case 'unverified':
-          setSelectedColor('danger');
-          break;
+          return 'danger';
+
         case 'under_review':
         default:
-          setSelectedColor('primary');
-          break;
+          return 'primary';
       }
+
+    }
+
+    const handleConfirmVerifyStateChanging = ()=>{
+
+      setVerifyState(tempVerifyState);
+      setSelectedColor(getSelectorColor(tempVerifyState));
+      if (account){    
+        saveData(account.id, {verify_state: tempVerifyState})
+        logMessage(`Verify State changed to ${tempVerifyState} for Account ID: ${account.id} `);
+      }
+      onOpenChange();
     };
+
+    const handleCancelVerifyStateChanging = ()=>{
+      setTempVerifyState(verifyState);
+      onOpenChange();
+    }
+
+    if (errorSaving){
+      return <div>Error saving {errorSaving}</div>;  // error handling for saving data
+    }
 
 
     if (error) {
@@ -130,6 +162,56 @@ const AccountDetailForm: React.FC<AccountDetailFormProps> = ({accountId}) => {
       });
     }
 
+    // render modal dialog
+    const renderModal = () => (
+      <Modal 
+        isOpen={isOpen}
+        onOpenChange={onOpenChange}
+        isDismissable={false}
+        isKeyboardDismissDisabled={true}
+        hideCloseButton={true}
+        backdrop='blur'
+      >
+        <ModalContent>
+          {(onClose) => (
+            <>
+              <ModalHeader className="flex flex-col gap-1">
+                Verify State Change Confirmation
+              </ModalHeader>
+              <ModalBody>
+
+                <p>You are trying to change the verification state.<br />
+                  Please ensure that this action is correct.
+
+                </p>
+                
+                <p className='font-bold text-sm'>Current state: {verifyState} <br />
+                  New state: {tempVerifyState}
+
+                </p>
+                <p>Are you sure want to proceed?</p>
+              </ModalBody>
+              <ModalFooter>
+                <Button color="danger" onPress={() => {
+                  handleCancelVerifyStateChanging();
+                  onClose();
+                }}>
+                  Close
+                </Button>
+                <Button color="primary" variant='light' onPress={() => {
+                  handleConfirmVerifyStateChanging();
+                  onClose();
+                }}>
+                  Accept
+                </Button>
+              </ModalFooter>
+            </>
+          )}
+        </ModalContent>
+      </Modal>
+    );
+
+
     // tabs rendering
     const renderTabContent = () => {
     switch (activeTab) {
@@ -145,32 +227,37 @@ const AccountDetailForm: React.FC<AccountDetailFormProps> = ({accountId}) => {
                 <div className="flex items-center mb-4">
                   <label className="block text-md font-medium mr-4">Verify State:</label>
                   <Select
-                            size='sm'
+                    size='sm'
+                    aria-label="Verify State" 
+                    color={selectedColor}
+                    selectedKeys={new Set([verifyState])}
+                    onSelectionChange={(keys) => 
+                      {
 
-                            color={selectedColor}
-                            defaultSelectedKeys={[verifyState]}
-                            onSelectionChange={(keys) => 
+                          const selectedValue = Array.from(keys).join(""); 
+                          
+                          if (selectedValue !== verifyState){
+                          handleTempVerifyStateChanging(selectedValue);
+                          
+                      }
 
+                          
+                          
+                      }
 
-                                    {
-                                        const selectedValue = Array.from(keys).join(""); 
-                                        handleVerifyStateChanging(selectedValue);
-                                        
-                                    }
+                    }
+                    className="w-auto min-w-[150px]"
+                  >
+                    <SelectItem color='primary' key="under_review">under_review</SelectItem>
+                    <SelectItem color='success' key="verified">verified</SelectItem>
+                    <SelectItem color='danger' key="unverified">unverified</SelectItem>
 
-                            }
-                            className="w-auto min-w-[150px]"
-                        >
-                            <SelectItem color='primary' key="under_review">under_review</SelectItem>
-                            <SelectItem color='success' key="verified">verified</SelectItem>
-                            <SelectItem color='danger' key="unverified">unverified</SelectItem>
+                  </Select>
 
-                        </Select>
+                  
 
-                  {/* <p className="text-sm font-medium">{account.verify_state}</p> */}
                 </div>
-
-
+                {renderModal()}
 
 
 
