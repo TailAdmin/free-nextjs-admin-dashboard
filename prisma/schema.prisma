@@ -25,6 +25,7 @@ model aghanim_customer {
   is_staff                 Boolean @default(false)
   avatar_url               String? @db.VarChar
   companies                aghanim_customer_company[]
+  last_active_at           Int?
 
   @@index([id], map: "ix_aghanim_customer_id")
 }
@@ -680,6 +681,7 @@ model aghanim_store {
   modified_at              Float?
   archived_at              Float?
   deleted_at               Float?
+  rotation_settings        Json?
 
   @@index([id], map: "ix_aghanim_store_id")
 }
@@ -725,6 +727,8 @@ model aghanim_store_item {
   max_reward_points_percent Int?
   payment_bound             Json?
   game_id                   String  @db.VarChar(32)
+  is_free_item              Boolean @default(false)
+  rotation_weight           Int?
 
   @@index([id], map: "ix_aghanim_store_item_id")
 }
@@ -1005,4 +1009,53 @@ model aghanim_item_property_relation {
   deleted_at  Float?
 
   @@index([id], map: "ix_aghanim_item_property_relation_id")
+}
+
+
+model aghanim_campaign_template {
+  id                 String @id @db.VarChar(32)
+  type               String @db.VarChar
+  source_campaign_id String @db.VarChar(32)
+  graph              Json
+  created_at         Float
+  modified_at        Float?
+  archived_at        Float?
+  deleted_at         Float?
+
+  @@index([id], map: "ix_aghanim_campaign_template_id")
+}
+
+model aghanim_global_settings {
+  id          String @id @db.VarChar
+  data        Json   @db.Json
+  modified_at Int?
+}
+
+model aghanim_item_claimed {
+  id          String @id @db.VarChar(32)
+  user_id     String @db.VarChar(32)
+  item_id     String @db.VarChar(32)
+  game_id     String @db.VarChar(32)
+  object_type String @db.VarChar
+  object_id   String @db.VarChar(32)
+  created_at  Float
+  modified_at Float?
+  archived_at Float?
+  deleted_at  Float?
+
+  @@index([id], map: "ix_aghanim_item_claimed_id")
+}
+
+model aghanim_user_store_rotation {
+  id                     String @id @db.VarChar(32)
+  store_id               String @db.VarChar(32)
+  user_id                String @db.VarChar(32)
+  current_store_item_ids Json
+  created_at             Float
+  modified_at            Float?
+  archived_at            Float?
+  deleted_at             Float?
+
+  @@unique([store_id, user_id])
+  @@index([id], map: "ix_aghanim_user_store_rotation_id")
 }

@@ -3,7 +3,7 @@
 import React, { useEffect, useState } from 'react';
 import { GameEntity } from "@/entities/game/_domain/types";
 import { useDataFetcher } from '@/hooks/useDataFetcher';
-import Loader from '../common/Loader';
+import Loader from '../Common/Loader';
 import CustomersTable from '../Tables/CustomersTable';
 import { Card, CardBody, CardHeader, Divider, Tab, Tabs } from '@nextui-org/react';
 import { useLogger } from '@/hooks/useLogger';
@@ -19,12 +19,15 @@ const GameDetailForm: React.FC<GameDetailFormProps> = ({gameId}) => {
     const filter: any = JSON.parse(`{"gameId":"${gameId}"}`);
     const [linkValue, setLinkValue] = useState('');
 //getting game details
-    const {data, isLoading, error, total, fetchData } = useDataFetcher<GameEntity>({endpoint: API_ENDPOINTS.GAMES, filter});
+    const {data, isLoading, error, total, fetchData } = useDataFetcher<GameEntity>();
     //getting function for posting logs
     const { logMessage } = useLogger();
     useEffect(() => {
 
-      fetchData();
+      fetchData({
+        endpoint:API_ENDPOINTS.GAMES,
+        selectedFilterValue:filter
+      });
           
     },[]);
 

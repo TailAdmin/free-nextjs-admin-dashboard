@@ -20,7 +20,7 @@
         
 
 
-    // Преобразование строкового диапазона в объект диапазона дат
+    // convert string data to data range
     const getRangeValue = (value: string[] | null | undefined): RangeValue<DateValue> | null => {
         if (!value) return null;
         const startDate: DateValue = parseDate(value[0]);

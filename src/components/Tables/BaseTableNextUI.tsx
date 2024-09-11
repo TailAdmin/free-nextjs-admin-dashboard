@@ -3,8 +3,6 @@
 import React, { useState } from 'react';
 import { SearchIcon } from '../Icons/Table/search-icon';
 import {parseDate} from "@internationalized/date";
-
-
 import {LinkType, ColumnType} from "@/types/tableTypes"
 import {
     Table,
@@ -18,13 +16,15 @@ import {
 import { Button, DateRangePicker, DateValue, Input, Pagination, RangeValue, Select, SelectItem } from '@nextui-org/react';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
-import Loader from '../common/Loader';
+import Loader from '../Common/Loader';
+import {useFilter} from "../Navbar/filter-context";
+
 
 type ColorType = "default" | "primary" | "secondary" | "success" | "warning" | "danger";
 interface BaseTableProps<T> {
     data: T[];
     columns: ColumnType<T>[];
-    currentPage: number;
+    //currentPage: number;
     pageSize: number;
     totalPages: number;
     isLoading?: boolean;
@@ -34,7 +34,7 @@ interface BaseTableProps<T> {
     isDateRange?: boolean;
     dateRangeValue?: string[]|null;
     onSetDateRangeValue?: (dateRangeValue: string[]|null) => void;
-    onSetPageNumber(pageNumber: number): void;
+    //onSetPageNumber(pageNumber: number): void;
     onSetPageSize(pageSize: number): void;
     onFilterChange?: (filterValue: string) => void;
     onFilterSubmit?: () => void;
@@ -47,7 +47,7 @@ interface BaseTableProps<T> {
 const BaseTableNextUI = <T extends Record<string, any>>({
     data,
     columns,
-    currentPage,
+    //currentPage,
     pageSize,
     totalPages,
     filterValue,
@@ -57,7 +57,7 @@ const BaseTableNextUI = <T extends Record<string, any>>({
     isDateRange = false,
     dateRangeValue,
     onSetDateRangeValue,
-    onSetPageNumber,
+    //onSetPageNumber,
     onSetPageSize,
     onFilterChange,
     onFilterSubmit,
@@ -66,6 +66,8 @@ const BaseTableNextUI = <T extends Record<string, any>>({
 }: BaseTableProps<T>) => {
     const selectedColor: ColorType = "primary"
     const router = useRouter()
+
+    const {complexFilterValue, setShowFilters, handleContextInit, currentPage, handleCurrentPageChange} = useFilter();
 
 // rounting by double click to interbal pages (cards)
     const handlePageSizeChange = (value:string) => {
@@ -211,7 +213,7 @@ const BaseTableNextUI = <T extends Record<string, any>>({
                                 color="primary"
                                 page={currentPage}
                                 total={totalPages}
-                                onChange={(page) => onSetPageNumber(page)}
+                                onChange={(page) => handleCurrentPageChange?.(page)}
                             />
                         </div>
                         

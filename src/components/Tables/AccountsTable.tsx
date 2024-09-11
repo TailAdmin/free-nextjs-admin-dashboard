@@ -11,16 +11,15 @@ import { useFilter } from '../Navbar/filter-context';
 
 const AccountsTable = () => {
     const [linkValue, setLinkValue] = useState('');
-    const [currentPage, setCurrentPage] = useState(1);
+    //const [currentPage, setCurrentPage] = useState(1);
     const [filterValue, setFilterValue] = useState('');
     const [totalPages, setTotalPages] = useState(1);
     const[pageSize, setPageSize] = useState(20);
     //const [complexFilterValue, setComplexFilterValue] = useState<Record<string, any>>();
     const [dateRangeValue, setDateRangeValue] = useState<string[] | null>(null);
 
-    const {complexFilterValue, setShowFilters, handleContextInit} = useFilter();
+    const {complexFilterValue, setShowFilters, handleContextInit, currentPage} = useFilter();
 
-    let filter: any = {};
 // settings for global filter context
     useEffect(() => {
 
@@ -37,19 +36,25 @@ const AccountsTable = () => {
         }, [setShowFilters]);
 
     //const { accounts, isLoading, error, total, fetchAccounts } = useAccounts({page: currentPage, pageSize: pageSize, filter: filter});
-    const { data: accounts, isLoading, error, total, fetchData } = useDataFetcher<AccountEntity>({
-        endpoint: API_ENDPOINTS.ACCOUNTS, 
-        page: currentPage,
-        pageSize: pageSize,
-        filter: filter
-    }); 
+    const { data: accounts, isLoading, error, total, fetchData } = useDataFetcher<AccountEntity>(); 
 
     
     const { logMessage } = useLogger();
     useEffect(() => {
-        fetchData(complexFilterValue);
-        setTotalPages(Math.ceil(total / pageSize));
-    }, [currentPage, pageSize, total, complexFilterValue]);
+        fetchData({
+                endpoint:API_ENDPOINTS.ACCOUNTS, 
+                page:currentPage,
+                pageSize:pageSize,
+                selectedFilterValue:complexFilterValue});
+
+    }, [currentPage, pageSize, complexFilterValue]);
+
+useEffect(() => {
+
+    setTotalPages(Math.ceil(total / pageSize));
+
+},[total]);
+
 
     useEffect(() =>{
         if (linkValue){
@@ -96,14 +101,14 @@ return (
         <BaseTableNextUI
             data={accounts}
             columns={columns}
-            currentPage={currentPage}
+            //currentPage={currentPage}
             pageSize={pageSize}
             totalPages={totalPages}
             isLoading={isLoading}
             error={error}
             routeName='/account-card/'
             filterValue={filterValue}
-            onSetPageNumber={setCurrentPage}
+            //onSetPageNumber={setCurrentPage}
             onSetPageSize={setPageSize}
             //onFilterChange={handleFilterChange}
             //onFilterSubmit={handleFilterSubmit}

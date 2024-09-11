@@ -14,20 +14,15 @@ import { useFilter } from "../Navbar/filter-context";
 const TableUser = ()  => {
   const [linkValue, setLinkValue] = useState('');
 
-  const [currentPage, setCurrentPage] = useState(1);
+  //const [currentPage, setCurrentPage] = useState(1);
   const [filterValue, setFilterValue] = useState('');
   const [totalPages, setTotalPages] = useState(1);
   const [pageSize, setPageSize] = useState(20);
 
   //const [complexFilterValue, setComplexFilterValue] = useState<Record<string, any>>();
   const [dateRangeValue, setDateRangeValue] = useState<string[] | null>(null);
-  const {complexFilterValue, setShowFilters, handleContextInit} = useFilter();
-  const { data, isLoading, error, total, fetchData } = useDataFetcher<UserEntity>({
-    endpoint: API_ENDPOINTS.PLAYERS, 
-    page: currentPage,
-    pageSize: pageSize,
-    filter: {}
-  }); 
+  const {complexFilterValue, setShowFilters, handleContextInit, currentPage} = useFilter();
+  const { data, isLoading, error, total, fetchData } = useDataFetcher<UserEntity>(); 
   const { logMessage } = useLogger();
 
 // settings for global filter context
@@ -45,11 +40,20 @@ const TableUser = ()  => {
     };
     }, [setShowFilters]);
 
-  useEffect(() => { 
-
-    fetchData(complexFilterValue);
-    setTotalPages(Math.ceil(total / pageSize));
-  },[currentPage, pageSize, total, complexFilterValue]);
+    useEffect(() => {
+      fetchData({
+              endpoint:API_ENDPOINTS.PLAYERS, 
+              page:currentPage,
+              pageSize:pageSize,
+              selectedFilterValue:complexFilterValue});
+  
+  }, [currentPage, pageSize, complexFilterValue]);
+  
+  useEffect(() => {
+  
+      setTotalPages(Math.ceil(total / pageSize));
+  
+  },[total, pageSize]);
 
   useEffect(() =>{
     if (linkValue){
@@ -62,7 +66,7 @@ const TableUser = ()  => {
 };
 
 const handleFilterSubmit = () => {
-    setCurrentPage(1); 
+    //setCurrentPage(1); 
 
     const filterFields = {
       selectedFields: filterValue || "", 
@@ -94,7 +98,7 @@ const handleDateRangeChange = (dateRangeValue: string[]|null) => {
         <BaseTableNextUI
             data={data}
             columns={columns}
-            currentPage={currentPage}
+            //currentPage={currentPage}
             pageSize={pageSize}
             totalPages={totalPages}
             isLoading={isLoading}
@@ -102,7 +106,7 @@ const handleDateRangeChange = (dateRangeValue: string[]|null) => {
             isDateRange={true}
             filterValue={filterValue}
             routeName='/player-card/'
-            onSetPageNumber={setCurrentPage}
+            //onSetPageNumber={setCurrentPage}
             onSetPageSize={setPageSize}
             onFilterChange={handleFilterChange}
             onFilterSubmit={handleFilterSubmit}

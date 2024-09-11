@@ -8,7 +8,6 @@ export async function GET(request: NextRequest) {
     const page = Number(searchParams.get('page')) || 1;
     const pageSize = Number(searchParams.get('pageSize')) || 10;
     const filterString = searchParams.get('filter');
-
     let filter: Record<string, any> = {};
 
     if (isNaN(page) || isNaN(pageSize)) {

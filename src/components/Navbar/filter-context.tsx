@@ -5,6 +5,8 @@ filterValue: string;
 dateRangeValue: string[] | null;
 complexFilterValue: Record<string, any> | undefined;
 showFilters: boolean;
+currentPage?: number;
+handleCurrentPageChange?:(pageValue:number)=>void;
 handleDateRangeChange?: (dateRangeValue: string[]|null) => void;
 handleFilterChange?: (filterValue: string) => void;
 handleFilterSubmit?: () => void;
@@ -20,6 +22,7 @@ const [filterValue, setFilterValue] = useState('');
 const [dateRangeValue, setDateRangeValue] = useState<string[] | null>(null);
 const [complexFilterValue, setComplexFilterValue] = useState<Record<string, any>>({});
 const [showFilters, setShowFilters] = useState(false);
+const [currentPage, setCurrentPage] = useState(1);
 
 const handleFilterChange = (filterValue: string) => {
     setFilterValue(filterValue);
@@ -33,11 +36,14 @@ const handleFilterSubmit = () => {
     dateRange: dateRangeValue ? dateRangeValue : ["", ""] 
     };
     setComplexFilterValue(filterFields);
+    setCurrentPage(1);
 
 
 }
     
-
+const handleCurrentPageChange = (pageValue: number) =>{
+    setCurrentPage(pageValue);
+}
 
 const handleDateRangeChange = (dateRangeValue: string[]|null) => {
 setDateRangeValue(dateRangeValue)
@@ -64,6 +70,8 @@ return (
             dateRangeValue, 
             complexFilterValue, 
             showFilters, 
+            currentPage, 
+            handleCurrentPageChange,
             setShowFilters,
             handleDateRangeChange, 
             handleFilterChange, 

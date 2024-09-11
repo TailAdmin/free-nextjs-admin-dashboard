@@ -2,6 +2,6 @@ export interface DataFetchParams {
     endpoint: string;
     page?: number;
     pageSize?: number;
-    filter?: Record<string, any>;
+    selectedFilterValue?: Record<string, any>;
 
 }

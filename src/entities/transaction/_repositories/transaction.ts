@@ -111,7 +111,7 @@ export class TransactionsRepository {
             whereCondition += ` AND payment_date >= TIMESTAMP_SECONDS(${startTS}) AND payment_date <= TIMESTAMP_SECONDS(${endTS})`;
         }
 
-
+  
         return this.getTransactions(page, pageSize, whereCondition);
     }
     async getTransactions(page:number, pageSize:number, whereCondition: string):Promise<{data: TransactionEntity[], total: number}> {
@@ -125,12 +125,14 @@ export class TransactionsRepository {
                 LIMIT @pageSize OFFSET @offset`;
             const options = {query: query, params: {pageSize: pageSize, offset:offset}}
             const [rows] = await bigquery.query(options);
+            
             const totalQuery = `
                 SELECT COUNT(*) as total
                 FROM events.payments
                 WHERE ${whereCondition}`;
             const [totalRows] = await bigquery.query(totalQuery);
             const total = totalRows[0].total;
+
 
             // Fetch company and game names from database for mapping purposes.
             const companyIds = [...new Set(rows.map((row: any) => row.company_id))];
@@ -147,6 +149,7 @@ export class TransactionsRepository {
 
 
             return {data: rows.map(this.mapToTransactionType), total}
+
         }
         catch(error: unknown){
             if (error instanceof Error){

@@ -3,7 +3,7 @@
 import React, { useEffect, useState } from 'react';
 import { UserEntity } from "@/entities/user/_domain/types";
 import { useDataFetcher } from '@/hooks/useDataFetcher';
-import Loader from '../common/Loader';
+import Loader from '../Common/Loader';
 import { Card, CardBody, CardHeader, Divider, Tab, Tabs } from '@nextui-org/react';
 import { useLogger } from '@/hooks/useLogger';
 import { API_ENDPOINTS } from '@/shared/config/apiEndpoints';
@@ -29,12 +29,15 @@ const GameDetailForm: React.FC<PlayerDetailFormProps> = ({userId}) => {
     const filter: any = JSON.parse(`{"userId":"${userId}"}`);
     const [linkValue, setLinkValue] = useState('');
 //getting player details
-    const {data, isLoading, error, total, fetchData } = useDataFetcher<UserEntity>({endpoint: API_ENDPOINTS.PLAYERS, filter});
+    const {data, isLoading, error, total, fetchData } = useDataFetcher<UserEntity>();
     //getting function for posting logs
     const { logMessage } = useLogger();
     useEffect(() => {
 
-      fetchData();
+      fetchData({
+        endpoint:API_ENDPOINTS.PLAYERS,
+        selectedFilterValue:filter
+      });
           
     },[]);
 

@@ -15,25 +15,20 @@ interface CompaniesTableProps {
 
 const CompaniesTable: React.FC<CompaniesTableProps> = ({ customerId }: CompaniesTableProps) => {
     const [linkValue, setLinkValue] = useState('');
-    const [currentPage, setCurrentPage] = useState(1);
+    //const [currentPage, setCurrentPage] = useState(1);
     const [filterValue, setFilterValue] = useState('');
     const [totalPages, setTotalPages] = useState(1);
     const[pageSize, setPageSize] = useState(20);
     //const [complexFilterValue, setComplexFilterValue] = useState<Record<string, any>>();
     const [dateRangeValue, setDateRangeValue] = useState<string[] | null>(null);
 
-    const {complexFilterValue, setShowFilters, handleContextInit} = useFilter();
+    const {complexFilterValue, setShowFilters, handleContextInit, currentPage} = useFilter();
 
-    const filter = customerId ? {customerId} : {} 
+    const [filter, setFilter] = useState(customerId ? {customerId} : {})
 
     //const { companies, isLoading, error, total, fetchCompanies } = useCompanies({page: currentPage, pageSize: pageSize, filter: filter});
     
-    const { data: companies, isLoading, error, total, fetchData } = useDataFetcher<CompanyEntity>({
-        endpoint: API_ENDPOINTS.COMPANIES, 
-        page: currentPage,
-        pageSize: pageSize,
-        filter: filter
-    }); 
+    const { data: companies, isLoading, error, total, fetchData } = useDataFetcher<CompanyEntity>(); 
 
 
 // settings for global filter context
@@ -55,9 +50,19 @@ useEffect(() => {
     const { logMessage } = useLogger();
     
     useEffect(() => {
-        fetchData(complexFilterValue);
+        fetchData({
+                endpoint:API_ENDPOINTS.COMPANIES, 
+                page:currentPage,
+                pageSize:pageSize,
+                selectedFilterValue:{...complexFilterValue, ...filter}});
+
+    }, [currentPage, pageSize, complexFilterValue, filter]);
+
+    useEffect(() => {
+
         setTotalPages(Math.ceil(total / pageSize));
-    }, [currentPage, pageSize, total, complexFilterValue]);
+    
+    },[total]);
 
     useEffect(() =>{
         if (linkValue){
@@ -74,7 +79,7 @@ useEffect(() => {
     };
 
     const handleFilterSubmit = () => {
-        setCurrentPage(1);
+        //setCurrentPage(1);
         const filterFields = {
             selectedFields: filterValue || "", 
             created_at: dateRangeValue ? dateRangeValue : ["", ""] 
@@ -97,14 +102,14 @@ return (
         <BaseTableNextUI
             data={companies}
             columns={columns}
-            currentPage={currentPage}
+            //currentPage={currentPage}
             pageSize={pageSize}
             totalPages={totalPages}
             isLoading={isLoading}
             error={error}
             filterValue={filterValue}
             routeName='/company-card/'
-            onSetPageNumber={setCurrentPage}
+            //onSetPageNumber={setCurrentPage}
             onSetPageSize={setPageSize}
             onFilterChange={handleFilterChange}
             onFilterSubmit={handleFilterSubmit}

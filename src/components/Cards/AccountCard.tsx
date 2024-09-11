@@ -3,7 +3,7 @@
 import React, { useEffect, useState } from 'react';
 import { AccountEntity } from "@/entities/account/_domain/types";
 import { useDataFetcher } from '@/hooks/useDataFetcher';
-import Loader from '../common/Loader';
+import Loader from '../Common/Loader';
 import GamesTable from '../Tables/GamesTable';
 import CustomersTable from '../Tables/CustomersTable';
 import { Button, Card, CardBody, CardHeader, Divider, Modal, ModalBody, ModalContent, ModalFooter, ModalHeader, Select, SelectItem, Tab, Tabs, useDisclosure } from '@nextui-org/react';
@@ -19,13 +19,13 @@ type ColorType = "default" | "primary" | "secondary" | "success" | "warning" | "
 const AccountDetailForm: React.FC<AccountDetailFormProps> = ({accountId}) => {
     const [activeTab, setActiveTab] = useState('details');
     const[account, setAccount] = useState<AccountEntity|null>(null);
-    const filter = JSON.parse(`{"accountId":"${accountId}"}`);
+    const [filter] = useState(JSON.parse(`{"accountId":"${accountId}"}`));
     const [linkValue, setLinkValue] = useState('');
     const [verifyState, setVerifyState] = useState('');
     const [tempVerifyState, setTempVerifyState] = useState('');
     const [selectedColor, setSelectedColor] = useState<ColorType>("default");
     //getting accounts details
-    const {data, isLoading, error, total, fetchData } = useDataFetcher<AccountEntity>({endpoint: API_ENDPOINTS.ACCOUNTS ,filter});
+    const {data, isLoading, error, total, fetchData } = useDataFetcher<AccountEntity>();
     //getting function for posting logs
     const { logMessage } = useLogger();
     const {isOpen, onOpen, onOpenChange} = useDisclosure();
@@ -33,7 +33,9 @@ const AccountDetailForm: React.FC<AccountDetailFormProps> = ({accountId}) => {
     useEffect(() => {
 
 
-      fetchData();
+      fetchData({
+                endpoint:API_ENDPOINTS.ACCOUNTS,
+                selectedFilterValue:filter});
 
           
     },[]);

@@ -16,27 +16,17 @@ interface GamesTableProps {
 
 const GamesTable: React.FC<GamesTableProps> = ({ customerId, companyId }) => {
     const [linkValue, setLinkValue] = useState('');
-    const [currentPage, setCurrentPage] = useState(1);
+    //const [currentPage, setCurrentPage] = useState(1);
     const [totalPages, setTotalPages] = useState(1);
     const[pageSize, setPageSize] = useState(20);
     const [filterValue, setFilterValue] = useState('');
     //const [complexFilterValue, setComplexFilterValue] = useState<Record<string, any>>();
     const [dateRangeValue, setDateRangeValue] = useState<string[] | null>(null);
     
-    const {complexFilterValue, setShowFilters, handleContextInit} = useFilter();
-    let filter: any = {};
-    
-    if(companyId){
-        filter = JSON.parse(`{"companyId": "${companyId}"}`);
-    }else if(customerId){
-        filter = JSON.parse(`{"customerId": "${customerId}"}`);
-    }
-    const { data: games, isLoading, error, total, fetchData } = useDataFetcher<GameEntity>({
-        endpoint: API_ENDPOINTS.GAMES, 
-        page: currentPage,
-        pageSize: pageSize,
-        filter: filter
-    });    
+    const {complexFilterValue, setShowFilters, handleContextInit, currentPage} = useFilter();    
+    const [filter, setFilter] = useState(companyId ? {companyId} : customerId ? {customerId} : {})
+ 
+    const { data: games, isLoading, error, total, fetchData } = useDataFetcher<GameEntity>();    
     const { logMessage } = useLogger();
  
     // settings for global filter context
@@ -54,10 +44,20 @@ const GamesTable: React.FC<GamesTableProps> = ({ customerId, companyId }) => {
         };
         }, [setShowFilters]);
 
-    useEffect(() => {
-            fetchData(complexFilterValue);
+        useEffect(() => {
+            fetchData({
+                    endpoint:API_ENDPOINTS.GAMES, 
+                    page:currentPage,
+                    pageSize:pageSize,
+                    selectedFilterValue:{...complexFilterValue, ...filter}});
+    
+        }, [currentPage, pageSize, complexFilterValue, filter]);
+    
+        useEffect(() => {
+    
             setTotalPages(Math.ceil(total / pageSize));
-        }, [currentPage, pageSize, total, complexFilterValue]);
+        
+        },[total, pageSize]);
 
 
 
@@ -72,7 +72,7 @@ const GamesTable: React.FC<GamesTableProps> = ({ customerId, companyId }) => {
     };
     
     const handleFilterSubmit = () => {
-        setCurrentPage(1); 
+        //setCurrentPage(1); 
         const filterFields = {
             selectedFields: filterValue || "", 
             created_at: dateRangeValue ? dateRangeValue : ["", ""] 
@@ -103,14 +103,14 @@ const GamesTable: React.FC<GamesTableProps> = ({ customerId, companyId }) => {
             <BaseTableNextUI
                 data={games}
                 columns={columns}
-                currentPage={currentPage}
+                //currentPage={currentPage}
                 pageSize={pageSize}
                 totalPages={totalPages}
                 isLoading={isLoading}
                 error={error}
                 filterValue={filterValue}
                 routeName='/game-card/'
-                onSetPageNumber={setCurrentPage}
+                //onSetPageNumber={setCurrentPage}
                 onSetPageSize={setPageSize}
                 onFilterChange={handleFilterChange}
                 onFilterSubmit={handleFilterSubmit}

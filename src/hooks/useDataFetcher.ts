@@ -1,17 +1,18 @@
 import { useCallback, useState } from "react";
 import { DataFetchParams } from "@/types/dataHooksTypes";
 
-export const useDataFetcher = <T>({ endpoint, page = 1, pageSize = 10, filter = {} }: DataFetchParams ) => {
+export const useDataFetcher = <T>() => {
     const [data, setData] = useState<T[]>([]);
     const [isLoading, setIsLoading] = useState(true);
     const [error, setError] = useState<string | null>(null);
     const [total, setTotal] = useState(0);
 
-    const fetchData = useCallback(async (selectedFilterValue: Record<string, any> = {}) => {
+    const fetchData = async ({endpoint, page = 1, pageSize = 10,  selectedFilterValue = {}}: DataFetchParams) =>{
         setIsLoading(true);
         setError(null);
         try {
-            const filterFields = { ...filter, ...selectedFilterValue };
+            
+            const filterFields = { ...selectedFilterValue };
             const response = await fetch(`${endpoint}?page=${page}&pageSize=${pageSize}&filter=${encodeURIComponent(JSON.stringify(filterFields))}`);
             const { success, data, total } = await response.json();
             if (!success) {
@@ -24,7 +25,7 @@ export const useDataFetcher = <T>({ endpoint, page = 1, pageSize = 10, filter = 
         } finally {
             setIsLoading(false);
         }
-    }, [endpoint, page, pageSize, filter]);
+    };
 
     return { data, isLoading, error, total, fetchData };
 };

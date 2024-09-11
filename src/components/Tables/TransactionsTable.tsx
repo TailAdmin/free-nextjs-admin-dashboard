@@ -12,7 +12,7 @@ import { useFilter } from "../Navbar/filter-context";
 const TableTransaction = () => {
 
   const [linkValue, setLinkValue] = useState('');
-  const [currentPage, setCurrentPage] = useState(1);
+  //const [currentPage, setCurrentPage] = useState(1);
   const [totalPages, setTotalPages] = useState(1);
   const [pageSize, setPageSize] = useState(20);
   const [filterValue, setFilterValue] = useState('');
@@ -20,7 +20,7 @@ const TableTransaction = () => {
   const [dateRangeValue, setDateRangeValue] = useState<string[] | null>(null);
   const { logMessage } = useLogger();
 
-  const {complexFilterValue, setShowFilters, handleContextInit} = useFilter();
+  const {complexFilterValue, setShowFilters, handleContextInit, currentPage} = useFilter();
 
   useEffect(() => {
 
@@ -36,19 +36,22 @@ const TableTransaction = () => {
     };
   }, [setShowFilters]);
 
-  const { data: transactions, isLoading, error, total, fetchData } = useDataFetcher<TransactionEntity>({
-    endpoint: API_ENDPOINTS.TRANSACTIONS, 
-    page: currentPage,
-    pageSize: pageSize,
-    filter: {}
-  }); 
+  const { data: transactions, isLoading, error, total, fetchData } = useDataFetcher<TransactionEntity>(); 
   
-  useEffect(() =>{
+  useEffect(() => {
+    fetchData({
+            endpoint:API_ENDPOINTS.TRANSACTIONS, 
+            page:currentPage,
+            pageSize:pageSize,
+            selectedFilterValue:complexFilterValue});
 
+}, [currentPage, pageSize, complexFilterValue]);
 
-    fetchData(complexFilterValue);
+useEffect(() => {
+
     setTotalPages(Math.ceil(total / pageSize));
-  },[currentPage, pageSize, total, complexFilterValue])
+
+},[total]);
 
 useEffect(() =>{
   if (linkValue){
@@ -71,7 +74,7 @@ const handleLinkClick = (linkValue: string) => {
 
 
   const handleFilterSubmit = () => {
-    setCurrentPage(1); 
+    //setCurrentPage(1); 
     const filterFields = {
       selectedFields: filterValue || "", 
       payment_date: dateRangeValue ? dateRangeValue : ["", ""] 
@@ -109,7 +112,7 @@ const handleLinkClick = (linkValue: string) => {
         <BaseTableNextUI
             data={transactions}
             columns={columns}
-            currentPage={currentPage}
+            //currentPage={currentPage}
             totalPages={totalPages}
             pageSize={pageSize}
             isLoading={isLoading}
@@ -118,7 +121,7 @@ const handleLinkClick = (linkValue: string) => {
             isDateRange={true}
             dateRangeValue={dateRangeValue}
             onSetDateRangeValue={handleDateRangeChange}
-            onSetPageNumber={setCurrentPage}
+            //onSetPageNumber={setCurrentPage}
             onSetPageSize={setPageSize}
             onFilterChange={handleFilterChange}
             onFilterSubmit={handleFilterSubmit}

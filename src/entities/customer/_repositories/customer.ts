@@ -63,6 +63,7 @@ export class CustomerRepository {
     }
     async getCustomers(page: number, pageSize: number, whereCondition: Record<string, any>): Promise<{data: CustomerEntity[], total: number}> {
         try{
+            console.log('whereCondition', JSON.stringify(whereCondition))
             const skip = (page - 1) * pageSize;
             const take = pageSize;
             
@@ -121,7 +122,13 @@ export class CustomerRepository {
                 lte: convertDateStringToTimeStampInSeconds(filter['dateRange'][1],  'T23:59:59Z') , 
             };
         }
+        if (filter['last_login_at'] && filter['last_login_at'][0]){
 
+            whereCondition['last_login_at'] = {
+                gte: convertDateStringToTimeStampInSeconds(filter['last_login_at'][0]), 
+                lte: convertDateStringToTimeStampInSeconds(filter['last_login_at'][1],  'T23:59:59Z') , 
+            };
+        }
     
 
         if (filter["companyId"]){

@@ -3,7 +3,7 @@
 import React, { useEffect, useState } from 'react';
 import { CompanyEntity } from "@/entities/company/_domain/types";
 import { useDataFetcher } from '@/hooks/useDataFetcher';
-import Loader from '../common/Loader';
+import Loader from '../Common/Loader';
 import GamesTable from '../Tables/GamesTable';
 import CustomersTable from '../Tables/CustomersTable';
 import { Card, CardBody, CardHeader, Divider, Tab, Tabs } from '@nextui-org/react';
@@ -20,12 +20,15 @@ const CompanyDetailForm: React.FC<CompanyDetailFormProps> = ({companyId}) => {
     const filter = JSON.parse(`{"companyId":"${companyId}"}`);
     const [linkValue, setLinkValue] = useState('');
 //getting company details
-    const {data, isLoading, error, total, fetchData } = useDataFetcher<CompanyEntity>({endpoint: API_ENDPOINTS.COMPANIES, filter});
+    const {data, isLoading, error, total, fetchData } = useDataFetcher<CompanyEntity>();
     //getting function for posting logs
     const { logMessage } = useLogger();
     useEffect(() => {
 
-      fetchData();
+      fetchData({
+        endpoint:API_ENDPOINTS.COMPANIES,
+        selectedFilterValue:filter
+      });
           
     },[]);
 

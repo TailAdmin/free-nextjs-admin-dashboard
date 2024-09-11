@@ -17,17 +17,22 @@ interface CustomersTableProps {
 const TableCustomer: React.FC<CustomersTableProps> = ({companyId }: CustomersTableProps)  => {
   const [linkValue, setLinkValue] = useState('');
 
-  const [currentPage, setCurrentPage] = useState(1);
+  //const [currentPage, setCurrentPage] = useState(1);
+  //const [isCurrentPageInited, setIsCurrentPageInited] = useState(false);
   const [filterValue, setFilterValue] = useState('');
   const [totalPages, setTotalPages] = useState(1);
   const [pageSize, setPageSize] = useState(20);
-  const filter = companyId ? { companyId } : {};
+
+  const [filter, setFilter] = useState(companyId ? {companyId} : {})
 
   //const [complexFilterValue, setComplexFilterValue] = useState<Record<string, any>>();
   const [dateRangeValue, setDateRangeValue] = useState<string[] | null>(null);
     
 
-  const {complexFilterValue, setShowFilters, handleContextInit} = useFilter();
+  const {complexFilterValue, setShowFilters, handleContextInit, currentPage} = useFilter();
+
+
+
 
 // settings for global filter context
   useEffect(() => {
@@ -44,24 +49,33 @@ const TableCustomer: React.FC<CustomersTableProps> = ({companyId }: CustomersTab
     };
     }, [setShowFilters]);
 
-  const { data: customers, isLoading, error, total, fetchData } = useDataFetcher<CustomerEntity>({
-    endpoint: API_ENDPOINTS.CUSTOMERS, 
-    page: currentPage,
-    pageSize: pageSize,
-    filter: filter
-  }); 
+  const { data: customers, isLoading, error, total, fetchData } = useDataFetcher<CustomerEntity>(); 
 
 
 
 
   const { logMessage } = useLogger();
 
+  // useEffect(() => {
+  //   setCurrentPage(1)
+  //   setIsCurrentPageInited(true);
+  // },[complexFilterValue])
 
-  useEffect(() => { 
+  useEffect(() => {
 
-    fetchData(complexFilterValue);
+      fetchData({
+              endpoint: API_ENDPOINTS.CUSTOMERS, 
+              page:currentPage,
+              pageSize:pageSize,
+              selectedFilterValue:{...complexFilterValue, ...filter}});
+
+}, [currentPage, pageSize, complexFilterValue, filter]);
+
+useEffect(() => {
+
     setTotalPages(Math.ceil(total / pageSize));
-  },[currentPage, pageSize, total, complexFilterValue]);
+
+},[total, pageSize]);
 
   useEffect(() =>{
     if (linkValue){
@@ -74,7 +88,7 @@ const TableCustomer: React.FC<CustomersTableProps> = ({companyId }: CustomersTab
 };
 
 const handleFilterSubmit = () => {
-    setCurrentPage(1); 
+    //setCurrentPage(1); 
 
     const filterFields = {
       selectedFields: filterValue || "", 
@@ -105,7 +119,7 @@ const handleDateRangeChange = (dateRangeValue: string[]|null) => {
         <BaseTableNextUI
             data={customers}
             columns={columns}
-            currentPage={currentPage}
+            //currentPage={currentPage}
             pageSize={pageSize}
             totalPages={totalPages}
             isLoading={isLoading}
@@ -113,7 +127,7 @@ const handleDateRangeChange = (dateRangeValue: string[]|null) => {
             isDateRange={true}
             filterValue={filterValue}
             routeName='/customer-card/'
-            onSetPageNumber={setCurrentPage}
+            //onSetPageNumber={setCurrentPage}
             onSetPageSize={setPageSize}
             onFilterChange={handleFilterChange}
             onFilterSubmit={handleFilterSubmit}

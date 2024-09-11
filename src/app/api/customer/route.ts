@@ -43,6 +43,8 @@ export async function GET(request: NextRequest) {
     }
 
     try {
+
+
         let data, total;
 
         if (filter['customerId']){
@@ -54,7 +56,6 @@ export async function GET(request: NextRequest) {
             ({data, total} = await customerRepository.getCustomersByFilter(page, pageSize, filter));
         }
 
-        
         return NextResponse.json({success: true, data, total });
     } catch (error) {
 

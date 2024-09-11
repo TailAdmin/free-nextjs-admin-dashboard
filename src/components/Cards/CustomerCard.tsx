@@ -2,7 +2,7 @@
 
 import React, { useEffect, useState } from 'react';
 import { CustomerEntity } from "@/entities/customer/_domain/types";
-import Loader from '../common/Loader';
+import Loader from '../Common/Loader';
 import { useDataFetcher } from '@/hooks/useDataFetcher';
 import CompaniesTable from '../Tables/CompaniesTable';
 import GamesTable from '../Tables/GamesTable';
@@ -21,11 +21,14 @@ const CustomerDetailForm: React.FC<CustomerDetailFormProps> = ({ customerId, com
                                       companyId ?  JSON.parse(`{"companyId":"${companyId}"}`) : {}
 
     //getting customer details
-    const {data, isLoading, error, fetchData} = useDataFetcher<CustomerEntity>({endpoint: API_ENDPOINTS.CUSTOMERS, filter});
+    const {data, isLoading, error, fetchData} = useDataFetcher<CustomerEntity>();
     
     useEffect(() => {
 
-      fetchData();
+      fetchData({
+        endpoint:API_ENDPOINTS.CUSTOMERS,
+        selectedFilterValue:filter
+      });
 
     },[]);
 

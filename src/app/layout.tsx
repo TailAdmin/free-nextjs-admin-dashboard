@@ -2,7 +2,7 @@
 
 import "@/styles/globals.css";
 import React, { useEffect, useState } from "react";
-import Loader from "@/components/common/Loader";
+import Loader from "@/components/Common/Loader";
 import { Providers } from "./providers";
 import { fontSans } from "@/fonts/fonts";
 import clsx from "clsx";
