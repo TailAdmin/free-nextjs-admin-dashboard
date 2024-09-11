@@ -63,7 +63,6 @@ export class CustomerRepository {
     }
     async getCustomers(page: number, pageSize: number, whereCondition: Record<string, any>): Promise<{data: CustomerEntity[], total: number}> {
         try{
-            console.log('whereCondition', JSON.stringify(whereCondition))
             const skip = (page - 1) * pageSize;
             const take = pageSize;
             

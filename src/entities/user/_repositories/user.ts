@@ -76,7 +76,6 @@ export class UserRepository {
     }
     async getUsers(page: number, pageSize: number, whereCondition: Record<string, any>): Promise<{data: UserEntity[], total: number}> {
         try{
-            console.log('whereCondition', JSON.stringify(whereCondition));
             const skip = (page - 1) * pageSize;
             const take = pageSize;
 
