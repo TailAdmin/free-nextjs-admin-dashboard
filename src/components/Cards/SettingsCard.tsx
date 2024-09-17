@@ -14,15 +14,15 @@ const SettingsDetailForm = () => {
     const [activeTab, setActiveTab] = useState('hard');
     const[settings, setSettings] = useState<SettingsEntity|null>(null);
 
-    const [hardBannedIPs, setHardBannedIPs] = useState(["192.168.1.1", "10.0.0.1"]);
-    const [softBannedIPs, setSoftBannedIPs] = useState(["192.168.1.1", "10.0.0.1"]);
+    const [hardBannedIPs, setHardBannedIPs] = useState<string[]>([]);
+    const [softBannedIPs, setSoftBannedIPs] = useState<string[]>([]);
 
-    const [hardBannedEmails, setHardBannedEmails] = useState(["kolegu@mail.ru"]);
-    const [softBannedEmails, setSoftBannedEmails] = useState(["kolegu@mail.ru"]);
+    const [hardBannedEmails, setHardBannedEmails] = useState<string[]>([]);
+    const [softBannedEmails, setSoftBannedEmails] = useState<string[]>([]);
 
 
-    const [hardBannedDomains, setHardBannedDomains] = useState(["mail.ru","mail.com"]);
-    const [softBannedDomains, setSoftBannedDomains] = useState(["mail.ru"]);
+    const [hardBannedDomains, setHardBannedDomains] = useState<string[]>([]);
+    const [softBannedDomains, setSoftBannedDomains] = useState<string[]>([]);
     
     const [newHardIP, setNewHardIP] = useState({value: "", isValid: true});
     const [newHardEmail, setNewHardEmail] = useState({value: "", isValid: true});
@@ -57,7 +57,7 @@ const SettingsDetailForm = () => {
         setSoftBannedEmails(settingsData[0].data.soft_banned_emails ? settingsData[0].data.soft_banned_emails : []);
         
         setHardBannedDomains(settingsData[0].data.hard_banned_email_domains ? settingsData[0].data.hard_banned_email_domains : []);
-        setSoftBannedDomains(settingsData[0].data.soft_banned_email_domains ? settingsData[0].data.soft_banned_email_domains : []);
+        setSoftBannedDomains(settingsData[0].data.soft_banned_email_domains ?? []);
 
         setSettings(settingsData[0]);
       }
@@ -66,8 +66,6 @@ const SettingsDetailForm = () => {
     const saveSettings = async () => {
 
       if (!settings?.id) return;
-
-      console.log("hardbanned",hardBannedIPs);
 
       const updatedSettings = {
           ...settings.data
@@ -86,11 +84,11 @@ const SettingsDetailForm = () => {
 
     useEffect(() => {
       if (isFirstRender.current) {
-        // Если это первый рендер, ничего не делаем
-        isFirstRender.current = false; // Сбрасываем флаг
+
+        isFirstRender.current = false; 
       }else{
 
-         saveSettings();
+        saveSettings();
       }
   
     }, [hardBannedIPs, hardBannedEmails, hardBannedDomains, softBannedIPs, softBannedEmails, softBannedDomains]); 
@@ -216,11 +214,13 @@ const SettingsDetailForm = () => {
                       setHardBannedDomains([...hardBannedDomains, newHardDomain.value]);
                       setNewHardDomain({value:"", isValid:true});
                   }
+                  break;
       case'soft':
                   if (newSoftDomain && newSoftDomain.isValid && !softBannedDomains.includes(newSoftDomain.value)) {
                       setSoftBannedDomains([...softBannedDomains, newSoftDomain.value]);
                       setNewSoftDomain({value:"", isValid:true});
-                  }            
+                  }   
+                  break;         
 
     }
   };

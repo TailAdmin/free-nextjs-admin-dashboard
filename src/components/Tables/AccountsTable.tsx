@@ -33,7 +33,7 @@ const AccountsTable = () => {
                 handleContextInit();
             }
         };
-        }, [setShowFilters]);
+        }, []);
 
     //const { accounts, isLoading, error, total, fetchAccounts } = useAccounts({page: currentPage, pageSize: pageSize, filter: filter});
     const { data: accounts, isLoading, error, total, fetchData } = useDataFetcher<AccountEntity>(); 

@@ -38,7 +38,7 @@ const TableUser = ()  => {
           handleContextInit();
         }
     };
-    }, [setShowFilters]);
+    }, []);
 
     useEffect(() => {
       fetchData({

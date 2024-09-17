@@ -32,20 +32,20 @@ const CompaniesTable: React.FC<CompaniesTableProps> = ({ customerId }: Companies
 
 
 // settings for global filter context
-useEffect(() => {
+    useEffect(() => {
 
-    if (setShowFilters)
-        {setShowFilters(true);}
- 
-
-    return () => {
         if (setShowFilters)
-        {setShowFilters(false);}
-        if (handleContextInit) {
-            handleContextInit();
-        }
+            {setShowFilters(true);}
+    
+
+        return () => {
+            if (setShowFilters)
+            {setShowFilters(false);}
+            if (handleContextInit) {
+                handleContextInit();
+            }
     };
-    }, [setShowFilters]);
+    }, []);
 
     const { logMessage } = useLogger();
     

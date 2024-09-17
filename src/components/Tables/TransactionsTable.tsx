@@ -34,7 +34,7 @@ const TableTransaction = () => {
         handleContextInit();
       }
     };
-  }, [setShowFilters]);
+  }, []);
 
   const { data: transactions, isLoading, error, total, fetchData } = useDataFetcher<TransactionEntity>(); 
   

@@ -42,7 +42,7 @@ const GamesTable: React.FC<GamesTableProps> = ({ customerId, companyId }) => {
                 handleContextInit();
             }
         };
-        }, [setShowFilters]);
+        }, []);
 
         useEffect(() => {
             fetchData({
