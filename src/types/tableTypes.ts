@@ -5,5 +5,5 @@ export type ColumnType<T> = {
     label: string;
     link_type?: LinkType;
     link?: string | ((row: T) => string);
-    color?: string | ((row: T) => string);
+    cellColor?: string | ((row: T) => string);
 };

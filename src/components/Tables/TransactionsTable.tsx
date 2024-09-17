@@ -89,7 +89,7 @@ const handleLinkClick = (linkValue: string) => {
     { key: 'payment_number', label: 'Payment number', link_type: "external",link: 'payment_link' },
     { key: 'payment_date', label: 'Payment date'},
     { key: 'billing_email', label: 'Billing Email'},
-    { key: 'status', label: 'Status', color: (row)=>{
+    { key: 'status', label: 'Status', cellColor: (row)=>{
 
       if (row.status === 'done') return '#BBF7D0';
       if (row.status in ['canceled', 'rejected', 'failed']) return '#FECACA';

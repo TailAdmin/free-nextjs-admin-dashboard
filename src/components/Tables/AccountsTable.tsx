@@ -91,7 +91,14 @@ useEffect(() => {
         { key: 'company_name', label: 'Company Name', link_type: 'external', link: 'company_link' },
         { key: 'vefified_by_customer_name', label: 'Verified By Customer', link_type: 'internal', link: (row) => `/customer-card/${row.vefified_by_customer_id}` },
         { key: 'edited_by_customer_name', label: 'Edited By Customer', link_type: 'internal', link: (row) => `/customer-card/${row.edited_by_customer_id}` },
-        { key: 'verify_state', label: 'Verify state' },
+        { key: 'verify_state', label: 'Verify state' , cellColor: (row)=>{
+
+            if (row.verify_state === 'verified') return '#BBF7D0';
+            if (row.verify_state === 'under_review') return '#F1F5F9';
+            if (row.verify_state === 'unverified') return '#FECACA';
+      
+            return '#F1F5F9';
+          } },
         { key: 'verified_at', label: 'Verified at' },
         { key: 'created_at', label: 'Created at' },
     ];
@@ -101,6 +108,7 @@ return (
         <BaseTableNextUI
             data={accounts}
             columns={columns}
+            totalValue={total}
             //currentPage={currentPage}
             pageSize={pageSize}
             totalPages={totalPages}
