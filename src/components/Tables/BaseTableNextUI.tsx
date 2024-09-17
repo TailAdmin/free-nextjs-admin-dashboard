@@ -152,7 +152,7 @@ const BaseTableNextUI = <T extends Record<string, any>>({
             );
         }
         return  (column.cellColor ? <Chip
-
+                    className='rounded-md'
                     style={{backgroundColor: `${typeof column.cellColor === 'function' ? column.cellColor(row) : column.cellColor}` }} 
                     
                 >
