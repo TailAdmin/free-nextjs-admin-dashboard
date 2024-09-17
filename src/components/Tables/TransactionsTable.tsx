@@ -92,7 +92,7 @@ const handleLinkClick = (linkValue: string) => {
     { key: 'status', label: 'Status', cellColor: (row)=>{
 
       if (row.status === 'done') return '#BBF7D0';
-      if (row.status in ['canceled', 'rejected', 'failed']) return '#FECACA';
+      if (['canceled', 'rejected', 'failed'].includes(row.status)) return '#FECACA';
       if (row.status === 'refunded') return '#DDD6FE';
 
       return '#F1F5F9';
