@@ -8,6 +8,10 @@ export async function middleware(req: NextRequest) {
         return NextResponse.json({ message: 'Unauthorized' }, { status: 401 });
       }
 
+      const ip = req.headers.get('x-forwarded-for') || req.ip;
+
+      console.log('IP Address:', ip); 
+
     if (!token && !req.nextUrl.pathname.startsWith('/api')) {
 
         const url = req.nextUrl.clone();
