@@ -97,7 +97,7 @@ export class TransactionsRepository {
             
 
             whereCondition = `  (user_id LIKE '%${filter['selectedFields']}%'
-                                OR paymnent_id LIKE '%${filter['selectedFields']}%'
+                                OR payment_id LIKE '%${filter['selectedFields']}%'
                                 OR ip LIKE '%${filter['selectedFields']}%'
                                 OR payment_number LIKE '%${filter['selectedFields']}%'
                                 OR billing_email = '${encryptedField}'
