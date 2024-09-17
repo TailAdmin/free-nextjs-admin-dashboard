@@ -43,7 +43,7 @@ export function convertDateStringToTimeStampInSeconds(date: string, time: string
 
 export function convertAmountWithCurrencyPrecision(amount: number, currency: string): number{
 
-    const updatedAmount = Math.round(amount / (10^Money.getPrecision(currency as Currency))*100) / 100;
+    const updatedAmount = Math.round(amount / (10**Money.getPrecision(currency as Currency))*100) / 100;
     return updatedAmount;
 }
 
