@@ -3,7 +3,7 @@
 import { BigQuery } from '@google-cloud/bigquery';
 import { TransactionEntity } from '../_domain/types';
 import { decryptECB, encryptECB } from "@/shared/utils/security";
-import { convertTimeStampToLocaleDateString, convertISODateToLocaleDateString, convertDateStringToTimeStampInSeconds } from '@/shared/utils/commonUtils';
+import { convertAmountWithCurrencyPrecision, convertTimeStampToLocaleDateString, convertISODateToLocaleDateString, convertDateStringToTimeStampInSeconds } from '@/shared/utils/commonUtils';
 import { dbClient } from '@/shared/lib/db';
 import logger from '@/shared/utils/logger';
 
@@ -34,7 +34,7 @@ export class TransactionsRepository {
             payment_method_id: data.payment_method_id,
             payment_method_name: data.payment_method_name,
             amount: data.amount,
-            amountWithCurrency: `${data.amount} ${data.currency}`, 
+            amountWithCurrency: `${convertAmountWithCurrencyPrecision(data.amount, data.currency)} ${data.currency}`, 
             currency: data.currency,
             country: data.country,
             order_id: data.order_id,
@@ -97,6 +97,8 @@ export class TransactionsRepository {
             
 
             whereCondition = `  (user_id LIKE '%${filter['selectedFields']}%'
+                                OR paymnent_id LIKE '%${filter['selectedFields']}%'
+                                OR ip LIKE '%${filter['selectedFields']}%'
                                 OR payment_number LIKE '%${filter['selectedFields']}%'
                                 OR billing_email = '${encryptedField}'
                                 OR user_name = '${encryptedField}')`

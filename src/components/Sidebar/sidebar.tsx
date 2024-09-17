@@ -14,6 +14,7 @@ import { usePathname } from "next/navigation";
 import { AccountsIcon } from "../Icons/Sidebar/accounts-icon";
 import { GameIcon } from "../Icons/Sidebar/game-icon";
 import { PlayerIcon } from "../Icons/Sidebar/player-icon";
+import { SettingsIcon } from "../Icons/Sidebar/settings-icon";
 
 export const SidebarWrapper = () => {
   const pathname = usePathname();
@@ -85,6 +86,13 @@ export const SidebarWrapper = () => {
               title="Transactions"
               icon={<PaymentsIcon />}
               href="/transactions"
+            />
+
+            <SidebarItem
+              isActive={pathname === "/settings"}
+              title="Settings"
+              icon={<SettingsIcon />}
+              href="/settings"
             />
 
               {/* <SidebarItem

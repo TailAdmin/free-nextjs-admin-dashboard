@@ -18,6 +18,8 @@ export const useDataFetcher = <T>() => {
             if (!success) {
                 throw new Error(`Failed to load data from ${endpoint}`);
             }
+        
+
             setData(data);
             setTotal(total);
         } catch (err) {

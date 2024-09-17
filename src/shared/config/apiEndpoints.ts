@@ -4,6 +4,7 @@ export const API_ENDPOINTS = {
     TRANSACTIONS: `/api/transaction`,
     GAMES: `/api/game`,
     PLAYERS: `/api/player`,
-    ACCOUNTS: '/api/account'
+    ACCOUNTS: '/api/account',
+    SETTINGS: '/api/settings',
 
 };

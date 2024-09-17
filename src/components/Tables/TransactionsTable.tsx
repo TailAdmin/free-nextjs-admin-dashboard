@@ -89,15 +89,23 @@ const handleLinkClick = (linkValue: string) => {
     { key: 'payment_number', label: 'Payment number', link_type: "external",link: 'payment_link' },
     { key: 'payment_date', label: 'Payment date'},
     { key: 'billing_email', label: 'Billing Email'},
-    { key: 'status', label: 'Status' },
+    { key: 'status', label: 'Status', color: (row)=>{
+
+      if (row.status === 'done') return '#BBF7D0';
+      if (row.status in ['canceled', 'rejected', 'failed']) return '#FECACA';
+      if (row.status === 'refunded') return '#DDD6FE';
+
+      return '#F1F5F9';
+    } },
     { key: 'amountWithCurrency', label: 'Amount' },
-    { key: 'company_name', label: 'Company Name', link_type: "external", link: 'company_link' },
+    //{ key: 'company_name', label: 'Company Name', link_type: "external", link: 'company_link' },
+    { key: 'ip', label: 'IP Address'},
     { key: 'game_name', label: 'Game Name', link_type: "external", link: 'game_link' },
   
     { key: 'user_id', label: 'User ID' },
-    { key: 'user_name', label: 'User Name' },
-    { key: 'player_id', label: 'Player ID' },
-    { key: 'player_name', label: 'Player Name' },
+    // { key: 'user_name', label: 'User Name' },
+    // { key: 'player_id', label: 'Player ID' },
+    // { key: 'player_name', label: 'Player Name' },
     { key: 'item_name', label: 'Item name' },
 
 
@@ -112,6 +120,7 @@ const handleLinkClick = (linkValue: string) => {
         <BaseTableNextUI
             data={transactions}
             columns={columns}
+            totalValue={total}
             //currentPage={currentPage}
             totalPages={totalPages}
             pageSize={pageSize}

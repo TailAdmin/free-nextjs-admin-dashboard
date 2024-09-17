@@ -8,7 +8,7 @@ interface CounterCardProps {
 export const CounterCard: React.FC<CounterCardProps> = ({title, value, hint}) =>{
   return (
     <Tooltip content={hint}>
-      <Card className="flex flex-col items-center p-4 shadow-md bg-white rounded-lg min-w-[200px] max-w-[200px] max-h-[150px]">
+      <Card className="flex flex-col items-center p-4 shadow-md bg-white rounded-lg min-w-[160px] max-w-[160px] max-h-[85px]">
         {/* Заголовок */}
         <label className="font-semibold text-sm text-gray-500">
           {title}

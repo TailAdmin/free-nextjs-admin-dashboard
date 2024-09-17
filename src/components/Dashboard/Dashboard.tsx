@@ -122,19 +122,18 @@ return(
         </Select>
         </div>
 
-        <div className="flex justify-between gap-5 mt-8 ml-5">
+        <div className="flex justify-start gap-2 mt-8 ml-2">
             <CounterCard title="Companies" value={String(companiesCount)} hint={`Companies created from ${dateRangeValue ? dateRangeValue[0]:""}`}  />
             <CounterCard title="Customers" value={String(customersCount)} hint={`Customers created from ${dateRangeValue ? dateRangeValue[0]:""}`}   />
 
             <CounterCard title="Games" value={String(gamesCount)} hint={`Games created from ${dateRangeValue ? dateRangeValue[0]:""}`}   />
 
             <CounterCard title="Players" value={String(playersCount)} hint={`Players created from ${dateRangeValue ? dateRangeValue[0]:""}`}  />
-
-        </div>
-        <div className="flex justify-center gap-5 mt-8 ml-5">
             <CounterCard title="Customers online" value={String(customersOnlineCount)} hint={`Customers with login date today`} />
             <CounterCard title="Players online" value={String(playersOnlineCount)} hint={`Players with login date today`}  />
-        </div>    
+  
+        </div>
+
     </div>    
 )
 }

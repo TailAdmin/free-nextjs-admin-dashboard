@@ -24,6 +24,7 @@ type ColorType = "default" | "primary" | "secondary" | "success" | "warning" | "
 interface BaseTableProps<T> {
     data: T[];
     columns: ColumnType<T>[];
+    totalValue?: number;
     //currentPage: number;
     pageSize: number;
     totalPages: number;
@@ -47,6 +48,7 @@ interface BaseTableProps<T> {
 const BaseTableNextUI = <T extends Record<string, any>>({
     data,
     columns,
+    totalValue,
     //currentPage,
     pageSize,
     totalPages,
@@ -141,6 +143,7 @@ const BaseTableNextUI = <T extends Record<string, any>>({
                 <Link
                     className='text-blue-500 hover:underline'
                     href={typeof column.link === 'function' ? column.link(row) : column.link}
+                    color={typeof column.color === 'function' ? column.color(row) : column.color}
                     onClick={(e) => e.stopPropagation()}
                 >
                     {row[column.key]}
@@ -156,6 +159,7 @@ const BaseTableNextUI = <T extends Record<string, any>>({
             <>
                 <div className="flex flex-col gap-4 ">
                     <div className="flex justify-between items-center">
+                        {totalValue && <span>Total: {totalValue}</span>}
                         {/* <div className="flex justify-berween gap-3  items-center m-2"> 
                             <Input
                                 isClearable

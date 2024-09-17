@@ -1,3 +1,4 @@
+import { Currency, Money } from "./money";
 
 export function convertTimeStampToLocaleDateString(timeStamp: number): string {
 
@@ -38,5 +39,11 @@ export function convertDateStringToTimeStampInSeconds(date: string, time: string
     const dateDate = new Date(reformattedDate + time);
     const dateTS = Math.floor(dateDate.getTime()/1000);
     return dateTS;
+}
+
+export function convertAmountWithCurrencyPrecision(amount: number, currency: string): number{
+
+    const updatedAmount = Math.round(amount / 10^Money.getPrecision(currency as Currency)*100) / 100;
+    return updatedAmount;
 }
 
