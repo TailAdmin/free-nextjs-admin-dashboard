@@ -21,7 +21,7 @@ export async function middleware(req: NextRequest) {
 
     
     const allowedIps = process.env. AGHANIM_ALLOWED_IPS;
-    if (currentIp && currentIp !== '::1' && allowedIps) {
+    if (currentIp && currentIp !== '::1' && allowedIps && allowedIps.length > 0) {
         if (!allowedIps.includes(currentIp)){
             logger.warn(`User ${token?.name} with IP ${currentIp} is not allowed. Request rejected.`);
             return NextResponse.json({ message: 'IP is not allowed' }, { status: 403 });
