@@ -24,12 +24,15 @@ const TableUser = ()  => {
   const {complexFilterValue, setShowFilters, handleContextInit, currentPage} = useFilter();
   const { data, isLoading, error, total, fetchData } = useDataFetcher<UserEntity>(); 
   const { logMessage } = useLogger();
-
+  const [initialized, setInitialized] = useState(false);
 // settings for global filter context
   useEffect(() => {
 
     if (setShowFilters)
         {setShowFilters(true);}
+    if (handleContextInit) {
+      handleContextInit();
+  }
 
     return () => {
         if (setShowFilters)
@@ -41,13 +44,19 @@ const TableUser = ()  => {
     }, []);
 
     useEffect(() => {
-      fetchData({
-              endpoint:API_ENDPOINTS.PLAYERS, 
-              page:currentPage,
-              pageSize:pageSize,
-              selectedFilterValue:complexFilterValue});
+      let timeoutId: NodeJS.Timeout;
+
+      if (!initialized) {
+        timeoutId = setTimeout(() => setInitialized(true), 100);  
+      }else{
+        fetchData({
+                endpoint:API_ENDPOINTS.PLAYERS, 
+                page:currentPage,
+                pageSize:pageSize,
+                selectedFilterValue:complexFilterValue});
+        }          
   
-  }, [currentPage, pageSize, complexFilterValue]);
+  }, [initialized, currentPage, pageSize, complexFilterValue]);
   
   useEffect(() => {
   

@@ -30,8 +30,14 @@ const TableCustomer: React.FC<CustomersTableProps> = ({companyId }: CustomersTab
     
 
   const {complexFilterValue, setShowFilters, handleContextInit, currentPage} = useFilter();
+  const [initialized, setInitialized] = useState(false);
+// init currentPage
+// useEffect(()=>{
 
-
+//   if (handleCurrentPageChange) {
+//       handleCurrentPageChange(1);  
+//   }
+// }, [handleCurrentPageChange])
 
 
 // settings for global filter context
@@ -39,6 +45,9 @@ const TableCustomer: React.FC<CustomersTableProps> = ({companyId }: CustomersTab
 
     if (setShowFilters)
         {setShowFilters(true);}
+    if (handleContextInit) {
+      handleContextInit();
+  }
 
     return () => {
         if (setShowFilters)
@@ -47,7 +56,7 @@ const TableCustomer: React.FC<CustomersTableProps> = ({companyId }: CustomersTab
           handleContextInit();
         }
     };
-    }, [setShowFilters]);
+    }, []);
 
   const { data: customers, isLoading, error, total, fetchData } = useDataFetcher<CustomerEntity>(); 
 
@@ -62,14 +71,19 @@ const TableCustomer: React.FC<CustomersTableProps> = ({companyId }: CustomersTab
   // },[complexFilterValue])
 
   useEffect(() => {
+    let timeoutId: NodeJS.Timeout;
 
+    if (!initialized) {
+      timeoutId = setTimeout(() => setInitialized(true), 100);  
+    }else{
       fetchData({
               endpoint: API_ENDPOINTS.CUSTOMERS, 
               page:currentPage,
               pageSize:pageSize,
               selectedFilterValue:{...complexFilterValue, ...filter}});
+    }          
 
-}, [currentPage, pageSize, complexFilterValue, filter]);
+}, [initialized, currentPage, pageSize, complexFilterValue]);
 
 useEffect(() => {
 

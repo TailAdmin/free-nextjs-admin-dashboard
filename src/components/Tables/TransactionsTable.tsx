@@ -21,11 +21,14 @@ const TableTransaction = () => {
   const { logMessage } = useLogger();
 
   const {complexFilterValue, setShowFilters, handleContextInit, currentPage} = useFilter();
-
+  const [initialized, setInitialized] = useState(false);
   useEffect(() => {
 
     if (setShowFilters)
       {setShowFilters(true);}
+    if (handleContextInit) {
+      handleContextInit();
+  }
 
     return () => {
       if (setShowFilters)
@@ -39,13 +42,19 @@ const TableTransaction = () => {
   const { data: transactions, isLoading, error, total, fetchData } = useDataFetcher<TransactionEntity>(); 
   
   useEffect(() => {
-    fetchData({
-            endpoint:API_ENDPOINTS.TRANSACTIONS, 
-            page:currentPage,
-            pageSize:pageSize,
-            selectedFilterValue:complexFilterValue});
+    let timeoutId: NodeJS.Timeout;
 
-}, [currentPage, pageSize, complexFilterValue]);
+    if (!initialized) {
+      timeoutId = setTimeout(() => setInitialized(true), 100);  
+    }else{
+      fetchData({
+              endpoint:API_ENDPOINTS.TRANSACTIONS, 
+              page:currentPage,
+              pageSize:pageSize,
+              selectedFilterValue:complexFilterValue});
+    }          
+
+}, [initialized, currentPage, pageSize, complexFilterValue]);
 
 useEffect(() => {
 

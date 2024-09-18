@@ -30,14 +30,16 @@ const CompaniesTable: React.FC<CompaniesTableProps> = ({ customerId }: Companies
     
     const { data: companies, isLoading, error, total, fetchData } = useDataFetcher<CompanyEntity>(); 
 
-
+    const [initialized, setInitialized] = useState(false);    
 // settings for global filter context
     useEffect(() => {
 
         if (setShowFilters)
             {setShowFilters(true);}
     
-
+        if (handleContextInit) {
+            handleContextInit();
+        }
         return () => {
             if (setShowFilters)
             {setShowFilters(false);}
@@ -50,13 +52,20 @@ const CompaniesTable: React.FC<CompaniesTableProps> = ({ customerId }: Companies
     const { logMessage } = useLogger();
     
     useEffect(() => {
-        fetchData({
-                endpoint:API_ENDPOINTS.COMPANIES, 
-                page:currentPage,
-                pageSize:pageSize,
-                selectedFilterValue:{...complexFilterValue, ...filter}});
 
-    }, [currentPage, pageSize, complexFilterValue, filter]);
+        let timeoutId: NodeJS.Timeout;
+
+        if (!initialized) {
+          timeoutId = setTimeout(() => setInitialized(true), 100);  
+        }else{
+            fetchData({
+                    endpoint:API_ENDPOINTS.COMPANIES, 
+                    page:currentPage,
+                    pageSize:pageSize,
+                    selectedFilterValue:{...complexFilterValue, ...filter}});
+        }        
+
+    }, [initialized, currentPage, pageSize, complexFilterValue, filter]);
 
     useEffect(() => {
 

@@ -62,6 +62,7 @@ const handleContextInit=() => {
         handleDateRangeChange(null);
     }
     setComplexFilterValue({});
+    setCurrentPage(1);
 }
 
 return (
@@ -77,7 +78,7 @@ return (
             handleFilterChange, 
             handleFilterSubmit, 
             handleClear,
-            handleContextInit}}
+            handleContextInit,}}
     >
     {children}
     </FilterContext.Provider>

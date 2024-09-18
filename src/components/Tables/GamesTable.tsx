@@ -28,12 +28,15 @@ const GamesTable: React.FC<GamesTableProps> = ({ customerId, companyId }) => {
  
     const { data: games, isLoading, error, total, fetchData } = useDataFetcher<GameEntity>();    
     const { logMessage } = useLogger();
- 
+    const [initialized, setInitialized] = useState(false);
     // settings for global filter context
     useEffect(() => {
 
         if (setShowFilters)
             {setShowFilters(true);}
+        if (handleContextInit) {
+            handleContextInit();
+        }
 
         return () => {
             if (setShowFilters)
@@ -45,13 +48,19 @@ const GamesTable: React.FC<GamesTableProps> = ({ customerId, companyId }) => {
         }, []);
 
         useEffect(() => {
-            fetchData({
-                    endpoint:API_ENDPOINTS.GAMES, 
-                    page:currentPage,
-                    pageSize:pageSize,
-                    selectedFilterValue:{...complexFilterValue, ...filter}});
-    
-        }, [currentPage, pageSize, complexFilterValue, filter]);
+
+            let timeoutId: NodeJS.Timeout;
+
+            if (!initialized) {
+              timeoutId = setTimeout(() => setInitialized(true), 100);  
+            }else{
+                fetchData({
+                        endpoint:API_ENDPOINTS.GAMES, 
+                        page:currentPage,
+                        pageSize:pageSize,
+                        selectedFilterValue:{...complexFilterValue, ...filter}});
+            }
+        }, [initialized, currentPage, pageSize, complexFilterValue, filter]);
     
         useEffect(() => {
     

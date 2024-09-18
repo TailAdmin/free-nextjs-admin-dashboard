@@ -10,21 +10,18 @@ import { useDataFetcher } from '@/hooks/useDataFetcher';
 import { useFilter } from '../Navbar/filter-context';
 
 const AccountsTable = () => {
-    const [linkValue, setLinkValue] = useState('');
-    //const [currentPage, setCurrentPage] = useState(1);
-    const [filterValue, setFilterValue] = useState('');
-    const [totalPages, setTotalPages] = useState(1);
-    const[pageSize, setPageSize] = useState(20);
-    //const [complexFilterValue, setComplexFilterValue] = useState<Record<string, any>>();
-    const [dateRangeValue, setDateRangeValue] = useState<string[] | null>(null);
+ 
 
-    const {complexFilterValue, setShowFilters, handleContextInit, currentPage} = useFilter();
+    const {complexFilterValue, setShowFilters, handleContextInit, currentPage } = useFilter();
 
 // settings for global filter context
     useEffect(() => {
 
         if (setShowFilters)
             {setShowFilters(true);}
+        if (handleContextInit) {
+            handleContextInit();
+        }
 
         return () => {
             if (setShowFilters)
@@ -34,20 +31,37 @@ const AccountsTable = () => {
             }
         };
         }, []);
+    const [initialized, setInitialized] = useState(false);    
+    const [linkValue, setLinkValue] = useState('');
+    //const [currentPage, setCurrentPage] = useState(1);
+    const [filterValue, setFilterValue] = useState('');
+    const [totalPages, setTotalPages] = useState(1);
+    const[pageSize, setPageSize] = useState(20);
+    //const [complexFilterValue, setComplexFilterValue] = useState<Record<string, any>>();
+    const [dateRangeValue, setDateRangeValue] = useState<string[] | null>(null);
 
     //const { accounts, isLoading, error, total, fetchAccounts } = useAccounts({page: currentPage, pageSize: pageSize, filter: filter});
     const { data: accounts, isLoading, error, total, fetchData } = useDataFetcher<AccountEntity>(); 
 
     
     const { logMessage } = useLogger();
-    useEffect(() => {
-        fetchData({
-                endpoint:API_ENDPOINTS.ACCOUNTS, 
-                page:currentPage,
-                pageSize:pageSize,
-                selectedFilterValue:complexFilterValue});
 
-    }, [currentPage, pageSize, complexFilterValue]);
+
+    useEffect(() => {
+
+        let timeoutId: NodeJS.Timeout;
+
+        if (!initialized) {
+          timeoutId = setTimeout(() => setInitialized(true), 100);  
+        }else{
+            fetchData({
+                    endpoint:API_ENDPOINTS.ACCOUNTS, 
+                    page:currentPage,
+                    pageSize:pageSize,
+                    selectedFilterValue:complexFilterValue});
+            }            
+
+    }, [initialized, currentPage, pageSize, complexFilterValue]);
 
 useEffect(() => {
 
