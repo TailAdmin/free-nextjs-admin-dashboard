@@ -314,8 +314,8 @@ const menuGroups = [
         label: "Authentication",
         route: "#",
         children: [
-          { label: "Sign In", route: "/auth/signin" },
-          { label: "Sign Up", route: "/auth/signup" },
+          { label: "Add Member", route: "/auth/signin" },
+          { label: "Sign Out", route: "/auth/signout" },
         ],
       },
     ],
@@ -336,13 +336,7 @@ const Sidebar = ({ sidebarOpen, setSidebarOpen }: SidebarProps) => {
         {/* <!-- SIDEBAR HEADER --> */}
         <div className="flex items-center justify-between gap-2 px-6 py-5.5 lg:py-6.5">
           <Link href="/">
-            <Image
-              width={176}
-              height={32}
-              src={"/images/logo/logo.svg"}
-              alt="Logo"
-              priority
-            />
+            <span className="text-xl font-semibold text-white">Digital Sunsets - Admin</span>
           </Link>
 
           <button
