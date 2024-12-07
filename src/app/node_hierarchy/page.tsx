@@ -14,7 +14,7 @@ const Profile = () => {
   return (
     <DefaultLayout>
       <div className="mx-auto max-w-242.5">
-        <Breadcrumb pageName="Upload CSV" />
+        <Breadcrumb pageName="Node Hierarchy" />
         {/* hooking up sending to svc */}
         <div className="relative z-20 h-10 md:h-10"></div>
         <div
@@ -27,7 +27,7 @@ const Profile = () => {
             className="absolute inset-0 z-50 m-0 h-full w-full cursor-pointer p-0 opacity-0 outline-none"
           />
           <div className="flex flex-col items-center justify-center space-y-3">
-            <span className="flex h-10 w-10 items-center justify-center rounded-full border border-stroke bg-white dark:border-strokedark dark:bg-boxdark">
+            {/* <span className="flex h-10 w-10 items-center justify-center rounded-full border border-stroke bg-white dark:border-strokedark dark:bg-boxdark">
               <svg
                 width="16"
                 height="16"
@@ -60,7 +60,7 @@ const Profile = () => {
               drop
             </p>
             <p className="mt-1.5">CSV File Only</p>
-            <p>(max, 800 X 800px)</p>
+            <p>(max, 800 X 800px)</p> */}
           </div>
         </div>
       </div>

@@ -58,8 +58,8 @@ const ChartSummary: React.FC<any> = ({}) => {
   // const columns = ["summary", "summary1"];
   // call function to get actual data
   const rows_ : any =[{ id :1 ,Meausre: "Absolute Carbon Emission", Value: 5000 },{ id: 2, Meausre: "ACEPDR Absolute Carbon Emission Per Dollar Revenue", Value: 1.24 }]
+  const columns : any = [{ field: "Meausre", minWidth: 380 }, { field: "Value" }]
 
-  const columns : any = [{ field: "Meausre" }, { field: "Value" }]
   return (
     <div className="col-span-12 rounded-sm border border-stroke bg-white px-5 pb-5 pt-7.5 shadow-default dark:border-strokedark dark:bg-boxdark sm:px-7.5 xl:col-span-5">
       <div>
