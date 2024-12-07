@@ -14,12 +14,12 @@
     "@mui/material": "^6.1.10",
     "@mui/x-data-grid": "^7.23.1",
     "@mui/x-data-grid-pro": "^7.23.1",
-    "apexcharts": "^3.45.2",
+    "apexcharts": "^4.1.0",
     "flatpickr": "^4.6.13",
     "jsvectormap": "^1.6.0",
     "next": "^14.2.4",
     "react": "^18",
-    "react-apexcharts": "^1.4.1",
+    "react-apexcharts": "^1.7.0",
     "react-dom": "^18"
   },
   "devDependencies": {
