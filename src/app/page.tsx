@@ -4,7 +4,7 @@ import DefaultLayout from "@/components/Layouts/DefaultLayout";
 
 export const metadata: Metadata = {
   title:
-    "Sustainbility Observability Platform",
+    "node.0",
   description: "Operating Manual for Entersprise Carbon Emission Analytics",
 };
 
