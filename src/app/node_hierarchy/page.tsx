@@ -2,7 +2,7 @@ import Breadcrumb from "@/components/Breadcrumbs/Breadcrumb";
 import Image from "next/image";
 import { Metadata } from "next";
 import DefaultLayout from "@/components/Layouts/DefaultLayout";
-import { LoadGraphWithHook } from "/Users/derrickxu/EF_HACK/free-nextjs-admin-dashboard/src/components/Charts/node_grapsh"
+import { LoadGraphWithHook } from "@/components/Charts/node_grapsh"
 
 export const metadata: Metadata = {
   title: "Next.js Profile | TailAdmin - Next.js Dashboard Template",
