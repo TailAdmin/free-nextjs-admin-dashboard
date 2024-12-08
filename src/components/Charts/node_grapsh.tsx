@@ -5,8 +5,19 @@ import { SigmaContainer, useLoadGraph } from "@react-sigma/core";
 import "@react-sigma/core/lib/react-sigma.min.css";
 import Papa from 'papaparse';
 
+// Define a simpler type for our data structure
+interface GraphData {
+  products: {
+    [key: string]: string[];  // product name -> array of ingredients
+  };
+  ingredients: {
+    [key: string]: string[];  // ingredient name -> array of products
+  };
+}
+
 const MyGraph: FC = () => {
   const loadGraph = useLoadGraph();
+  console.log(localStorage.getItem('parsedCSVData'));
 
   useEffect(() => {
     const graph = new MultiDirectedGraph();
@@ -23,23 +34,28 @@ const MyGraph: FC = () => {
 
     // Function to process CSV data
     const processData = (results: Papa.ParseResult<any>) => {
-      // Clear existing graph
       graph.clear();
 
       const data = results.data;
       const productCount = data.length;
-      const radius = 400; // Radius for product circle
-      const centerX = 400; // Center X coordinate
-      const centerY = 400; // Center Y coordinate
+      const radius = 400;
+      const centerX = 400;
+      const centerY = 400;
 
-      // Add product nodes in a circle
+      // Initialize simplified graph data structure
+      const graphData: GraphData = {
+        products: {},
+        ingredients: {}
+      };
+
+      // Process data and build relationships
       data.forEach((row, index) => {
         if (row.product_name) {
-          // Calculate position in a circle for products
           const angle = (2 * Math.PI * index) / productCount;
           const x = centerX + radius * Math.cos(angle);
           const y = centerY + radius * Math.sin(angle);
 
+          // Add to graph visualization
           graph.addNode(row.product_name, {
             x,
             y,
@@ -48,18 +64,23 @@ const MyGraph: FC = () => {
             color: "#cc0000"
           });
 
-          // Add ingredient nodes in a smaller circle around the product
           const ingredients = parseIngredients(row.ingredients);
-          const ingredientCount = ingredients.length;
+          graphData.products[row.product_name] = ingredients;
 
+          const ingredientCount = ingredients.length;
           ingredients.forEach((ingredient: string, ingIndex: number) => {
-            // Calculate position for ingredients around their product
-            const ingredientRadius = 100; // Smaller radius for ingredients
+            // Add to ingredients mapping
+            if (!graphData.ingredients[ingredient]) {
+              graphData.ingredients[ingredient] = [];
+            }
+            graphData.ingredients[ingredient].push(row.product_name);
+
+            // Graph visualization logic
+            const ingredientRadius = 100;
             const ingredientAngle = (2 * Math.PI * ingIndex) / ingredientCount;
             const ingX = x + ingredientRadius * Math.cos(ingredientAngle);
             const ingY = y + ingredientRadius * Math.sin(ingredientAngle);
 
-            // Add ingredient node if it doesn't exist
             if (!graph.hasNode(ingredient)) {
               graph.addNode(ingredient, {
                 x: ingX,
@@ -70,7 +91,6 @@ const MyGraph: FC = () => {
               });
             }
 
-            // Add edge from product to ingredient
             const edgeId = `${row.product_name}-${ingredient}`;
             graph.addEdgeWithKey(edgeId, row.product_name, ingredient, {
               size: 1,
@@ -79,6 +99,12 @@ const MyGraph: FC = () => {
           });
         }
       });
+
+      // Store in localStorage and dispatch event with the data
+      localStorage.setItem('graphData', JSON.stringify(graphData));
+      window.dispatchEvent(new CustomEvent('graphDataUpdated', {
+        detail: graphData
+      }));
 
       loadGraph(graph);
     };
