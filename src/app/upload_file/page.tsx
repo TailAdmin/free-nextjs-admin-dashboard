@@ -5,18 +5,59 @@ import { Metadata } from "next";
 import DefaultLayout from "@/components/Layouts/DefaultLayout";
 import Link from "next/link";
 
+interface CSVData {
+  product_name: string;
+  volume_ordered_quarterly: number;
+  ingredients: string[];
+  price_per_item: number;
+  supplier_region: string;
+  supplier_name: string;
+}
+
 const Profile = () => {
   function handlechange(event: any) {
     const file = event.target.files[0];
     if (file) {
-      // Create a FileReader to read the CSV content
       const reader = new FileReader();
       reader.onload = (e) => {
         const csvContent = e.target?.result as string;
-        // Store the CSV content in localStorage (temporary solution)
+        const rows = csvContent.split('\n');
+        const headers = rows[0].split(',');
+
+        const parsedData: CSVData[] = [];
+
+        // Skip header row, start from index 1
+        for (let i = 1; i < rows.length; i++) {
+          if (rows[i].trim() === '') continue; // Skip empty rows
+
+          const row = rows[i].split(',');
+          // Parse ingredients string into array
+          const ingredientsStr = row[2].trim();
+          const ingredients = ingredientsStr
+            .substring(2, ingredientsStr.length - 2) // Remove [' and ']
+            .split("', '");
+
+          const rowData: CSVData = {
+            product_name: row[0],
+            volume_ordered_quarterly: Number(row[1]),
+            ingredients: ingredients,
+            price_per_item: Number(row[3]),
+            supplier_region: row[4],
+            supplier_name: row[5]
+          };
+
+          parsedData.push(rowData);
+        }
+
+        // Store both raw CSV and structured data
         localStorage.setItem('uploadedCSV', csvContent);
-        // Trigger a refresh of the graph
+        localStorage.setItem('parsedCSVData', JSON.stringify(parsedData));
+
+        // Dispatch events for both raw and structured data
         window.dispatchEvent(new Event('csvUploaded'));
+        window.dispatchEvent(new CustomEvent('csvDataParsed', {
+          detail: parsedData
+        }));
       };
       reader.readAsText(file);
     }
