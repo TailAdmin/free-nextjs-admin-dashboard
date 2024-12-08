@@ -1,0 +1,6 @@
+product_name,volume_ordered_quarterly,ingredients,price_per_item,supplier_region,supplier_name
+Big Mac,53440,"['Beef Patty', 'Lettuce', 'Bun', 'Pickles', 'Special Sauce']",2.66,North America,Supplier B
+Chicken Nuggets,69974,"['Chicken', 'Breading', 'Seasoning']",2.22,South America,Supplier B
+Filet-O-Fish,70556,"['Fish Fillet', 'Bun', 'Tartar Sauce']",5.53,South America,Supplier A
+McChicken,99240,"['Chicken Patty', 'Lettuce', 'Bun', 'Mayonnaise']",4.64,Africa,Supplier B
+McVeggie Burger,10270,"['Veggie Patty', 'Lettuce', 'Bun', 'Ketchup']",3.24,South America,Supplier A
