@@ -2,7 +2,7 @@ import Breadcrumb from "@/components/Breadcrumbs/Breadcrumb";
 import Image from "next/image";
 import { Metadata } from "next";
 import DefaultLayout from "@/components/Layouts/DefaultLayout";
-import { LoadGraphWithHook } from "@/components/Charts/node_grapsh"
+import { LoadGraphWithHook } from "@/components/Charts/node_grapsh";
 
 export const metadata: Metadata = {
   title: "Next.js Profile | TailAdmin - Next.js Dashboard Template",
@@ -16,6 +16,7 @@ const Profile = () => {
         <Breadcrumb pageName="Node Hierarchy" />
         {/* hooking up sending to svc */}
         <LoadGraphWithHook style={{ height: "400px" }} />
+
       </div>
     </DefaultLayout>
   );

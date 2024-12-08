@@ -12,6 +12,7 @@ interface CSVData {
   price_per_item: number;
   supplier_region: string;
   supplier_name: string;
+  carbon_emissions: number;
 }
 
 const Profile = () => {
@@ -36,14 +37,15 @@ const Profile = () => {
           const ingredients = ingredientsStr
             .substring(2, ingredientsStr.length - 2) // Remove [' and ']
             .split("', '");
-
+          console.log("ssss",row)
           const rowData: CSVData = {
             product_name: row[0],
             volume_ordered_quarterly: Number(row[1]),
             ingredients: ingredients,
-            price_per_item: Number(row[3]),
+            price_per_item: Number(row[row.length - 2]),
             supplier_region: row[4],
-            supplier_name: row[5]
+            supplier_name: row[5],
+            carbon_emissions: +row[row.length - 1]
           };
 
           parsedData.push(rowData);

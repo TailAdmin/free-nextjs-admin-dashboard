@@ -78,12 +78,8 @@ interface ChartTwoState {
 const ChartTwo: React.FC = () => {
   const series = [
     {
-      name: "Sales",
-      data: [44, 55, 41, 67, 22, 43, 65],
-    },
-    {
-      name: "Revenue",
-      data: [13, 23, 20, 8, 13, 27, 15],
+      name: "Paris-Aligned Benchmarks",
+      data: [1.3, 2.3, 2, 0.8, 1.3, 2.7, 1.5],
     },
   ];
 
@@ -92,7 +88,7 @@ const ChartTwo: React.FC = () => {
       <div className="mb-4 justify-between gap-4 sm:flex">
         <div>
           <h4 className="text-xl font-semibold text-black dark:text-white">
-            Profit this week
+            Paris-Aligned Benchmarks
           </h4>
         </div>
         <div>

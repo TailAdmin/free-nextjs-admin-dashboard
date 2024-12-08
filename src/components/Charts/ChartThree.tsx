@@ -48,16 +48,33 @@ const options: ApexOptions = {
     },
   ],
 };
+function donut_card(product_name: any, percentage : any): any {
+  return (
+    <div className="w-full px-8 sm:w-1/2">
+    <div className="flex w-full items-center">
+      <span className="mr-2 block h-3 w-full max-w-3 rounded-full bg-primary"></span>
+      <p className="flex w-full justify-between text-sm font-medium text-black dark:text-white">
+        <span> {product_name} </span>
+        <span> {percentage} </span>
+      </p>
+    </div>
+  </div>
+  );
+}
 
 const ChartThree: React.FC = () => {
-  const series = [12, 23, 23, 1232, 56];
+  function randomIntFromInterval(min:any, max:any) {
+    // min and max included
+    return Math.floor(Math.random() * (max - min + 1) + min);
+  }
+  const series = [randomIntFromInterval(10,20), randomIntFromInterval(10,30), randomIntFromInterval(10,20), randomIntFromInterval(10,20)];
 
   return (
     <div className="col-span-12 rounded-sm border border-stroke bg-white px-5 pb-5 pt-7.5 shadow-default dark:border-strokedark dark:bg-boxdark sm:px-7.5 xl:col-span-5">
       <div className="mb-3 justify-between gap-4 sm:flex">
         <div>
           <h5 className="text-xl font-semibold text-black dark:text-white">
-            Visitors Analytics
+            Biggest Carbon Emission Contributor
           </h5>
         </div>
         <div>
@@ -105,42 +122,10 @@ const ChartThree: React.FC = () => {
       </div>
 
       <div className="-mx-8 flex flex-wrap items-center justify-center gap-y-3">
-        <div className="w-full px-8 sm:w-1/2">
-          <div className="flex w-full items-center">
-            <span className="mr-2 block h-3 w-full max-w-3 rounded-full bg-primary"></span>
-            <p className="flex w-full justify-between text-sm font-medium text-black dark:text-white">
-              <span> Desktop </span>
-              <span> 65% </span>
-            </p>
-          </div>
-        </div>
-        <div className="w-full px-8 sm:w-1/2">
-          <div className="flex w-full items-center">
-            <span className="mr-2 block h-3 w-full max-w-3 rounded-full bg-[#6577F3]"></span>
-            <p className="flex w-full justify-between text-sm font-medium text-black dark:text-white">
-              <span> Tablet </span>
-              <span> 34% </span>
-            </p>
-          </div>
-        </div>
-        <div className="w-full px-8 sm:w-1/2">
-          <div className="flex w-full items-center">
-            <span className="mr-2 block h-3 w-full max-w-3 rounded-full bg-[#8FD0EF]"></span>
-            <p className="flex w-full justify-between text-sm font-medium text-black dark:text-white">
-              <span> Mobile </span>
-              <span> 45% </span>
-            </p>
-          </div>
-        </div>
-        <div className="w-full px-8 sm:w-1/2">
-          <div className="flex w-full items-center">
-            <span className="mr-2 block h-3 w-full max-w-3 rounded-full bg-[#0FADCF]"></span>
-            <p className="flex w-full justify-between text-sm font-medium text-black dark:text-white">
-              <span> Unknown </span>
-              <span> 12% </span>
-            </p>
-          </div>
-        </div>
+        {donut_card("Big Mac", series[0])}
+        {donut_card("McChicken", series[1])}
+        {donut_card("Egg Muffin", series[2])}
+        {donut_card("Chicken Wrap", series[3])}
       </div>
     </div>
   );
