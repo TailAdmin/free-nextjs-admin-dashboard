@@ -1,0 +1,21 @@
+product_name,volume_ordered_quarterly,ingredients,price_per_item,supplier_region,supplier_name
+Big Mac,53440,"['Beef Patty', 'Lettuce', 'Bun', 'Pickles', 'Special Sauce']",2.66,North America,Supplier B
+Chicken Nuggets,69974,"['Chicken', 'Breading', 'Seasoning']",2.22,South America,Supplier B
+Filet-O-Fish,70556,"['Fish Fillet', 'Bun', 'Tartar Sauce']",5.53,South America,Supplier A
+McChicken,99240,"['Chicken Patty', 'Lettuce', 'Bun', 'Mayonnaise']",4.64,Africa,Supplier B
+McVeggie Burger,10270,"['Veggie Patty', 'Lettuce', 'Bun', 'Ketchup']",3.24,South America,Supplier A
+Quarter Pounder,17376,"['Beef Patty', 'Cheddar Cheese', 'Bun', 'Ketchup', 'Pickles']",8.34,North America,Supplier C
+Egg McMuffin,91185,"['Egg', 'Ham', 'English Muffin', 'Cheddar Cheese']",8.56,South America,Supplier A
+French Fries,51877,"['Potatoes', 'Vegetable Oil', 'Salt']",5.82,Asia,Supplier C
+Apple Pie,73639,"['Apples', 'Pie Crust', 'Cinnamon']",3.48,South America,Supplier E
+Happy Meal,88717,"['Chicken Nuggets', 'French Fries', 'Apple Slices']",7.92,Africa,Supplier E
+Double Cheeseburger,19281,"['Beef Patty', 'Cheddar Cheese', 'Bun', 'Ketchup', 'Pickles']",2.33,Africa,Supplier B
+Vanilla Milkshake,70429,"['Milk', 'Vanilla Syrup']",9.22,North America,Supplier B
+Chocolate Milkshake,84710,"['Milk', 'Chocolate Syrup']",4.04,North America,Supplier A
+Strawberry Milkshake,94774,"['Milk', 'Strawberry Syrup']",1.96,Asia,Supplier E
+Coke,6517,"['Coca Cola Syrup', 'Carbonated Water']",5.75,South America,Supplier B
+Sprite,48031,"['Lemon Syrup', 'Carbonated Water']",5.22,Asia,Supplier C
+Diet Coke,93345,"['Diet Coca Cola Syrup', 'Carbonated Water']",3.6,Asia,Supplier D
+Chicken Wrap,83252,"['Chicken', 'Tortilla', 'Lettuce', 'Mayonnaise']",7.0,North America,Supplier A
+Salad Bowl,35607,"['Lettuce', 'Tomatoes', 'Cucumbers', 'Salad Dressing']",8.76,Africa,Supplier D
+Hot Fudge Sundae,44100,"['Vanilla Ice Cream', 'Hot Fudge']",4.59,Africa,Supplier A
