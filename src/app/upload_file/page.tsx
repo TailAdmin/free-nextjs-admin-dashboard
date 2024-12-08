@@ -1,16 +1,15 @@
+"use client"
 import Breadcrumb from "@/components/Breadcrumbs/Breadcrumb";
 import Image from "next/image";
 import { Metadata } from "next";
 import DefaultLayout from "@/components/Layouts/DefaultLayout";
 import Link from "next/link";
 
-export const metadata: Metadata = {
-  title: "Next.js Profile | TailAdmin - Next.js Dashboard Template",
-  description:
-    "This is Next.js Profile page for TailAdmin - Next.js Tailwind CSS Admin Dashboard Template",
-};
-
 const Profile = () => {
+  function handlechange(event: any) {
+    const file = event.target.files[0];
+    console.log("heheh", file.text);
+  }
   return (
     <DefaultLayout>
       <div className="mx-auto max-w-242.5">
@@ -23,8 +22,9 @@ const Profile = () => {
         >
           <input
             type="file"
-            accept="image/*"
+            accept="csv/*"
             className="absolute inset-0 z-50 m-0 h-full w-full cursor-pointer p-0 opacity-0 outline-none"
+            onChange={handlechange}
           />
           <div className="flex flex-col items-center justify-center space-y-3">
             <span className="flex h-10 w-10 items-center justify-center rounded-full border border-stroke bg-white dark:border-strokedark dark:bg-boxdark">
