@@ -23,14 +23,22 @@ const MyGraph: FC = () => {
 
     // Function to process CSV data
     const processData = (results: Papa.ParseResult<any>) => {
-      const data = results.data;
+      // Clear existing graph
+      graph.clear();
 
-      // Add product nodes
+      const data = results.data;
+      const productCount = data.length;
+      const radius = 400; // Radius for product circle
+      const centerX = 400; // Center X coordinate
+      const centerY = 400; // Center Y coordinate
+
+      // Add product nodes in a circle
       data.forEach((row, index) => {
         if (row.product_name) {
-          // Random position for each node
-          const x = 200 + Math.random() * 400;
-          const y = 200 + Math.random() * 400;
+          // Calculate position in a circle for products
+          const angle = (2 * Math.PI * index) / productCount;
+          const x = centerX + radius * Math.cos(angle);
+          const y = centerY + radius * Math.sin(angle);
 
           graph.addNode(row.product_name, {
             x,
@@ -40,14 +48,22 @@ const MyGraph: FC = () => {
             color: "#cc0000"
           });
 
-          // Add ingredient nodes and edges
+          // Add ingredient nodes in a smaller circle around the product
           const ingredients = parseIngredients(row.ingredients);
-          ingredients.forEach((ingredient: string) => {
+          const ingredientCount = ingredients.length;
+
+          ingredients.forEach((ingredient: string, ingIndex: number) => {
+            // Calculate position for ingredients around their product
+            const ingredientRadius = 100; // Smaller radius for ingredients
+            const ingredientAngle = (2 * Math.PI * ingIndex) / ingredientCount;
+            const ingX = x + ingredientRadius * Math.cos(ingredientAngle);
+            const ingY = y + ingredientRadius * Math.sin(ingredientAngle);
+
             // Add ingredient node if it doesn't exist
             if (!graph.hasNode(ingredient)) {
               graph.addNode(ingredient, {
-                x: 200 + Math.random() * 400,
-                y: 200 + Math.random() * 400,
+                x: ingX,
+                y: ingY,
                 label: ingredient,
                 size: 7,
                 color: "#666666"
@@ -67,16 +83,34 @@ const MyGraph: FC = () => {
       loadGraph(graph);
     };
 
-    // Load and parse CSV file
-    fetch('/demo_file_upload.csv')
-      .then(response => response.text())
-      .then(csvData => {
-        Papa.parse(csvData, {
-          header: true,
-          complete: processData
-        });
-      })
-      .catch(error => console.error('Error loading CSV:', error));
+    // Function to handle CSV content
+    const handleCSVContent = (csvContent: string) => {
+      Papa.parse(csvContent, {
+        header: true,
+        complete: processData
+      });
+    };
+
+    // Initial load of CSV from localStorage if exists
+    const savedCSV = localStorage.getItem('uploadedCSV');
+    if (savedCSV) {
+      handleCSVContent(savedCSV);
+    }
+
+    // Listen for new CSV uploads
+    const handleCSVUpload = () => {
+      const newCSV = localStorage.getItem('uploadedCSV');
+      if (newCSV) {
+        handleCSVContent(newCSV);
+      }
+    };
+
+    window.addEventListener('csvUploaded', handleCSVUpload);
+
+    // Cleanup
+    return () => {
+      window.removeEventListener('csvUploaded', handleCSVUpload);
+    };
 
   }, [loadGraph]);
 

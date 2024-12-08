@@ -8,7 +8,18 @@ import Link from "next/link";
 const Profile = () => {
   function handlechange(event: any) {
     const file = event.target.files[0];
-    console.log("heheh", file.text);
+    if (file) {
+      // Create a FileReader to read the CSV content
+      const reader = new FileReader();
+      reader.onload = (e) => {
+        const csvContent = e.target?.result as string;
+        // Store the CSV content in localStorage (temporary solution)
+        localStorage.setItem('uploadedCSV', csvContent);
+        // Trigger a refresh of the graph
+        window.dispatchEvent(new Event('csvUploaded'));
+      };
+      reader.readAsText(file);
+    }
   }
   return (
     <DefaultLayout>
