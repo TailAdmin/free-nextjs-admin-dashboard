@@ -22,7 +22,10 @@ export const DropdownItem: React.FC<DropdownItemProps> = ({
 }) => {
   const combinedClasses = `${baseClassName} ${className}`.trim();
 
-  const handleClick = () => {
+  const handleClick = (event: React.MouseEvent) => {
+    if (tag === "button") {
+      event.preventDefault();
+    }
     if (onClick) onClick();
     if (onItemClick) onItemClick();
   };

@@ -25,13 +25,13 @@ export default function UserDropdown() {
           <Image
             width={44}
             height={44}
-            src="/images/user/user-01.jpg"
+            src="/images/user/owner.jpg"
             alt="User"
           />
         </span>
 
         <span className="block mr-1 font-medium text-theme-sm">
-          Emirhan Boruch
+          Musharof
         </span>
 
         <svg
@@ -61,10 +61,10 @@ export default function UserDropdown() {
       >
         <div>
           <span className="block font-medium text-gray-700 text-theme-sm dark:text-gray-400">
-            Emirhan Boruch
+       Musharof Chowdury
           </span>
           <span className="mt-0.5 block text-theme-xs text-gray-500 dark:text-gray-400">
-            emirhanboruch51@gmail.com
+           randomuser@pimjo.com
           </span>
         </div>
 

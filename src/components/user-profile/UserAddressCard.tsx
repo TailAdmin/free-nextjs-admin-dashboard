@@ -28,7 +28,7 @@ export default function UserAddressCard() {
                   Country
                 </p>
                 <p className="text-sm font-medium text-gray-800 dark:text-white/90">
-                  United Kingdom
+                  United States
                 </p>
               </div>
 
@@ -37,7 +37,7 @@ export default function UserAddressCard() {
                   City/State
                 </p>
                 <p className="text-sm font-medium text-gray-800 dark:text-white/90">
-                  Leeds, East London
+                  Phoenix, Arizona, United States.
                 </p>
               </div>
 
@@ -99,12 +99,12 @@ export default function UserAddressCard() {
               <div className="grid grid-cols-1 gap-x-6 gap-y-5 lg:grid-cols-2">
                 <div>
                   <Label>Country</Label>
-                  <Input type="text" defaultValue="United Kingdom" />
+                  <Input type="text" defaultValue="United States" />
                 </div>
 
                 <div>
                   <Label>City/State</Label>
-                  <Input type="text" defaultValue="Leeds, East London" />
+                  <Input type="text" defaultValue="Arizona, United States." />
                 </div>
 
                 <div>
