@@ -1,12 +1,12 @@
-# TailAdmin Next.js
+# TailAdmin - Next.js
 
 A free, open-source admin dashboard template built with Next.js and Tailwind CSS.
 
-![TailAdmin Next.js Dashboard Preview](./banner.png)
+![TailAdmin - Next.js Dashboard Preview](./banner.png)
 
 ## Overview
 
-TailAdmin Next.js provides essential UI components and layouts for building feature-rich, data-driven admin dashboards and control panels. It's built on:
+TailAdmin provides essential UI components and layouts for building feature-rich, data-driven admin dashboards and control panels. It's built on:
 
 - Next.js 15
 - React 19
@@ -51,6 +51,9 @@ git clone https://github.com/TailAdmin/free-nextjs-admin-dashboard.git
     # or
     yarn install
     ```
+    > Some included packages causes peer-deps issue with React 19 while installing.
+    >
+    > With npm the `--legacy-peer-deps` flag is a workaround for that at the moment.
 
 2. Start the development server:
     ```bash
@@ -61,16 +64,17 @@ git clone https://github.com/TailAdmin/free-nextjs-admin-dashboard.git
 
 ## Components
 
-The template includes commonly needed dashboard elements:
-- Navigation and menus
-- Data visualization components
-- Tables and grids
-- Forms and input elements
-- Modal dialogs
-- Cards and containers
-- Calendar views
+TailAdmin is a pre-designed starting point for building a web-based dashboard using Next.js and Tailwind CSS. The template includes:
 
-All components are built with Next.js and styled using Tailwind CSS for easy customization.
+- Sophisticated and accessible sidebar
+- Data visualization components
+- Profile management and custom 404 page
+- Tables and Charts(Line and Bar)
+- Authentication forms and input elements
+- Alerts, Dropdowns, Modals, Buttons and more
+- Can't forget Dark Mode 🕶️
+
+All components are built with React and styled using Tailwind CSS for easy customization.
 
 ## Feature Comparison
 
