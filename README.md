@@ -1,134 +1,144 @@
-# TailAdmin Next.js - Free Next.js Tailwind Admin Dashboard Template
+# TailAdmin Next.js
 
-TailAdmin is a free and open-source admin dashboard template built on **Next.js and Tailwind CSS** providing developers with everything they need to create a feature-rich and data-driven: back-end, dashboard, or admin panel solution for any sort of web project.
+A free, open-source admin dashboard template built with Next.js and Tailwind CSS.
 
-[![tailwind nextjs admin template](https://github.com/TailAdmin/free-nextjs-admin-dashboard/blob/main/tailadmin-nextjs.jpg)](https://nextjs-demo.tailadmin.com/)
+![TailAdmin Next.js Dashboard Preview](./banner.png)
 
-With TailAdmin Next.js, you get access to all the necessary dashboard UI components, elements, and pages required to build a high-quality and complete dashboard or admin panel. Whether you're building a dashboard or admin panel for a complex web application or a simple website. 
+## Overview
 
-TailAdmin utilizes the powerful features of **Next.js 14** and common features of Next.js such as server-side rendering (SSR), static site generation (SSG), and seamless API route integration. Combined with the advancements of **React 18** and the robustness of **TypeScript**, TailAdmin is the perfect solution to help get your project up and running quickly.
+TailAdmin Next.js provides essential UI components and layouts for building admin dashboards and control panels. It's built on:
 
-### [✨ Visit Website](https://tailadmin.com/)
-### [🚀 PRO Demo](https://nextjs-demo.tailadmin.com/)
-### [🚀 FREE Demo](https://nextjs-free-demo.tailadmin.com/)
+- Next.js 15
+- React 19
+- TypeScript
+- Tailwind CSS
 
-### TailAdmin Next.js PRO vs TailAdmin Next.js FREE Comparison 📊
+### Quick Links
+- [Documentation](https://tailadmin.com/docs)
+- [Download](https://tailadmin.com/download)
+- [Figma Design File (Community Edition)](https://www.figma.com/community/file/1214477970819985778)
 
-#### [TailAdmin Next.js PRO](https://nextjs-demo.tailadmin.com/)
-- 5 Unique Dashboards: Analytics, Ecommerce, Marketing, and CRM (More will be added)
-- 150+ Dashboard UI Components
-- 200+ Total UI Elements
-- 45+ HTML Files
-- All Essential Elements and Files
-- Full Figma Design Source - As Shown on Demo
-___
+### Demos
+- [Free Version](https://nextjs-free-demo.tailadmin.com)
+- [Pro Version](https://nextjs-demo.tailadmin.com)
 
-#### [TailAdmin Next.js FREE](https://free-nextjs-demo.tailadmin.com/)
-- 1 Unique Dashboard
-- 30+ Dashboard UI Components
-- 50+ Total UI Elements 
-- 10+ HTML Files
-- TypeScript Support
-- Basic UI Kit Elements and Files
-- Figma Design Source - Free Sample
-___
+### Other Versions
+- [HTML Version](https://github.com/TailAdmin/tailadmin-free-tailwind-dashboard-template)
+- [React Version](https://github.com/TailAdmin/free-react-tailwind-admin-dashboard)
+- [Vue.js Version](https://github.com/TailAdmin/vue-tailwind-admin-dashboard)
 
-### [⬇️ Download Now](https://tailadmin.com/download)
+## Feature Comparison
 
-### [⚡ Get PRO Version](https://tailadmin.com/pricing)
+### Free Version
+- Dashboard layout with key metrics
+- 30+ dashboard components
+- 50+ UI elements
+- Basic Figma design files
+- Community support
 
-### [📄 Documentation/Installation](https://tailadmin.com/docs)
+### Pro Version
+- 5 Unique Dashboards: Analytics, Ecommerce, Marketing, CRM, Stocks (more coming soon)
+- 200+ dashboard components and UI elements
+- Complete Figma design file
+- Email support
 
-### [🖌️ TailAdmin Figma Free Sample](https://www.figma.com/community/file/1214477970819985778)
-
-### [👉 TailAdmin HTML Version](https://github.com/TailAdmin/tailadmin-free-tailwind-dashboard-template)
-
+To learn more about pro version features and pricing, visit our [pricing page](https://tailadmin.com/pricing).
 
 ## Installation
-Here are the steps you need to follow to install the dependencies.
 
-1. Download and extract the template from Next.js Templates.
+### Prerequisites
+To get started with TailAdmin, ensure you have the following prerequisites installed and set up:
 
-2. After that **cd** into the template directory then run this command to install all the dependencies
+- Node.js 18.x or later (recommended to use Node.js 20.x or later)
 
-```
-npm install
-```
-or
+### Cloning the Repository
+Clone the repository using the following command:
 
-```
-yarn install
+```bash
+git clone https://github.com/TailAdmin/free-nextjs-admin-dashboard.git
 ```
 
-3. Now run this command to start the developement server
+> Windows Users: place the repository near the root of your drive if you face issues while cloning.
 
-```
-npm run dev
-```
+1. Install dependencies:
+    ```bash
+    npm install --legacy-peer-deps
+    # or
+    yarn install
+    ```
 
-or 
+2. Start the development server:
+    ```bash
+    npm run dev
+    # or
+    yarn dev
+    ```
 
-```
-yarn dev
-```
+## Components
 
+The template includes commonly needed dashboard elements:
+- Navigation and menus
+- Data visualization components
+- Tables and grids
+- Forms and input elements
+- Modal dialogs
+- Cards and containers
+- Calendar views
 
-## Free Admin Dashboard Template for Next.js Built-with Tailwind CSS, React 18 and TypeScript
-TailAdmin Next.js is a free dashboard template, which uses Tailwind CSS, is a great starting point for dashboard UI. This template uses the Next.js JavaScript framework and the easy-to-use Tailwind CSS framework. The Tailwind CSS and Next.js Dashboard Template comes with ready-made components like navigation menus, charts, tables, and forms. These components can be easily adjusted and added to any Next.js web application.
+All components are built with Next.js and styled using Tailwind CSS for easy customization.
 
-TailAdmin for Next.js provides all essential Next.js + Tailwind CSS UI components that can be copied and pasted directly into your dashboard projects. The range of components includes charts, graphs, navbars, tabs, buttons, cards, tables, profiles, forms, modals, app pages, calendars, web app example templates, and more, all coded for Next.js React and styled using Tailwind CSS.
+## Changelog
 
-If you're on the hunt for a top-quality Next.js-Tailwind Dashboard, Admin Panel Template, or UI Kit, TailAdmin is the perfect choice for you!
+### v2.0.0 (February 2025)
+A major update focused on Next.js 15 implementation and comprehensive redesign.
 
-### 📄 License
-TailAdmin Next.js Free is 100% free and open-source; feel free to use it with your personal and commercial projects.
+#### Major Improvements
+- Complete redesign using Next.js 15 App Router and React Server Components
+- Enhanced user interface with Next.js-optimized components
+- Improved responsiveness and accessibility
+- New features including collapsible sidebar, chat screens, and calendar
+- Redesigned authentication using Next.js App Router and server actions
+- Updated data visualization using ApexCharts for React
 
-### 💜 Support
-If you like the template, please star this repository to inspire the team to create more stuff like this and reach more users like you!
+#### Breaking Changes
 
+- Migrated from Next.js 14 to Next.js 15
+- Chart components now use ApexCharts for React
+- Authentication flow updated to use Server Actions and middleware
 
-## Update Logs
+[Read more](https://tailadmin.com/docs/update-logs/nextjs) on this release.
 
-### Version 1.3.4 - [July 01, 2024]
+#### Breaking Changes
+- Migrated from Next.js 14 to Next.js 15
+- Chart components now use ApexCharts for React
+- Authentication flow updated to use Server Actions and middleware
 
-#### Issues
+### v1.3.4 (July 01, 2024)
+- Fixed JSvectormap rendering issues
 
-- **Issues 01:** JSvectormap rendering issue resolved.
+### v1.3.3 (June 20, 2024)
+- Fixed build error related to Loader component
 
-### Version 1.3.3 - [June 20, 2024]
+### v1.3.2 (June 19, 2024)
+- Added ClickOutside component for dropdown menus
+- Refactored sidebar components
+- Updated Jsvectormap package
 
-#### Issues
+### v1.3.1 (Feb 12, 2024)
+- Fixed layout naming consistency
+- Updated styles
 
-- **Issues 01:** Fixed Not building when Loader component removed
+### v1.3.0 (Feb 05, 2024)
+- Upgraded to Next.js 14
+- Added Flatpickr integration
+- Improved form elements
+- Enhanced multiselect functionality
+- Added default layout component
 
-### Version 1.3.2 - [June 19, 2024]
+## License
 
-#### Enhancements
+TailAdmin Next.js Free Version is released under the MIT License.
 
-- **Enhancement 01:** Add ClickOutside Component for reduce repeated functionality in Header Message, Notification and User Dropdowns
-- **Enhancement 02:** Remove Repeated code from Sidebar Menu and Refactor Sidebar Components
-- **Enhancement 03:** Update Jsvectormap Package and it's imports for latest changes
+## Support
 
-### Version 1.3.1 - [Feb 12, 2024]
-
-#### Issues
-
-- **Issues 01:** Fix Misspelling issue [Default Layout/Layouts].
-
-#### Enhancements
-- **Enhancement 01:** Update style.css
-
-### Version 1.3.0 - [Feb 05, 2024]
-
-#### Enhancements
-
-- **Enhancement 01:** Update Next.js into version 14
-- **Enhancement 02:** Integrate flatpickr in [Date Picker/Form Elements]
-- **Enhancement 03:** Change color after select an option [Select Element/Form Elements].
-- **Enhancement 04:** Make it functional [Multiselect Dropdown/Form Elements].
-- **Enhancement 05:** Make best value editable [Pricing Table One/Pricing Table].
-- **Enhancement 06:** Add Default Layout Component and make App/Layout more clean and use it in every pages.
-
-### Version 0.1.0 - Initial Release - [Aug 3, 2023]
-
-- Initial release of TailAdmin Next.
+If you find this project helpful, please consider giving it a star on GitHub. Your support helps us continue developing and maintaining this template.
