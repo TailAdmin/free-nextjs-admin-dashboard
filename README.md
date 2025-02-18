@@ -6,7 +6,7 @@ A free, open-source admin dashboard template built with Next.js and Tailwind CSS
 
 ## Overview
 
-TailAdmin Next.js provides essential UI components and layouts for building admin dashboards and control panels. It's built on:
+TailAdmin Next.js provides essential UI components and layouts for building feature-rich, data-driven admin dashboards and control panels. It's built on:
 
 - Next.js 15
 - React 19
@@ -14,9 +14,11 @@ TailAdmin Next.js provides essential UI components and layouts for building admi
 - Tailwind CSS
 
 ### Quick Links
-- [Documentation](https://tailadmin.com/docs)
-- [Download](https://tailadmin.com/download)
-- [Figma Design File (Community Edition)](https://www.figma.com/community/file/1214477970819985778)
+- [✨ Visit Website](https://tailadmin.com)
+- [📄 Documentation](https://tailadmin.com/docs)
+- [⬇️ Download](https://tailadmin.com/download)
+- [🖌️ Figma Design File (Community Edition)](https://www.figma.com/community/file/1214477970819985778)
+- [⚡ Get PRO Version](https://tailadmin.com/pricing)
 
 ### Demos
 - [Free Version](https://nextjs-free-demo.tailadmin.com)
@@ -26,23 +28,6 @@ TailAdmin Next.js provides essential UI components and layouts for building admi
 - [HTML Version](https://github.com/TailAdmin/tailadmin-free-tailwind-dashboard-template)
 - [React Version](https://github.com/TailAdmin/free-react-tailwind-admin-dashboard)
 - [Vue.js Version](https://github.com/TailAdmin/vue-tailwind-admin-dashboard)
-
-## Feature Comparison
-
-### Free Version
-- 1 Unique Dashboard
-- 30+ dashboard components
-- 50+ UI elements
-- Basic Figma design files
-- Community support
-
-### Pro Version
-- 5 Unique Dashboards: Analytics, Ecommerce, Marketing, CRM, Stocks (more coming soon)
-- 200+ dashboard components and UI elements
-- Complete Figma design file
-- Email support
-
-To learn more about pro version features and pricing, visit our [pricing page](https://tailadmin.com/pricing).
 
 ## Installation
 
@@ -86,6 +71,23 @@ The template includes commonly needed dashboard elements:
 - Calendar views
 
 All components are built with Next.js and styled using Tailwind CSS for easy customization.
+
+## Feature Comparison
+
+### Free Version
+- 1 Unique Dashboard
+- 30+ dashboard components
+- 50+ UI elements
+- Basic Figma design files
+- Community support
+
+### Pro Version
+- 5 Unique Dashboards: Analytics, Ecommerce, Marketing, CRM, Stocks (more coming soon)
+- 200+ dashboard components and UI elements
+- Complete Figma design file
+- Email support
+
+To learn more about pro version features and pricing, visit our [pricing page](https://tailadmin.com/pricing).
 
 ## Changelog
 
