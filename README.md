@@ -30,7 +30,7 @@ TailAdmin Next.js provides essential UI components and layouts for building admi
 ## Feature Comparison
 
 ### Free Version
-- Dashboard layout with key metrics
+- 1 Unique Dashboard
 - 30+ dashboard components
 - 50+ UI elements
 - Basic Figma design files
