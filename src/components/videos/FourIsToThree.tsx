@@ -2,7 +2,7 @@ import React from "react";
 
 export default function FourIsToThree() {
   return (
-    <div className="aspect-[4/3] overflow-hidden rounded-lg">
+    <div className="aspect-4/3 overflow-hidden rounded-lg">
       <iframe
         src="https://www.youtube.com/embed/dQw4w9WgXcQ"
         title="YouTube video"

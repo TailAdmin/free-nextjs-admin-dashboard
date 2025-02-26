@@ -17,8 +17,8 @@ const YouTubeEmbed: React.FC<YouTubeEmbedProps> = ({
 }) => {
   const aspectRatioClass = {
     "16:9": "aspect-video",
-    "4:3": "aspect-[4/3]",
-    "21:9": "aspect-[21/9]",
+    "4:3": "aspect-4/3",
+    "21:9": "aspect-21/9",
     "1:1": "aspect-square",
   }[aspectRatio];
 

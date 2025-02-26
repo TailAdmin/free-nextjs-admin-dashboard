@@ -86,8 +86,8 @@ export default function DemographicCard() {
           </div>
 
           <div className="flex w-full max-w-[140px] items-center gap-3">
-            <div className="relative block h-2 w-full max-w-[100px] rounded bg-gray-200 dark:bg-gray-800">
-              <div className="absolute left-0 top-0 flex h-full w-[79%] items-center justify-center rounded bg-brand-500 text-xs font-medium text-white"></div>
+            <div className="relative block h-2 w-full max-w-[100px] rounded-sm bg-gray-200 dark:bg-gray-800">
+              <div className="absolute left-0 top-0 flex h-full w-[79%] items-center justify-center rounded-sm bg-brand-500 text-xs font-medium text-white"></div>
             </div>
             <p className="font-medium text-gray-800 text-theme-sm dark:text-white/90">
               79%
@@ -117,8 +117,8 @@ export default function DemographicCard() {
           </div>
 
           <div className="flex w-full max-w-[140px] items-center gap-3">
-            <div className="relative block h-2 w-full max-w-[100px] rounded bg-gray-200 dark:bg-gray-800">
-              <div className="absolute left-0 top-0 flex h-full w-[23%] items-center justify-center rounded bg-brand-500 text-xs font-medium text-white"></div>
+            <div className="relative block h-2 w-full max-w-[100px] rounded-sm bg-gray-200 dark:bg-gray-800">
+              <div className="absolute left-0 top-0 flex h-full w-[23%] items-center justify-center rounded-sm bg-brand-500 text-xs font-medium text-white"></div>
             </div>
             <p className="font-medium text-gray-800 text-theme-sm dark:text-white/90">
               23%

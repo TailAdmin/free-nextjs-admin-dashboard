@@ -6,7 +6,7 @@ import Button from "../ui/button/Button";
 import Input from "../form/input/InputField";
 import Label from "../form/Label";
 import Image from "next/image";
-import Link from "next/link";
+
 
 export default function UserMetaCard() {
   const { isOpen, openModal, closeModal } = useModal();

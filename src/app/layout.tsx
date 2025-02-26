@@ -1,9 +1,6 @@
 import { Outfit } from "next/font/google";
-import "./globals.css";
-import "swiper/css";
-import "swiper/css/navigation";
-import "swiper/css/pagination";
-import "swiper/css/autoplay";
+import "./global.css";
+
 import { SidebarProvider } from "@/context/SidebarContext";
 import { ThemeProvider } from "@/context/ThemeContext";
 
