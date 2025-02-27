@@ -200,7 +200,11 @@ const Calendar: React.FC = () => {
                             onChange={() => setEventLevel(key)}
                           />
                           <span className="flex items-center justify-center w-5 h-5 mr-2 border border-gray-300 rounded-full box dark:border-gray-700">
-                            <span className="w-2 h-2 bg-white rounded-full dark:bg-transparent"></span>
+                            <span
+                              className={`h-2 w-2 rounded-full bg-white ${
+                                eventLevel === key ? "block" : "hidden"
+                              }`}  
+                            ></span>
                           </span>
                         </span>
                         {key}

@@ -282,6 +282,9 @@ layer(base);
   }
 }
 
+.dark .custom-scrollbar::-webkit-scrollbar-thumb {
+  background-color: #344054;
+}
 
 
 
