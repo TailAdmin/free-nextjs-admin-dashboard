@@ -75,7 +75,7 @@ export default function DefaultInputs() {
           </div>
         </div>
         <div>
-          <Label htmlFor="tm">Date Picker Input</Label>
+          <Label htmlFor="tm">Time Picker Input</Label>
           <div className="relative">
             <Input
               type="time"
