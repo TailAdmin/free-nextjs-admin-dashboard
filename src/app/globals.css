@@ -305,9 +305,6 @@
   @apply gap-1 rounded-lg! border-gray-200! p-3 shadow-theme-sm! dark:border-gray-800! dark:bg-gray-900!;
 }
 
-.apexcharts-tooltip-marker {
-  @apply mr-1.5! h-1.5! w-1.5!;
-}
 .apexcharts-legend-text {
   @apply pl-5! text-gray-700! dark:text-gray-400!;
 }
