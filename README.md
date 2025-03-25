@@ -51,13 +51,11 @@ git clone https://github.com/TailAdmin/free-nextjs-admin-dashboard.git
 
 1. Install dependencies:
     ```bash
-    npm install --legacy-peer-deps
+    npm install
     # or
     yarn install
     ```
-    > Some included packages causes peer-deps issue with React 19 while installing.
-    >
-    > With npm the `--legacy-peer-deps` flag is a workaround for that at the moment.
+    > Use `--legacy-peer-deps` flag if you face peer-dependency error during installation.
 
 2. Start the development server:
     ```bash
@@ -98,6 +96,12 @@ All components are built with React and styled using Tailwind CSS for easy custo
 To learn more about pro version features and pricing, visit our [pricing page](https://tailadmin.com/pricing).
 
 ## Changelog
+
+### Version 2.0.2 - [March 25, 2025]
+
+- Upgraded to Next v15.2.3 for [CVE-2025-29927](https://nextjs.org/blog/cve-2025-29927) concerns
+- Included overrides vectormap for packages to prevent peer dependency errors during installation.
+- Migrated from react-flatpickr to flatpickr package for React 19 support
 
 ### Version 2.0.1 - [February 27, 2025]
 
