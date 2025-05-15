@@ -294,45 +294,45 @@
 
 /* third-party libraries CSS */
 .apexcharts-legend-text {
-  @apply text-gray-700! dark:text-gray-400!;
+  @apply !text-gray-700 dark:!text-gray-400;
 }
 
 .apexcharts-text {
-  @apply fill-gray-700! dark:fill-gray-400!;
+  @apply !fill-gray-700 dark:!fill-gray-400;
 }
 
 .apexcharts-tooltip.apexcharts-theme-light {
-  @apply gap-1 rounded-lg! border-gray-200! p-3 shadow-theme-sm! dark:border-gray-800! dark:bg-gray-900!;
+  @apply gap-1 !rounded-lg !border-gray-200 p-3 !shadow-theme-sm dark:!border-gray-800 dark:!bg-gray-900;
 }
 
 .apexcharts-legend-text {
-  @apply pl-5! text-gray-700! dark:text-gray-400!;
+  @apply pl-5! !text-gray-700 dark:!text-gray-400;
 }
 .apexcharts-tooltip-series-group {
-  @apply p-0!;
+  @apply !p-0;
 }
 .apexcharts-tooltip-y-group {
-  @apply p-0!;
+  @apply !p-0;
 }
 .apexcharts-tooltip-title {
-  @apply mb-0! border-b-0! bg-transparent! p-0! text-[10px]! leading-4! text-gray-800! dark:text-white/90!;
+  @apply !mb-0 !border-b-0 !bg-transparent !p-0 !text-[10px] !leading-4 !text-gray-800 dark:!text-white/90;
 }
 .apexcharts-tooltip-text {
-  @apply text-theme-xs! text-gray-700! dark:text-white/90!;
+  @apply !text-theme-xs !text-gray-700 dark:!text-white/90;
 }
 .apexcharts-tooltip-text-y-value {
-  @apply font-medium!;
+  @apply !font-medium;
 }
 
 .apexcharts-gridline {
-  @apply stroke-gray-100! dark:stroke-gray-800!;
+  @apply !stroke-gray-100 dark:!stroke-gray-800;
 }
 
 .flatpickr-wrapper {
   @apply w-full;
 }
 .flatpickr-calendar {
-  @apply mt-2 bg-white! rounded-xl! p-5! border! border-gray-200! text-gray-500! dark:bg-gray-dark! dark:text-gray-400! dark:shadow-theme-xl! 2xsm:w-auto!;
+  @apply mt-2 !bg-white !rounded-xl !p-5 !border !border-gray-200 dark:!border-gray-800 !text-gray-500 dark:!bg-gray-dark dark:!text-gray-400 dark:!shadow-theme-xl 2xsm:!w-auto;
 }
 
 .flatpickr-months .flatpickr-prev-month:hover svg,
@@ -345,32 +345,32 @@
 }
 
 .flatpickr-current-month {
-  @apply p-0!;
+  @apply !p-0;
 }
 .flatpickr-current-month .cur-month,
 .flatpickr-current-month input.cur-year {
-  @apply h-auto! pt-0! text-lg! font-medium! text-gray-800! dark:text-white/90!;
+  @apply !h-auto !pt-0 !text-lg !font-medium !text-gray-800 dark:!text-white/90;
 }
 
 .flatpickr-prev-month,
 .flatpickr-next-month {
-  @apply p-0!;
+  @apply !p-0;
 }
 
 .flatpickr-weekdays {
-  @apply h-auto mt-6 mb-4 bg-transparent!;
+  @apply h-auto mt-6 mb-4 !bg-transparent;
 }
 
 .flatpickr-weekday {
-  @apply text-theme-sm! font-medium! text-gray-500! dark:text-gray-400! bg-transparent!;
+  @apply !text-theme-sm !font-medium !text-gray-500 dark:!text-gray-400 !bg-transparent;
 }
 
 .flatpickr-day {
-  @apply flex! items-center! text-theme-sm! font-medium! text-gray-800! dark:text-white/90! dark:hover:border-gray-300! dark:hover:bg-gray-900!;
+  @apply !flex !items-center !text-theme-sm !font-medium !text-gray-800 dark:!text-white/90 dark:hover:!border-gray-300 dark:hover:!bg-gray-900;
 }
 .flatpickr-day.nextMonthDay,
 .flatpickr-day.prevMonthDay {
-  @apply text-gray-400!;
+  @apply !text-gray-400;
 }
 
 .flatpickr-months > .flatpickr-month {
@@ -390,32 +390,32 @@
 }
 .flatpickr-months .flatpickr-prev-month,
 .flatpickr-months .flatpickr-next-month {
-  @apply top-7! dark:fill-white! dark:text-white! bg-transparent!;
+  @apply !top-7 dark:!fill-white dark:!text-white !bg-transparent;
 }
 .flatpickr-months .flatpickr-prev-month.flatpickr-prev-month,
 .flatpickr-months .flatpickr-next-month.flatpickr-prev-month {
-  @apply left-7!;
+  @apply !left-7;
 }
 .flatpickr-months .flatpickr-prev-month.flatpickr-next-month,
 .flatpickr-months .flatpickr-next-month.flatpickr-next-month {
-  @apply right-7!;
+  @apply !right-7;
 }
 .flatpickr-days {
-  @apply border-0!;
+  @apply !border-0;
 }
 span.flatpickr-weekday,
 .flatpickr-months .flatpickr-month {
-  @apply dark:fill-white! dark:text-white! bg-none!;
+  @apply dark:!fill-white dark:!text-white !bg-none;
 }
 .flatpickr-innerContainer {
-  @apply border-b-0!;
+  @apply !border-b-0;
 }
 .flatpickr-months .flatpickr-month {
-  @apply bg-none!;
+  @apply !bg-none;
 }
 .flatpickr-day.inRange {
   box-shadow: -5px 0 0 #f9fafb, 5px 0 0 #f9fafb !important;
-  @apply dark:shadow-datepicker!;
+  @apply dark:!shadow-datepicker;
 }
 .flatpickr-day.inRange,
 .flatpickr-day.prevMonthDay.inRange,
@@ -429,13 +429,13 @@ span.flatpickr-weekday,
 .flatpickr-day:focus,
 .flatpickr-day.prevMonthDay:focus,
 .flatpickr-day.nextMonthDay:focus {
-  @apply border-gray-50! bg-gray-50! dark:border-0! dark:border-white/5! dark:bg-white/5!;
+  @apply !border-gray-50 !bg-gray-50 dark:!border-0 dark:!border-white/5 dark:!bg-white/5;
 }
 .flatpickr-day.selected,
 .flatpickr-day.startRange,
 .flatpickr-day.selected,
 .flatpickr-day.endRange {
-  @apply text-white! dark:text-white!;
+  @apply !text-white dark:!text-white;
 }
 .flatpickr-day.selected,
 .flatpickr-day.startRange,
@@ -456,7 +456,7 @@ span.flatpickr-weekday,
 .flatpickr-day.startRange.nextMonthDay,
 .flatpickr-day.endRange.nextMonthDay {
   background: #465fff;
-  @apply border-brand-500! bg-brand-500! hover:border-brand-500! hover:bg-brand-500!;
+  @apply !border-brand-500 !bg-brand-500 hover:!border-brand-50 hover:!bg-brand-500;
 }
 .flatpickr-day.selected.startRange + .endRange:not(:nth-child(7n + 1)),
 .flatpickr-day.startRange.startRange + .endRange:not(:nth-child(7n + 1)),
@@ -468,7 +468,7 @@ span.flatpickr-weekday,
 .flatpickr-months .flatpickr-next-month svg,
 .flatpickr-months .flatpickr-prev-month,
 .flatpickr-months .flatpickr-next-month {
-  @apply hover:fill-none!;
+  @apply hover:!fill-none;
 }
 .flatpickr-months .flatpickr-prev-month:hover svg,
 .flatpickr-months .flatpickr-next-month:hover svg {
@@ -499,7 +499,7 @@ span.flatpickr-weekday,
   @apply gap-2;
 }
 .fc-button-group .fc-button {
-  @apply flex h-10 w-10 items-center justify-center rounded-lg! border border-gray-200 bg-transparent hover:border-gray-200 hover:bg-gray-50 focus:shadow-none active:border-gray-200! active:bg-transparent! active:shadow-none! dark:border-gray-800 dark:hover:border-gray-800 dark:hover:bg-gray-900 dark:active:border-gray-800!;
+  @apply flex h-10 w-10 items-center justify-center !rounded-lg border border-gray-200 bg-transparent hover:border-gray-200 hover:bg-gray-50 focus:shadow-none active:!border-gray-200 active:!bg-transparent active:!shadow-none dark:border-gray-800 dark:hover:border-gray-800 dark:hover:bg-gray-900 dark:active:border-gray-800!;
 }
 
 .fc-button-group .fc-button.fc-prev-button:before {
@@ -520,16 +520,16 @@ span.flatpickr-weekday,
   @apply hidden;
 }
 .fc-addEventButton-button {
-  @apply rounded-lg! border-0! bg-brand-500! px-4! py-2.5! text-sm! font-medium! hover:bg-brand-600! focus:shadow-none!;
+  @apply !rounded-lg !border-0 !bg-brand-500 !px-4 !py-2.5 !text-sm !font-medium hover:!bg-brand-600 focus:!shadow-none;
 }
 .fc-toolbar-title {
-  @apply text-lg! font-medium! text-gray-800 dark:text-white/90;
+  @apply !text-lg !font-medium text-gray-800 dark:text-white/90;
 }
 .fc-header-toolbar.fc-toolbar .fc-toolbar-chunk:last-child {
   @apply rounded-lg bg-gray-100 p-0.5 dark:bg-gray-900;
 }
 .fc-header-toolbar.fc-toolbar .fc-toolbar-chunk:last-child .fc-button {
-  @apply h-auto! w-auto! rounded-md border-0! bg-transparent px-5! py-2! text-sm font-medium text-gray-500 hover:text-gray-700 focus:shadow-none! dark:text-gray-400;
+  @apply !h-auto !w-auto rounded-md !border-0 bg-transparent !px-5 !py-2 text-sm font-medium text-gray-500 hover:text-gray-700 focus:shadow-none! dark:text-gray-400;
 }
 .fc-header-toolbar.fc-toolbar
   .fc-toolbar-chunk:last-child
@@ -537,14 +537,14 @@ span.flatpickr-weekday,
   @apply text-gray-900 bg-white dark:bg-gray-800 dark:text-white;
 }
 .fc-theme-standard th {
-  @apply border-x-0! border-t border-gray-200! bg-gray-50 text-left! dark:border-gray-800! dark:bg-gray-900;
+  @apply !border-x-0 border-t !border-gray-200 bg-gray-50 !text-left dark:!border-gray-800 dark:bg-gray-900;
 }
 .fc-theme-standard td,
 .fc-theme-standard .fc-scrollgrid {
-  @apply border-gray-200! dark:border-gray-800!;
+  @apply !border-gray-200 dark:!border-gray-800;
 }
 .fc .fc-col-header-cell-cushion {
-  @apply px-5! py-4! text-sm font-medium uppercase text-gray-400;
+  @apply !px-5 !py-4 text-sm font-medium uppercase text-gray-400;
 }
 .fc .fc-daygrid-day.fc-day-today {
   @apply bg-transparent;
@@ -556,10 +556,10 @@ span.flatpickr-weekday,
   @apply rounded-sm bg-gray-100 dark:bg-white/[0.03];
 }
 .fc .fc-daygrid-day-number {
-  @apply p-3! text-sm font-medium text-gray-700 dark:text-gray-400;
+  @apply !p-3 text-sm font-medium text-gray-700 dark:text-gray-400;
 }
 .fc .fc-daygrid-day-top {
-  @apply flex-row!;
+  @apply !flex-row;
 }
 .fc .fc-day-other .fc-daygrid-day-top {
   opacity: 1;
@@ -580,7 +580,7 @@ span.flatpickr-weekday,
   @apply focus:shadow-none;
 }
 .fc-daygrid-event.fc-event-start {
-  @apply ml-3!;
+  @apply !ml-3;
 }
 .event-fc-color.fc-bg-success {
   @apply border-success-50 bg-success-50;
@@ -634,7 +634,7 @@ span.flatpickr-weekday,
 
 .stocks-slider-outer .swiper-button-next,
 .stocks-slider-outer .swiper-button-prev {
-  @apply static! mt-0 h-8 w-9 rounded-full border dark:hover:bg-white/[0.05] border-gray-200 text-gray-700! transition hover:bg-gray-100 dark:border-white/[0.03] dark:bg-gray-800 dark:text-gray-400!  dark:hover:text-white/90!;
+  @apply !static mt-0 h-8 w-9 rounded-full border dark:hover:bg-white/[0.05] border-gray-200 !text-gray-700 transition hover:bg-gray-100 dark:border-white/[0.03] dark:bg-gray-800 dark:!text-gray-400  dark:hover:!text-white/90;
 }
 
 .stocks-slider-outer .swiper-button-next.swiper-button-disabled,
@@ -644,12 +644,12 @@ span.flatpickr-weekday,
 
 .stocks-slider-outer .swiper-button-next svg,
 .stocks-slider-outer .swiper-button-prev svg {
-  @apply h-auto! w-auto!;
+  @apply !h-auto !w-auto;
 }
 
 .swiper-button-prev svg,
 .swiper-button-next svg {
-  @apply h-auto! w-auto!;
+  @apply !h-auto !w-auto;
 }
 
 .carouselTwo .swiper-button-next:after,
@@ -662,33 +662,33 @@ span.flatpickr-weekday,
 .carouselTwo .swiper-button-prev.swiper-button-disabled,
 .carouselFour .swiper-button-next.swiper-button-disabled,
 .carouselFour .swiper-button-prev.swiper-button-disabled {
-  @apply bg-white/60 opacity-100!;
+  @apply bg-white/60 !opacity-100;
 }
 .carouselTwo .swiper-button-next,
 .carouselTwo .swiper-button-prev,
 .carouselFour .swiper-button-next,
 .carouselFour .swiper-button-prev {
-  @apply h-10 w-10 rounded-full border-[0.5px] border-white/10 bg-white/90 text-gray-700! shadow-slider-navigation backdrop-blur-[10px];
+  @apply h-10 w-10 rounded-full border-[0.5px] border-white/10 bg-white/90 !text-gray-700 shadow-slider-navigation backdrop-blur-[10px];
 }
 
 .carouselTwo .swiper-button-prev,
 .carouselFour .swiper-button-prev {
-  @apply left-3! sm:left-4!;
+  @apply !left-3 sm:!left-4;
 }
 
 .carouselTwo .swiper-button-next,
 .carouselFour .swiper-button-next {
-  @apply right-3! sm:right-4!;
+  @apply !right-3 sm:!right-4;
 }
 
 .carouselThree .swiper-pagination,
 .carouselFour .swiper-pagination {
-  @apply bottom-3! left-1/2! inline-flex w-auto! -translate-x-1/2 items-center gap-1.5 rounded-[40px] border-[0.5px] border-white/10 bg-white/60 px-2 py-1.5 shadow-slider-navigation backdrop-blur-[10px] sm:bottom-5!;
+  @apply !bottom-3 !left-1/2 inline-flex !w-auto -translate-x-1/2 items-center gap-1.5 rounded-[40px] border-[0.5px] border-white/10 bg-white/60 px-2 py-1.5 shadow-slider-navigation backdrop-blur-[10px] sm:!bottom-5;
 }
 
 .carouselThree .swiper-pagination-bullet,
 .carouselFour .swiper-pagination-bullet {
-  @apply m-0! h-2.5 w-2.5 bg-white opacity-100 shadow-theme-xs duration-200 ease-in-out;
+  @apply !m-0 h-2.5 w-2.5 bg-white opacity-100 shadow-theme-xs duration-200 ease-in-out;
 }
 
 .carouselThree .swiper-pagination-bullet-active,
@@ -697,20 +697,20 @@ span.flatpickr-weekday,
 }
 
 .jvectormap-container {
-  @apply bg-gray-50! dark:bg-gray-900!;
+  @apply !bg-gray-50 dark:!bg-gray-900;
 }
 .jvectormap-region.jvectormap-element {
-  @apply fill-gray-300! hover:fill-brand-500! dark:fill-gray-700! dark:hover:fill-brand-500!;
+  @apply !fill-gray-300 hover:!fill-brand-500 dark:!fill-gray-700 dark:hover:!fill-brand-500;
 }
 .jvectormap-marker.jvectormap-element {
-  @apply stroke-gray-200! dark:stroke-gray-800!;
+  @apply !stroke-gray-200 dark:!stroke-gray-800;
 }
 .jvectormap-tip {
-  @apply bg-brand-500! border-none! px-2! py-1!;
+  @apply !bg-brand-500 !border-none !px-2 !py-1;
 }
 .jvectormap-zoomin,
 .jvectormap-zoomout {
-  @apply hidden!;
+  @apply !hidden;
 }
 
 .form-check-input:checked ~ span {
