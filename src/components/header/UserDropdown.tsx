@@ -1,42 +1,74 @@
 "use client";
 import Image from "next/image";
-import Link from "next/link";
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
 import { Dropdown } from "../ui/dropdown/Dropdown";
 import { DropdownItem } from "../ui/dropdown/DropdownItem";
+import { useRouter } from "next/navigation";
+import { useAuthStore } from "@/lib/stores/useAuthStore";
+import { fetchUserData } from "@/lib/services/authService";
+import Link from "next/link";
+
 
 export default function UserDropdown() {
   const [isOpen, setIsOpen] = useState(false);
+  const { logout } = useAuthStore();
 
-function toggleDropdown(e: React.MouseEvent<HTMLButtonElement, MouseEvent>) {
-  e.stopPropagation();
-  setIsOpen((prev) => !prev);
-}
+  function toggleDropdown(e: React.MouseEvent<HTMLButtonElement, MouseEvent>) {
+    e.stopPropagation();
+    setIsOpen((prev) => !prev);
+  }
 
   function closeDropdown() {
     setIsOpen(false);
   }
+
+  const handleLogout = () => {
+    logout(); 
+    router.push("/signin"); 
+  };
+
+  const router = useRouter();
+  const { token, user, setUser } = useAuthStore();
+
+  useEffect(() => {
+    const loadUser = async () => {
+      if (!token) {
+        router.push("/");
+        return;
+      }
+
+      try {
+        const userData = await fetchUserData(token);
+        setUser(userData);
+      } catch {
+        router.push("/");
+      }
+    };
+
+    loadUser();
+  }, [token, router, setUser]);
+
+  if (!user) return null;
   return (
     <div className="relative">
       <button
-        onClick={toggleDropdown} 
+        onClick={toggleDropdown}
         className="flex items-center text-gray-700 dark:text-gray-400 dropdown-toggle"
       >
         <span className="mr-3 overflow-hidden rounded-full h-11 w-11">
           <Image
             width={44}
             height={44}
-            src="/images/user/owner.jpg"
+            src={user.profile.photo}
             alt="User"
           />
         </span>
 
-        <span className="block mr-1 font-medium text-theme-sm">Musharof</span>
+        <span className="block mr-1 font-medium text-theme-sm">{user.fullname}</span>
 
         <svg
-          className={`stroke-gray-500 dark:stroke-gray-400 transition-transform duration-200 ${
-            isOpen ? "rotate-180" : ""
-          }`}
+          className={`stroke-gray-500 dark:stroke-gray-400 transition-transform duration-200 ${isOpen ? "rotate-180" : ""
+            }`}
           width="18"
           height="20"
           viewBox="0 0 18 20"
@@ -60,10 +92,10 @@ function toggleDropdown(e: React.MouseEvent<HTMLButtonElement, MouseEvent>) {
       >
         <div>
           <span className="block font-medium text-gray-700 text-theme-sm dark:text-gray-400">
-            Musharof Chowdhury
+            {user.first_name}
           </span>
           <span className="mt-0.5 block text-theme-xs text-gray-500 dark:text-gray-400">
-            randomuser@pimjo.com
+            {user.email}
           </span>
         </div>
 
@@ -145,7 +177,8 @@ function toggleDropdown(e: React.MouseEvent<HTMLButtonElement, MouseEvent>) {
           </li>
         </ul>
         <Link
-          href="/signin"
+          onClick={handleLogout}
+          href={"/"}
           className="flex items-center gap-3 px-3 py-2 mt-3 font-medium text-gray-700 rounded-lg group text-theme-sm hover:bg-gray-100 hover:text-gray-700 dark:text-gray-400 dark:hover:bg-white/5 dark:hover:text-gray-300"
         >
           <svg

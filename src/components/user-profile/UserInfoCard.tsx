@@ -1,10 +1,13 @@
 "use client";
-import React from "react";
+import React, { useEffect } from "react";
 import { useModal } from "../../hooks/useModal";
 import { Modal } from "../ui/modal";
 import Button from "../ui/button/Button";
 import Input from "../form/input/InputField";
 import Label from "../form/Label";
+import { useRouter } from "next/navigation";
+import { useAuthStore } from "@/lib/stores/useAuthStore";
+import { fetchUserData } from "@/lib/services/authService";
 
 export default function UserInfoCard() {
   const { isOpen, openModal, closeModal } = useModal();
@@ -13,6 +16,30 @@ export default function UserInfoCard() {
     console.log("Saving changes...");
     closeModal();
   };
+
+  const router = useRouter();
+  const { token, user, setUser } = useAuthStore();
+
+  useEffect(() => {
+    const loadUser = async () => {
+      if (!token) {
+        router.push("/");
+        return;
+      }
+
+      try {
+        const userData = await fetchUserData(token);
+        setUser(userData);
+      } catch {
+        router.push("/");
+      }
+    };
+
+    loadUser();
+  }, [token, router, setUser]);
+
+  if (!user) return null;
+
   return (
     <div className="p-5 border border-gray-200 rounded-2xl dark:border-gray-800 lg:p-6">
       <div className="flex flex-col gap-6 lg:flex-row lg:items-start lg:justify-between">
@@ -27,7 +54,7 @@ export default function UserInfoCard() {
                 First Name
               </p>
               <p className="text-sm font-medium text-gray-800 dark:text-white/90">
-                Musharof
+                {user.fullname}
               </p>
             </div>
 
@@ -36,7 +63,7 @@ export default function UserInfoCard() {
                 Last Name
               </p>
               <p className="text-sm font-medium text-gray-800 dark:text-white/90">
-                Chowdhury
+                {user.last_name}
               </p>
             </div>
 
@@ -45,25 +72,7 @@ export default function UserInfoCard() {
                 Email address
               </p>
               <p className="text-sm font-medium text-gray-800 dark:text-white/90">
-                randomuser@pimjo.com
-              </p>
-            </div>
-
-            <div>
-              <p className="mb-2 text-xs leading-normal text-gray-500 dark:text-gray-400">
-                Phone
-              </p>
-              <p className="text-sm font-medium text-gray-800 dark:text-white/90">
-                +09 363 398 46
-              </p>
-            </div>
-
-            <div>
-              <p className="mb-2 text-xs leading-normal text-gray-500 dark:text-gray-400">
-                Bio
-              </p>
-              <p className="text-sm font-medium text-gray-800 dark:text-white/90">
-                Team Manager
+                {user.email}
               </p>
             </div>
           </div>
@@ -104,42 +113,7 @@ export default function UserInfoCard() {
           </div>
           <form className="flex flex-col">
             <div className="custom-scrollbar h-[450px] overflow-y-auto px-2 pb-3">
-              <div>
-                <h5 className="mb-5 text-lg font-medium text-gray-800 dark:text-white/90 lg:mb-6">
-                  Social Links
-                </h5>
 
-                <div className="grid grid-cols-1 gap-x-6 gap-y-5 lg:grid-cols-2">
-                  <div>
-                    <Label>Facebook</Label>
-                    <Input
-                      type="text"
-                      defaultValue="https://www.facebook.com/PimjoHQ"
-                    />
-                  </div>
-
-                  <div>
-                    <Label>X.com</Label>
-                    <Input type="text" defaultValue="https://x.com/PimjoHQ" />
-                  </div>
-
-                  <div>
-                    <Label>Linkedin</Label>
-                    <Input
-                      type="text"
-                      defaultValue="https://www.linkedin.com/company/pimjo"
-                    />
-                  </div>
-
-                  <div>
-                    <Label>Instagram</Label>
-                    <Input
-                      type="text"
-                      defaultValue="https://instagram.com/PimjoHQ"
-                    />
-                  </div>
-                </div>
-              </div>
               <div className="mt-7">
                 <h5 className="mb-5 text-lg font-medium text-gray-800 dark:text-white/90 lg:mb-6">
                   Personal Information
@@ -148,28 +122,19 @@ export default function UserInfoCard() {
                 <div className="grid grid-cols-1 gap-x-6 gap-y-5 lg:grid-cols-2">
                   <div className="col-span-2 lg:col-span-1">
                     <Label>First Name</Label>
-                    <Input type="text" defaultValue="Musharof" />
+                    <Input type="text" defaultValue={user.first_name} />
                   </div>
 
                   <div className="col-span-2 lg:col-span-1">
                     <Label>Last Name</Label>
-                    <Input type="text" defaultValue="Chowdhury" />
+                    <Input type="text" defaultValue={user.last_name} />
                   </div>
 
                   <div className="col-span-2 lg:col-span-1">
                     <Label>Email Address</Label>
-                    <Input type="text" defaultValue="randomuser@pimjo.com" />
+                    <Input type="text" defaultValue={user.email} />
                   </div>
 
-                  <div className="col-span-2 lg:col-span-1">
-                    <Label>Phone</Label>
-                    <Input type="text" defaultValue="+09 363 398 46" />
-                  </div>
-
-                  <div className="col-span-2">
-                    <Label>Bio</Label>
-                    <Input type="text" defaultValue="Team Manager" />
-                  </div>
                 </div>
               </div>
             </div>
