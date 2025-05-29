@@ -22,7 +22,6 @@ interface Order {
     images: string[];
   };
   status: string;
-  budget: string;
 }
 
 // Define the table data using the interface
@@ -42,7 +41,6 @@ const tableData: Order[] = [
         "/images/user/user-24.jpg",
       ],
     },
-    budget: "3.9K",
     status: "Active",
   },
   {
@@ -56,7 +54,6 @@ const tableData: Order[] = [
     team: {
       images: ["/images/user/user-25.jpg", "/images/user/user-26.jpg"],
     },
-    budget: "24.9K",
     status: "Pending",
   },
   {
@@ -70,7 +67,6 @@ const tableData: Order[] = [
     team: {
       images: ["/images/user/user-27.jpg"],
     },
-    budget: "12.7K",
     status: "Active",
   },
   {
@@ -88,7 +84,6 @@ const tableData: Order[] = [
         "/images/user/user-30.jpg",
       ],
     },
-    budget: "2.8K",
     status: "Cancel",
   },
   {
@@ -106,7 +101,6 @@ const tableData: Order[] = [
         "/images/user/user-33.jpg",
       ],
     },
-    budget: "4.5K",
     status: "Active",
   },
 ];
@@ -124,7 +118,7 @@ export default function BasicTableOne() {
                   isHeader
                   className="px-5 py-3 font-medium text-gray-500 text-start text-theme-xs dark:text-gray-400"
                 >
-                  User
+                  Petugas
                 </TableCell>
                 <TableCell
                   isHeader
@@ -144,12 +138,7 @@ export default function BasicTableOne() {
                 >
                   Status
                 </TableCell>
-                <TableCell
-                  isHeader
-                  className="px-5 py-3 font-medium text-gray-500 text-start text-theme-xs dark:text-gray-400"
-                >
-                  Budget
-                </TableCell>
+                
               </TableRow>
             </TableHeader>
 
@@ -212,9 +201,7 @@ export default function BasicTableOne() {
                       {order.status}
                     </Badge>
                   </TableCell>
-                  <TableCell className="px-4 py-3 text-gray-500 text-theme-sm dark:text-gray-400">
-                    {order.budget}
-                  </TableCell>
+                  
                 </TableRow>
               ))}
             </TableBody>

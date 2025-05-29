@@ -1,50 +1,45 @@
-
+import apiClient from "@/lib/axiosConfig";
 import { User } from "@/types/user.types";
-
-const API_URL = process.env.NEXT_PUBLIC_API_BASE_URL;
+import { useAuthStore } from "../stores/useAuthStore";
 
 export type LoginResponse = {
     access: string;
+    refresh: string;
 };
 
 export const login = async (
     username: string,
     password: string
 ): Promise<LoginResponse> => {
-    const response = await fetch(`${API_URL}/api/v1/auth/login/`, {
-        method: "POST",
-        headers: {
-            "Content-Type": "application/json",
-        },
-        body: JSON.stringify({
-            username,
-            password
-        }),
+    const response = await apiClient.post("/auth/login/", {
+        username,
+        password,
     });
 
-    if (!response.ok) {
-        throw new Error("Login gagal");
-    }
+    const data = response.data;
 
-    return await response.json();
-};
-
-export const fetchUserData = async (token: string): Promise<User> => {
-    const response = await fetch(`${API_URL}/api/v1/user/`, {
-        method: "GET",
-        headers: {
-            Authorization: `Bearer ${token}`,
-        },
-    });
-
-    if (!response.ok) {
-        throw new Error("Gagal mengambil data pengguna");
-    }
-
-    const data = await response.json();
-
-    console.log("API:", data);
-    console.log("TOKEN:", token);
+    const { setToken, setRefreshToken } = useAuthStore.getState();
+    setToken(data.access);
+    setRefreshToken(data.refresh);
 
     return data;
+};
+
+export const fetchUserData = async (): Promise<User> => {
+    const response = await apiClient.get("/user/");
+    return response.data;
+};
+
+export const refreshAccessToken = async () => {
+    const refreshToken = useAuthStore.getState().refreshToken;
+
+    if (!refreshToken) {
+        throw new Error("Refresh token tidak tersedia");
+    }
+
+    const response = await apiClient.post("/auth/token/refresh/", {
+        refresh: refreshToken,
+    });
+
+    return response.data;
 };

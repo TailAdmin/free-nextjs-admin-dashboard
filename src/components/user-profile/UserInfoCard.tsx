@@ -28,7 +28,7 @@ export default function UserInfoCard() {
       }
 
       try {
-        const userData = await fetchUserData(token);
+        const userData = await fetchUserData();
         setUser(userData);
       } catch {
         router.push("/");
