@@ -11,7 +11,7 @@ export const login = async (
     username: string,
     password: string
 ): Promise<LoginResponse> => {
-    const response = await fetch(`${API_URL}/api/v1/auth/login/`, {
+    const response = await fetch(`${API_URL}/auth/login/`, {
         method: "POST",
         headers: {
             "Content-Type": "application/json",
@@ -30,7 +30,7 @@ export const login = async (
 };
 
 export const fetchUserData = async (token: string): Promise<User> => {
-    const response = await fetch(`${API_URL}/api/v1/user/`, {
+    const response = await fetch(`${API_URL}/user/`, {
         method: "GET",
         headers: {
             Authorization: `Bearer ${token}`,
