@@ -50,10 +50,12 @@ export const usePdfUploader = ({ token, userId }: UsePdfUploaderProps) => {
             };
 
             const result = await uploadPdfTemplate(payload, token);
+
             return result;
         } catch (error) {
             console.error("Error uploading file:", error);
-            alert("Terjadi kesalahan saat mengupload dokumen.");
+
+            alert("Terjadi kesalahan saat mengupload dokumen. Cek konsol untuk detail.");
             return null;
         } finally {
             setUploading(false);
