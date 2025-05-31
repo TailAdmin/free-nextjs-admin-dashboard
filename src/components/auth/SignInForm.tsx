@@ -26,7 +26,7 @@ export default function SignInForm() {
       const { access } = await login(username, password);
       setToken(access);
 
-      const userData = await fetchUserData(access);
+      const userData = await fetchUserData();
       setUser(userData);
 
       router.push("/");
