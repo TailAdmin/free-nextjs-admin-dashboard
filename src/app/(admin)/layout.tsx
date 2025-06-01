@@ -1,25 +1,58 @@
 "use client";
 
+import React, { useEffect, useState } from "react";
+import LoadingSpinner from "@/components/ui/loading/LoadingSpinner";
 import { useSidebar } from "@/context/SidebarContext";
-import { useProtectedRoute } from "@/hooks/useProtectedRoute";
+import { useInitializeAuth } from "@/hooks/useInitializeAuth";
 import AppHeader from "@/layout/AppHeader";
 import AppSidebar from "@/layout/AppSidebar";
 import Backdrop from "@/layout/Backdrop";
-import React from "react";
+import { useAuthStore } from "@/lib/stores/useAuthStore";
+import { useRouter } from "next/navigation";
+import { refreshAccessToken } from "@/lib/services/authService";
 
 export default function AdminLayout({
   children,
 }: {
   children: React.ReactNode;
 }) {
+  const router = useRouter();
   const { isExpanded, isHovered, isMobileOpen } = useSidebar();
-  const { isAuthenticated } = useProtectedRoute();
+  const { isAuthenticated, token } = useInitializeAuth();
 
-  if (!isAuthenticated) {
-    return null; 
+  const [checkingAuth, setCheckingAuth] = useState(true);
+
+  const authState = useAuthStore((state) => state.isAuthenticated);
+  const refreshToken = useAuthStore((state) => state.refreshToken);
+
+  useEffect(() => {
+    const checkAuthStatus = async () => {
+      if (!token && !authState && refreshToken) {
+        try {
+          await refreshAccessToken();
+          setCheckingAuth(false);
+        } catch (error) {
+          console.warn("Gagal perbarui token", error);
+          setCheckingAuth(false);
+        }
+      } else {
+        setCheckingAuth(false);
+      }
+    };
+
+    checkAuthStatus();
+  }, []);
+
+  if (checkingAuth) {
+    return <LoadingSpinner isFullScreen/>;
   }
 
-  // Dynamic class for main content margin based on sidebar state
+  if (!token || !isAuthenticated) {
+    router.push("/signin");
+    return null;
+  }
+
+  // Layout utama
   const mainContentMargin = isMobileOpen
     ? "ml-0"
     : isExpanded || isHovered
@@ -28,16 +61,13 @@ export default function AdminLayout({
 
   return (
     <div className="min-h-screen xl:flex">
-      {/* Sidebar and Backdrop */}
+      {/* Sidebar */}
       <AppSidebar />
       <Backdrop />
-      {/* Main Content Area */}
-      <div
-        className={`flex-1 transition-all duration-300 ease-in-out ${mainContentMargin}`}
-      >
-        {/* Header */}
+
+      {/* Main Content */}
+      <div className={`flex-1 transition-all duration-300 ease-in-out ${mainContentMargin}`}>
         <AppHeader />
-        {/* Page Content */}
         <div className="p-4 mx-auto max-w-[--breakpoint-2xl] md:p-6">{children}</div>
       </div>
     </div>
