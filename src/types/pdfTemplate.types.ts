@@ -11,5 +11,6 @@ export type DocTemplateResponse = {
     name: string;
     description: string;
     version: string;
+    example_file: string;
     created_by: number;
 };
