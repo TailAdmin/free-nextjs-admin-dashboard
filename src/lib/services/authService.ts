@@ -1,6 +1,6 @@
 import apiClient from "@/lib/axiosConfig";
 import { User } from "@/types/user.types";
-import { useAuthStore } from "../stores/useAuthStore";
+import { useAuthStore } from "@/lib/stores/useAuthStore";
 
 export type LoginResponse = {
     access: string;
@@ -41,5 +41,5 @@ export const refreshAccessToken = async () => {
         refresh: refreshToken,
     });
 
-    return response.data;
+    return response.data; 
 };

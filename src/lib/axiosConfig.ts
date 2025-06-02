@@ -31,35 +31,32 @@ apiClient.interceptors.request.use(
 );
 
 apiClient.interceptors.response.use(
-    (response) => {
-        return response;
-    },
+    (response) => response,
     async (error) => {
         const originalRequest = error.config;
 
         if (
             error?.response?.status === 401 &&
-            error?.response?.data?.code === "token_not_valid" &&
             !originalRequest._retry
         ) {
             if (!isRefreshing) {
                 isRefreshing = true;
 
                 try {
-                    const { access } = await refreshAccessToken(); 
-                    useAuthStore.getState().setToken(access); 
-                    originalRequest.headers["Authorization"] = `Bearer ${access}`;
-                    failedRequestsQueue.forEach(({ resolve }) => resolve(access));
+                    const newToken = await refreshAccessToken(); 
+                    useAuthStore.getState().setToken(newToken); 
+                    originalRequest.headers["Authorization"] = `Bearer ${newToken}`;
+                    originalRequest._retry = true; 
+
+                    failedRequestsQueue.forEach(({ resolve }) => resolve(newToken));
                     failedRequestsQueue = [];
                     isRefreshing = false;
 
                     return apiClient(originalRequest); 
                 } catch (refreshError) {
-                    failedRequestsQueue.forEach(({ reject }) => reject(refreshError));
-                    failedRequestsQueue = [];
-                    isRefreshing = false;
-
+                    console.error("Gagal refresh token:", refreshError);
                     useAuthStore.getState().logout();
+                    window.location.href = "/signin"; 
                     return Promise.reject(refreshError);
                 }
             }
@@ -70,6 +67,15 @@ apiClient.interceptors.response.use(
                 originalRequest.headers["Authorization"] = `Bearer ${token}`;
                 return apiClient(originalRequest);
             });
+        }
+
+        if (
+            error?.response?.status === 401 &&
+            error?.response?.data?.code === "user_inactive" ||
+            error?.response?.data?.code === "token_not_valid"
+        ) {
+            useAuthStore.getState().logout();
+            window.location.href = "/signin";
         }
 
         return Promise.reject(error);
