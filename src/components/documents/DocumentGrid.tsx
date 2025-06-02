@@ -54,7 +54,8 @@ export default function DocumentGrid() {
     };
 
     return (
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+        <div className="flex w-full overflow-x-auto">
+                    <div className="flex  gap-6">
             {templates.map((doc) => (
                 <DocumentCard
                     key={doc.id}
@@ -62,6 +63,7 @@ export default function DocumentGrid() {
                     onDelete={() => handleDelete(doc.id)}
                 />
             ))}
+        </div>
         </div>
     );
 }

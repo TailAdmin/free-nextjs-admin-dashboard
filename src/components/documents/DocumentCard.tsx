@@ -48,8 +48,8 @@ export const DocumentCard = React.memo(({ doc, onDelete }: DocumentCardProps) =>
     };
 
     return (
-        <div className="bg-white dark:bg-gray-800 rounded-lg shadow-md overflow-hidden border border-gray-200 dark:border-gray-700">
-            <h3 className="px-4 py-2 bg-gray-100 dark:bg-gray-700 font-semibold text-gray-800 dark:text-gray-200">
+        <div className="w-90 bg-white dark:bg-gray-800 rounded-lg shadow-md overflow-hidden border border-gray-200 dark:border-gray-700">
+            <h3 className=" truncate px-4 py-2 bg-gray-100 dark:bg-gray-700 font-semibold text-gray-800 dark:text-gray-200">
                 {doc.name}
             </h3>
 
