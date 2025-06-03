@@ -18,6 +18,7 @@ const Select: React.FC<SelectProps> = ({
   placeholder = "Select an option",
   onChange,
   className = "",
+  
   defaultValue = "",
 }) => {
   // Manage the selected value

@@ -1,6 +1,7 @@
 import React from "react";
 import { toast } from "sonner";
 import { PdfPreview } from "./PdfPreview";
+import Link from "next/link";
 
 interface DocumentCardProps {
     doc: {
@@ -67,9 +68,12 @@ export const DocumentCard = React.memo(({ doc, onDelete }: DocumentCardProps) =>
                     >
                         Hapus
                     </button>
-                    <button className="px-4 py-2 bg-green-600 hover:bg-green-700 text-white rounded">
+                    <Link
+                        href={`/fileproses/${doc.id}`}
+                        className="px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded"
+                    >
                         Proses
-                    </button>
+                    </Link>
                 </div>
             </div>
         </div>

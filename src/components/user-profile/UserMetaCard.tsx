@@ -1,42 +1,19 @@
-"use client";
-import React, { useEffect } from "react";
 import { useModal } from "../../hooks/useModal";
 import { Modal } from "../ui/modal";
 import Button from "../ui/button/Button";
 import Input from "../form/input/InputField";
 import Label from "../form/Label";
 import Image from "next/image";
-import { useRouter } from "next/navigation";
 import { useAuthStore } from "@/lib/stores/useAuthStore";
-import { fetchUserData } from "@/lib/services/authService";
 
 export default function UserMetaCard() {
   const { isOpen, openModal, closeModal } = useModal();
+  const {user } = useAuthStore();
   const handleSave = () => {
     // Handle save logic here
     console.log("Saving changes...");
     closeModal();
   };
-  const router = useRouter();
-    const { token, user, setUser } = useAuthStore();
-  
-    useEffect(() => {
-      const loadUser = async () => {
-        if (!token) {
-          router.push("/");
-          return;
-        }
-  
-        try {
-          const userData = await fetchUserData();
-          setUser(userData);
-        } catch {
-          router.push("/");
-        }
-      };
-  
-      loadUser();
-    }, [token, router, setUser]);
   
     if (!user) return null;
   return (

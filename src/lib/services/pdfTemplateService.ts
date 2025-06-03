@@ -1,4 +1,4 @@
-import { DocTemplatePayload } from "@/types/pdfTemplate.types";
+import { DocTemplatePayload, SignatureField } from "@/types/pdfTemplate.types";
 import { DocTemplateResponse } from "@/types/pdfTemplate.types";
 
 const API_URL = process.env.NEXT_PUBLIC_API_BASE_URL;
@@ -62,11 +62,11 @@ export const fetchAllPdfTemplates = async (token: string): Promise<DocTemplateRe
         throw new Error(`Gagal mengambil dokumen. Status: ${response.status}`);
     }
     const data = await response.json();
-    console.log("Data templates dari API:", data); 
+    console.log("Data templates dari API:", data);
     return data;
 };
 
-export const fetchDocById = async (id: number, token: string): Promise<DocTemplateResponse> => {
+export const fetchDocById = async (id: string, token: string): Promise<DocTemplateResponse> => {
     const response = await fetch(`${API_URL}/signatures/doc-templates/${id}/`, {
         headers: {
             Authorization: `Bearer ${token}`,
@@ -82,9 +82,9 @@ export const fetchDocById = async (id: number, token: string): Promise<DocTempla
     return await response.json();
 };
 
-export const updateDoc = async (
-    id: number,
-    payload: { name?: string; description?: string },
+export const updateDocWithSignatures = async (
+    id: string,
+    signatureFields: SignatureField[],
     token: string
 ): Promise<DocTemplateResponse> => {
     const response = await fetch(`${API_URL}/signatures/doc-templates/${id}/`, {
@@ -93,13 +93,11 @@ export const updateDoc = async (
             "Content-Type": "application/json",
             Authorization: `Bearer ${token}`,
         },
-        body: JSON.stringify(payload),
+        body: JSON.stringify({ signature_fields: signatureFields }),
     });
 
     if (!response.ok) {
-        const errorText = await response.text();
-        console.error("Error updating doc:", errorText);
-        throw new Error(`Gagal memperbarui dokumen ID: ${id}`);
+        throw new Error("Gagal memperbarui dokumen");
     }
 
     return await response.json();

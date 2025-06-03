@@ -1,23 +1,30 @@
 "use client";
 
-import React from "react";
+import React, { useState } from "react";
 import { toast } from "sonner";
 import { useAuthStore } from "@/lib/stores/useAuthStore";
 import { useSignatureStore } from "@/lib/stores/useSignatureStore";
 import { useSignatureDrawer } from "@/hooks/useSignatureDrawer";
 import { saveUserSignature } from "@/lib/services/signatureService";
 import { canvasToFile } from "@/utils/file.utils";
+import LoadingSpinner from "../ui/loading/LoadingSpinner";
 
 interface SignatureModalProps {
     isOpen: boolean;
     onClose: () => void;
+    onSuccessUpload?: () => void;
 }
 
-export const SignatureModal = ({ isOpen, onClose }: SignatureModalProps) => {
+export const SignatureModal = ({
+    isOpen,
+    onClose,
+    onSuccessUpload
+}: SignatureModalProps) => {
     const { token, user } = useAuthStore();
-    const ownerId = user?.id ?? 0;
+    const ownerId = user?.id;
 
     const { signature, setSignature } = useSignatureStore();
+    const [loading, setLoading] = useState(false);
 
     const handleDrawEnd = (dataUrl: string | null) => {
         setSignature(dataUrl);
@@ -28,21 +35,24 @@ export const SignatureModal = ({ isOpen, onClose }: SignatureModalProps) => {
     });
 
     const handleSubmit = async () => {
-        if (!canvasRef.current || !token || !ownerId) {
+        if (!canvasRef.current || !token || !ownerId || !user?.id) {
             toast.error("Data tidak lengkap");
             return;
         }
+        setLoading(true);
 
         try {
             const signatureFile = await canvasToFile(canvasRef.current);
             const formData = new FormData();
             formData.append("file", signatureFile);
-            formData.append("owner", ownerId.toString());
+            formData.append("owner", user.id.toString());
 
             await saveUserSignature(formData, token);
 
             toast.success("Tanda tangan berhasil disimpan!");
             onClose();
+
+            onSuccessUpload?.();
         } catch (error) {
             console.error("Gagal menyimpan tanda tangan:", error);
             toast.error("Gagal menyimpan tanda tangan.");
@@ -52,7 +62,7 @@ export const SignatureModal = ({ isOpen, onClose }: SignatureModalProps) => {
     if (!isOpen) return null;
 
     return (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-70">
+        <div className="fixed inset-0 z-50 flex items-center justify-center backdrop-blur-sm">
             <div className="bg-white dark:bg-gray-800 rounded-lg p-6 max-w-md w-full shadow-xl">
                 <h3 className="mb-4 text-sm font-semibold dark:text-white">Buat Tanda Tangan</h3>
 
@@ -84,14 +94,19 @@ export const SignatureModal = ({ isOpen, onClose }: SignatureModalProps) => {
                 <div className="flex gap-3">
                     <button
                         onClick={handleSubmit}
-                        disabled={!signature}
-                        className="flex-1 px-4 py-2 bg-blue-600 text-white rounded hover:bg-blue-700 disabled:bg-blue-300"
+                        disabled={!signature || loading} // disable saat loading atau tidak ada signature
+                        className="flex-1 px-4 py-2 bg-blue-600 text-white rounded hover:bg-blue-700 disabled:bg-blue-300 flex items-center justify-center gap-2"
                     >
-                        Simpan
+                        {loading ? (
+                            <LoadingSpinner size="sm" />
+                        ) : (
+                            "Simpan"
+                        )}
                     </button>
                     <button
                         onClick={onClose}
-                        className="px-4 py-2 bg-gray-300 rounded hover:bg-gray-400"
+                        disabled={loading}
+                        className="px-4 py-2 bg-gray-300 rounded hover:bg-gray-400 disabled:bg-gray-200"
                     >
                         Batal
                     </button>
@@ -99,4 +114,5 @@ export const SignatureModal = ({ isOpen, onClose }: SignatureModalProps) => {
             </div>
         </div>
     );
+
 };
