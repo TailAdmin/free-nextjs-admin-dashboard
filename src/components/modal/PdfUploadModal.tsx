@@ -29,7 +29,7 @@ export const PdfUploadModal: React.FC<PdfUploadModalProps> = ({
 
     return (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-opacity-70 backdrop-blur-sm">
-            <div className="p-6 rounded-lg shadow-xl w-full max-w-md max-h-[500px] overflow-y-auto bg-gray-800">
+            <div className="p-6 rounded-lg shadow-xl w-full max-w-md max-h-[500px] overflow-y-auto bg-gray-100 dark:bg-gray-800">
                 <h2 className="text-lg font-semibold mb-4 text-gray-800 dark:text-white">Upload Template Dokumen</h2>
                 {fileURL ? (
                     <>

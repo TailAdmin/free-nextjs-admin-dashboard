@@ -11,7 +11,7 @@ import { useSignatureFieldStore } from "@/lib/stores/useSignatureFieldsStore";
 import { updateDocWithSignatures } from "@/lib/services/pdfTemplateService";
 import { DocTemplateResponse } from "@/types/pdfTemplate.types";
 
-// ✅ Gunakan versi worker yang sama dengan react-pdf
+
 pdfjs.GlobalWorkerOptions.workerSrc = `//unpkg.com/pdfjs-dist@${pdfjs.version}/build/pdf.worker.min.mjs`;
 
 interface ProcessPdfEditorProps {
@@ -25,11 +25,9 @@ export default function ProcessPdfEditor({ doc, onSaveSuccess }: ProcessPdfEdito
     const { token } = useAuthStore();
     const [numPages, setNumPages] = useState<number>();
 
-    // State untuk posisi tanda tangan
     const [petugasPos, setPetugasPos] = useState<{ x: number; y: number } | null>(null);
     const [penerimaPos, setPenerimaPos] = useState<{ x: number; y: number } | null>(null);
 
-    // Set posisi awal dari data dokumen yang ada
     useEffect(() => {
         if (doc?.signature_fields?.length > 0) {
             const petugas = doc.signature_fields.find((f) => f.category === "Petugas");

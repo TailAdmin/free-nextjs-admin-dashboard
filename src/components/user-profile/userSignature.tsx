@@ -60,7 +60,7 @@ export default function UserSignature({
                 </label>
                 <br />
                 <br />
-                <Image src={signatureImage} alt="Tanda Tangan Pengguna" width={200} height={100} />
+                <Image src={signatureImage} alt="Tanda Tangan Pengguna" width={200} height={100}/>
             </div>
         );
     };
@@ -102,7 +102,7 @@ export default function UserSignature({
             <br />
             <div className="relative">
                 <MultiSelect
-                    label="Pilih Delegasi"
+                    label="Pilih Delegasi User"
                     options={multiOptions}
                     defaultSelected={selectedValues}
                     onChange={setSelectedValues}
