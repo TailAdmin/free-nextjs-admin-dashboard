@@ -21,6 +21,11 @@ const nextConfig: NextConfig = {
         hostname: "tanah.darius.my.id",
         pathname: "/media/**", 
       },
+      {
+        protocol: "http",
+        hostname: "patents-replacement-usb-validation.trycloudflare.com",
+        pathname: "/media/**", 
+      },
     ],
   },
 };

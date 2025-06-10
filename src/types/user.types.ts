@@ -16,3 +16,20 @@ export interface User {
     configuration: Configuration;
     fullname: string;
 }
+
+export interface ChangePasswordPayload {
+    old_password: string;
+    new_password: string;
+}
+
+export interface ChangePasswordResponse {
+    detail: string; 
+}
+
+export interface ForgotPasswordResponse {
+    detail: string;
+}
+
+export interface ForgotPasswordPayload {
+    email: string;
+}

@@ -48,22 +48,27 @@ export const uploadPdfTemplate = async (
 };
 
 export const fetchAllPdfTemplates = async (token: string): Promise<DocTemplateResponse[]> => {
-    console.log("Token digunakan:", token);
-    const response = await fetch(`${API_URL}/signatures/doc-templates/`, {
-        method: "GET",
-        headers: {
-            Authorization: `Bearer ${token}`,
-        },
-    });
+    try {
+        // Menggunakan endpoint /short-list/
+        const response = await fetch(`${API_URL}/signatures/doc-templates/short-list/`, {
+            method: "GET",
+            headers: {
+                Authorization: `Bearer ${token}`,
+            },
+        });
 
-    if (!response.ok) {
-        const errorText = await response.text();
-        console.error("Raw error response:", errorText);
-        throw new Error(`Gagal mengambil dokumen. Status: ${response.status}`);
+        if (!response.ok) {
+            const errorData = await response.json();
+            console.error("Error fetching templates short-list:", errorData);
+            throw new Error(errorData.detail || `Gagal mengambil dokumen. Status: ${response.status}`);
+        }
+        const data = await response.json();
+        console.log("Data templates (short-list) dari API:", data); // Untuk debugging
+        return data;
+    } catch (error: any) {
+        console.error("Kesalahan dalam fetchAllPdfTemplates (short-list):", error);
+        throw new Error(`Terjadi kesalahan saat memuat dokumen: ${error.message || 'Unknown error'}`);
     }
-    const data = await response.json();
-    console.log("Data templates dari API:", data);
-    return data;
 };
 
 export const fetchDocById = async (id: string, token: string): Promise<DocTemplateResponse> => {

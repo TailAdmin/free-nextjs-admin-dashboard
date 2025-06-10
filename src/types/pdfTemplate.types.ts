@@ -12,6 +12,7 @@ export type DocTemplateResponse = {
     description: string;
     version: string;
     example_file: string;
+    thumbnail: string;
     created_by: number;
     signature_fields: SignatureField[];
 };
@@ -20,4 +21,15 @@ export interface SignatureField {
     category: string;
     pos_x: number;
     pos_y: number;
+}
+
+export interface DocumentCardProps {
+    doc: {
+        id: number; 
+        name: string;
+        description: string;
+        
+        thumbnail: string; 
+    };
+    onDelete: () => void;
 }
