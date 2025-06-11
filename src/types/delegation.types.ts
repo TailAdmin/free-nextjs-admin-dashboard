@@ -14,11 +14,13 @@ export interface DelegateSignatureResponse {
     detail?: string;
 }
 
-export interface CurrentDelegationsResponse {
-    delegated_emails: string[]; 
-}
-
 export interface ApiResponseDetail {
     detail?: string;
     message?: string;
+}
+
+export interface CurrentDelegationsResponse {
+    id: string; 
+    file: string;
+    owner: number; 
 }

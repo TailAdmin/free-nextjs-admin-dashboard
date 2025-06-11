@@ -29,8 +29,6 @@ export const getDelegationUsers = async (token: string): Promise<DelegationUser[
     }
 };
 
-// Fungsi untuk mendapatkan daftar delegasi yang sudah ada untuk user yang login
-// Sesuai dengan interface CurrentDelegationsResponse yang baru
 export const getCurrentDelegations = async (token: string): Promise<CurrentDelegationsResponse> => {
     try {
         const res = await fetch(`${API_URL}/signatures/user/delegations/`, {
@@ -55,7 +53,7 @@ export const getCurrentDelegations = async (token: string): Promise<CurrentDeleg
 export const delegateSignature = async (
     payload: DelegateSignaturePayload,
     token: string
-): Promise<ApiResponseDetail> => { // Menggunakan ApiResponseDetail untuk respons umum
+): Promise<ApiResponseDetail> => { 
     try {
         const res = await fetch(`${API_URL}/signatures/user/delegations/`, {
             method: 'POST',

@@ -63,7 +63,7 @@ export const fetchAllPdfTemplates = async (token: string): Promise<DocTemplateRe
             throw new Error(errorData.detail || `Gagal mengambil dokumen. Status: ${response.status}`);
         }
         const data = await response.json();
-        console.log("Data templates (short-list) dari API:", data); // Untuk debugging
+        console.log("Data templates (short-list) dari API:", data);
         return data;
     } catch (error: any) {
         console.error("Kesalahan dalam fetchAllPdfTemplates (short-list):", error);

@@ -1,4 +1,3 @@
-// src/components/user-profile/UserSignature.tsx
 "use client";
 
 import React, { useEffect, useState } from "react";
@@ -10,32 +9,18 @@ import Button from "../ui/button/Button";
 import { toast } from "sonner";
 import LoadingSpinner from "../ui/loading/LoadingSpinner";
 
-// Import fungsi dari userService
-import { 
-    getDelegationUsers, 
-    delegateSignature, 
-    // getCurrentDelegations, // Hapus import ini karena tidak lagi digunakan di sini
+import {
+    getDelegationUsers,
+    delegateSignature,
     deleteDelegation,
-} from "@/lib/services/userService"; 
+} from "@/lib/services/userService";
 
-// Import tipe dari types/delegation.types.ts
-import { 
-    DelegationUser, // Tetap diperlukan untuk tipe getDelegationUsers
-    // CurrentDelegationsResponse, // Hapus import ini karena tidak lagi digunakan di sini
-} from "@/types/delegation.types";
-
-interface UserSignatureProps {
-    signatureImage: string | null;
-    loading: boolean;
-    isModalOpen: boolean;
-    onOpenModal: () => void;
-    onCloseModal: () => void;
-    refetchSignature: () => void;
-}
+import { DelegationUser } from "@/types/delegation.types";
+import { UserSignatureProps } from "@/types/signature.types";
 
 export default function UserSignature({
     signatureImage,
-    loading: signatureLoading, 
+    loading: signatureLoading,
     isModalOpen,
     onOpenModal,
     onCloseModal,
@@ -58,23 +43,17 @@ export default function UserSignature({
 
             setInitialDelegatesLoading(true);
             try {
-                // 1. Ambil semua user yang bisa didelegasikan
                 const allUsers: DelegationUser[] = await getDelegationUsers(token);
-                
-                // 2. Sekarang, karena tidak ada getCurrentDelegations, kita asumsikan tidak ada yang dipilih di awal.
-                // Atau, jika ada cara lain untuk menentukan yang sudah didelegasikan (misalnya dari data allUsers itu sendiri),
-                // maka logika itu bisa ditambahkan di sini.
-                // Untuk saat ini, kita inisialisasi sebagai array kosong.
-                const currentlyDelegatedEmails: string[] = []; // Default: Tidak ada yang terpilih di awal
 
-                // 3. Gabungkan data: Buat opsi MultiSelect dan tandai yang sudah didelegasikan
+                const currentlyDelegatedEmails: string[] = [];
+
                 const mappedOptions = allUsers.map((user) => ({
                     value: user.email,
                     text: user.fullname,
-                    selected: currentlyDelegatedEmails.includes(user.email), // Ini akan selalu false di awal
+                    selected: currentlyDelegatedEmails.includes(user.email),
                 }));
                 setMultiOptions(mappedOptions);
-                setCurrentSelectedDelegates(currentlyDelegatedEmails); // Ini akan selalu array kosong di awal
+                setCurrentSelectedDelegates(currentlyDelegatedEmails);
 
             } catch (error) {
                 console.error("Error fetching user list for delegation:", error);
@@ -99,18 +78,10 @@ export default function UserSignature({
 
         setDelegationOperationLoading(true);
         try {
-            // Karena kita tidak lagi mengambil delegasi yang sudah ada dari backend di awal load,
-            // kita perlu memikirkan bagaimana 'previousSelectedOnUI' ditentukan.
-            // Jika Anda hanya ingin menyimpan *semua* yang dipilih, dan menghapus *semua* yang tidak dipilih,
-            // maka Anda mungkin perlu logika yang berbeda atau API yang stateless.
-            // Namun, jika API DELETE/POST Anda idempotent (bisa dipanggil berulang tanpa masalah),
-            // maka logika ini tetap berfungsi untuk sinkronisasi.
-
-            // Asumsi: 'multiOptions' saat ini mencerminkan keadaan terakhir yang berhasil disimpan/dimuat.
             const previousSelectedOnUI = multiOptions
                 .filter(opt => opt.selected)
                 .map(opt => opt.value);
-            
+
             const previousDelegatesSet = new Set(previousSelectedOnUI);
             const newDelegatesSet = new Set(currentSelectedDelegates);
 
@@ -125,9 +96,7 @@ export default function UserSignature({
                 await Promise.all(delegatesToRemove.map(email => deleteDelegation({ user_email: email }, token)));
             }
 
-            toast.success("Delegasi tanda tangan berhasil diperbarui!");
-            
-            // Perbarui opsi UI agar sesuai dengan pilihan yang baru disimpan
+
             const updatedOptions = multiOptions.map(option => ({
                 ...option,
                 selected: newDelegatesSet.has(option.value)
@@ -154,7 +123,7 @@ export default function UserSignature({
                 </label>
                 <br />
                 <br />
-                <Image src={signatureImage} alt="Tanda Tangan Pengguna" width={200} height={100}/>
+                <Image src={signatureImage} alt="Tanda Tangan Pengguna" width={200} height={100} />
             </div>
         );
     };
@@ -204,12 +173,11 @@ export default function UserSignature({
                     <MultiSelect
                         label="Pilih User untuk Delegasi"
                         options={multiOptions}
-                        // Default selected akan selalu array kosong saat pertama render
-                        defaultSelected={currentSelectedDelegates} 
+                        defaultSelected={currentSelectedDelegates}
                         onChange={handleMultiSelectChange}
                     />
                 )}
-                
+
                 <p className="sr-only">Selected Values: {currentSelectedDelegates.join(", ")}</p>
                 <Button
                     onClick={handleSaveDelegation}

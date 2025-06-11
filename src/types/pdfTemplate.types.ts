@@ -33,3 +33,8 @@ export interface DocumentCardProps {
     };
     onDelete: () => void;
 }
+
+export interface ProcessPdfEditorProps {
+    doc: DocTemplateResponse;
+    onSaveSuccess?: () => void;
+}

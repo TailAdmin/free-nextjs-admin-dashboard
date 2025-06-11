@@ -9,15 +9,9 @@ import "react-pdf/dist/esm/Page/TextLayer.css";
 import { useAuthStore } from "@/lib/stores/useAuthStore";
 import { useSignatureFieldStore } from "@/lib/stores/useSignatureFieldsStore";
 import { updateDocWithSignatures } from "@/lib/services/pdfTemplateService";
-import { DocTemplateResponse } from "@/types/pdfTemplate.types";
-
+import { ProcessPdfEditorProps } from "@/types/pdfTemplate.types";
 
 pdfjs.GlobalWorkerOptions.workerSrc = `//unpkg.com/pdfjs-dist@${pdfjs.version}/build/pdf.worker.min.mjs`;
-
-interface ProcessPdfEditorProps {
-    doc: DocTemplateResponse;
-    onSaveSuccess?: () => void;
-}
 
 export default function ProcessPdfEditor({ doc, onSaveSuccess }: ProcessPdfEditorProps) {
     const canvasRef = useRef<HTMLDivElement>(null);
@@ -121,8 +115,8 @@ export default function ProcessPdfEditor({ doc, onSaveSuccess }: ProcessPdfEdito
             <div
                 ref={canvasRef}
                 onClick={handleClick}
-                className="relative w-full max-w-[800px] mx-auto border border-gray-300 dark:border-gray-600 rounded overflow-hidden cursor-crosshair bg-white"
-                style={{ aspectRatio: "210 / 297" }}
+                className="relative w-full max-w-[800px] mx-auto border border-gray-300 dark:border-gray-600 rounded overflow-hidden bg-white"
+                style={{ aspectRatio: "210 / 297", cursor: "crosshair" }}
             >
                 <Document file={doc.example_file} className="w-full h-full" onLoadSuccess={onDocumentLoadSuccess}>
                     <Page pageNumber={1} className="w-full h-full" />
@@ -160,8 +154,8 @@ export default function ProcessPdfEditor({ doc, onSaveSuccess }: ProcessPdfEdito
                     onClick={handleSubmit}
                     disabled={!petugasPos || !penerimaPos}
                     className={`px-4 py-2 rounded text-white transition-colors ${petugasPos && penerimaPos
-                            ? "bg-blue-600 hover:bg-blue-700"
-                            : "bg-blue-300 cursor-not-allowed"
+                        ? "bg-blue-600 hover:bg-blue-700"
+                        : "bg-blue-300 cursor-not-allowed"
                         }`}
                 >
                     Simpan Posisi

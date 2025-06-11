@@ -8,12 +8,8 @@ import { useSignatureDrawer } from "@/hooks/useSignatureDrawer";
 import { saveUserSignature } from "@/lib/services/signatureService";
 import { canvasToFile } from "@/utils/file.utils";
 import LoadingSpinner from "../ui/loading/LoadingSpinner";
+import { SignatureModalProps } from "@/types/signature.types";
 
-interface SignatureModalProps {
-    isOpen: boolean;
-    onClose: () => void;
-    onSuccessUpload?: () => void;
-}
 
 export const SignatureModal = ({
     isOpen,
