@@ -7,7 +7,7 @@ export type DocTemplatePayload = {
 };
 
 export type DocTemplateResponse = {
-    id: number;
+    id: string; 
     name: string;
     description: string;
     version: string;
@@ -25,11 +25,10 @@ export interface SignatureField {
 
 export interface DocumentCardProps {
     doc: {
-        id: number; 
+        id: string; 
         name: string;
         description: string;
-        
-        thumbnail: string; 
+        thumbnail: string;
     };
     onDelete: () => void;
 }
@@ -37,4 +36,5 @@ export interface DocumentCardProps {
 export interface ProcessPdfEditorProps {
     doc: DocTemplateResponse;
     onSaveSuccess?: () => void;
+    onSignatureFieldsChange: (fields: SignatureField[]) => void;
 }
