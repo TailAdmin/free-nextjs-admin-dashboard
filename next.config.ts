@@ -12,8 +12,14 @@ const nextConfig: NextConfig = {
     remotePatterns: [
       {
         protocol: "http",
-        hostname: process.env.NEXT_PUBLIC_IMAGE_HOSTS!,
-        pathname: "/media/**", 
+        hostname: "202.10.42.172", 
+        port: "8000",           
+        pathname: "/media/**",
+      },
+      {
+        protocol: "http",
+        hostname: "tanah3.darius.my.id",
+        pathname: "/media/**",
       },
     ],
   },

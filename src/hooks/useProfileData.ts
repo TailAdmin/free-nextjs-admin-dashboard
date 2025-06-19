@@ -43,7 +43,7 @@ export function useProfileData() {
             formData.append("file", file);
 
             await saveUserSignature(formData, token);
-            await fetchSignature(); // Reload tanda tangan setelah upload
+            await fetchSignature(); 
         } catch (err: unknown) {
             handleError(err);
         }

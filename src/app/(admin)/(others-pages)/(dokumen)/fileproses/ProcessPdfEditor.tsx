@@ -1,119 +1,236 @@
 "use client";
-
-import React, { useRef, useState, useEffect } from "react";
+import React, { useRef, useState, useEffect, useCallback } from "react";
 import { toast } from "sonner";
 import { Document, Page, pdfjs } from "react-pdf";
 import "react-pdf/dist/esm/Page/AnnotationLayer.css";
 import "react-pdf/dist/esm/Page/TextLayer.css";
-
 import { useAuthStore } from "@/lib/stores/useAuthStore";
-import { DocTemplateResponse, SignatureField, ProcessPdfEditorProps } from "@/types/pdfTemplate.types";
+import {
+    DocTemplateResponse,
+    SignatureField,
+    ProcessPdfEditorProps,
+} from "@/types/pdfTemplate.types";
 import { updateDocWithSignatures } from "@/lib/services/pdfTemplateService";
+import LoadingSpinner from "@/components/ui/loading/LoadingSpinner";
 
 pdfjs.GlobalWorkerOptions.workerSrc = `//unpkg.com/pdfjs-dist@${pdfjs.version}/build/pdf.worker.min.mjs`;
 
-export default function ProcessPdfEditor({ doc, onSaveSuccess, onSignatureFieldsChange }: ProcessPdfEditorProps) {
-    const canvasRef = useRef<HTMLDivElement>(null);
-    const [signatureFieldsLocal, setSignatureFieldsLocal] = useState<SignatureField[]>([]);
+const DEFAULT_PDF_RENDER_WIDTH_PX = 794;
+
+// --- Ubah interface props untuk menerima initialSignatureFields ---
+interface ExtendedProcessPdfEditorProps extends ProcessPdfEditorProps {
+    initialSignatureFields: SignatureField[];
+}
+
+export default function ProcessPdfEditor({
+    doc,
+    onSaveSuccess,
+    onSignatureFieldsChange,
+    initialSignatureFields, // Terima prop baru
+}: ExtendedProcessPdfEditorProps) {
+    const pdfContainerRef = useRef<HTMLDivElement>(null);
+    // Inisialisasi signatureFieldsLocal dari prop awal, bukan dari doc secara langsung di sini
+    const [signatureFieldsLocal, setSignatureFieldsLocal] = useState<SignatureField[]>(initialSignatureFields);
     const { token } = useAuthStore();
-    const [numPages, setNumPages] = useState<number>();
+    const [pdfLoading, setPdfLoading] = useState<boolean>(true);
+    const [numPages, setNumPages] = useState<number>(0);
+    const [pageScale, setPageScale] = useState<number>(1);
+    const [pagesToRender, setPagesToRender] = useState<number[]>([]);
 
-    const [petugasPos, setPetugasPos] = useState<{ x: number; y: number } | null>(null);
-    const [penerimaPos, setPenerimaPos] = useState<{ x: number; y: number } | null>(null);
+    const [displayPositions, setDisplayPositions] = useState<Map<string, { x: number; y: number; page: number }>>(new Map());
 
-    const areSignatureFieldsEqual = (arr1: SignatureField[], arr2: SignatureField[]) => {
-        if (arr1.length !== arr2.length) return false;
-        const sorted1 = [...arr1].sort((a, b) => a.category.localeCompare(b.category));
-        const sorted2 = [...arr2].sort((a, b) => a.category.localeCompare(b.category));
-        for (let i = 0; i < sorted1.length; i++) {
-            if (sorted1[i].category !== sorted2[i].category ||
-                sorted1[i].pos_x !== sorted2[i].pos_x ||
-                sorted1[i].pos_y !== sorted2[i].pos_y) {
-                return false;
-            }
-        }
-        return true;
-    };
+    const scaleCoordinates = useCallback((x: number, y: number, scale: number) => {
+        return {
+            x: x * scale,
+            y: y * scale,
+        };
+    }, []);
 
+    const unscaleCoordinates = useCallback((x: number, y: number, scale: number) => {
+        return {
+            x: Math.round(x / scale),
+            y: Math.round(y / scale),
+        };
+    }, []);
 
+    // --- PERBAIKAN: Gunakan initialSignatureFields sebagai nilai awal dan update hanya jika berubah dari prop ---
     useEffect(() => {
-        const initialFields: SignatureField[] = [];
-        let newPetugasPos: { x: number; y: number } | null = null;
-        let newPenerimaPos: { x: number; y: number } | null = null;
+        const uniquePages: Set<number> = new Set();
+        const newDisplayPositions = new Map<string, { x: number; y: number; page: number }>();
 
-        if (doc?.signature_fields?.length > 0) {
-            const petugas = doc.signature_fields.find((f) => f.category === "Petugas");
-            const penerima = doc.signature_fields.find((f) => f.category === "Penerima");
+        let currentSignatureFields = initialSignatureFields;
 
-            if (petugas) {
-                newPetugasPos = { x: petugas.pos_x, y: petugas.pos_y };
-                initialFields.push({ category: "Petugas", pos_x: petugas.pos_x, pos_y: petugas.pos_y });
-            }
-
-            if (penerima) {
-                newPenerimaPos = { x: penerima.pos_x, y: penerima.pos_y };
-                initialFields.push({ category: "Penerima", pos_x: penerima.pos_x, pos_y: penerima.pos_y });
-            }
-        }
-
-        if (!areSignatureFieldsEqual(signatureFieldsLocal, initialFields)) {
-            setPetugasPos(newPetugasPos);
-            setPenerimaPos(newPenerimaPos);
-            setSignatureFieldsLocal(initialFields);
-            onSignatureFieldsChange(initialFields);
+        if (currentSignatureFields?.length > 0) {
+            currentSignatureFields.forEach(field => {
+                uniquePages.add(field.page_signature);
+                newDisplayPositions.set(field.category, { x: field.pos_x, y: field.pos_y, page: field.page_signature });
+            });
         } else {
+            uniquePages.add(1); // Default ke halaman 1 jika tidak ada field
         }
-    }, [doc, onSignatureFieldsChange, signatureFieldsLocal]); 
 
+        // Hanya set state jika initialSignatureFields benar-benar berbeda dari state lokal saat ini
+        if (JSON.stringify(signatureFieldsLocal) !== JSON.stringify(currentSignatureFields)) {
+            setSignatureFieldsLocal(currentSignatureFields);
+        }
 
-    const handleClick = (e: React.MouseEvent<HTMLDivElement>) => {
-        const rect = canvasRef.current?.getBoundingClientRect();
+        // Perbarui pagesToRender
+        const sortedPages = Array.from(uniquePages).sort((a, b) => a - b);
+        setPagesToRender(sortedPages.length > 0 ? sortedPages : [1]);
+
+        // Perbarui displayPositions, tapi hanya jika pageScale sudah tersedia atau jika Map kosong
+        // Koordinat yang diskalakan akan dihitung di useEffect berikutnya
+        // Penting: hindari setDisplayPositions di sini jika pageScale belum siap
+        if (pageScale > 0) {
+            const scaledPositions = new Map<string, { x: number; y: number; page: number }>();
+            newDisplayPositions.forEach((pos, category) => {
+                const scaled = scaleCoordinates(pos.x, pos.y, pageScale);
+                scaledPositions.set(category, { x: scaled.x, y: scaled.y, page: pos.page });
+            });
+            // Hanya update jika ada perbedaan nyata
+            if (JSON.stringify(Array.from(displayPositions.entries())) !== JSON.stringify(Array.from(scaledPositions.entries()))) {
+                setDisplayPositions(scaledPositions);
+            }
+        } else {
+            // Jika pageScale belum siap, simpan posisi asli dulu, scaling akan dilakukan nanti
+            if (JSON.stringify(Array.from(displayPositions.entries())) !== JSON.stringify(Array.from(newDisplayPositions.entries()))) {
+                setDisplayPositions(newDisplayPositions);
+            }
+        }
+
+        // Beri tahu parent component setiap kali initialSignatureFields berubah
+        // Ini memastikan state parent selalu sinkron dengan initial state yang masuk
+        onSignatureFieldsChange(currentSignatureFields);
+
+    }, [initialSignatureFields, pageScale, onSignatureFieldsChange, scaleCoordinates]); // Tambahkan initialSignatureFields sebagai dependency
+
+    // --- PERBAIKAN: useEffect untuk scaling koordinat tampilan yang lebih defensif ---
+    // Efek ini akan berjalan setelah pageScale dihitung atau diperbarui,
+    // dan setelah displayPositions diinisialisasi dari initialSignatureFields
+    useEffect(() => {
+        if (pageScale > 0 && displayPositions.size > 0) {
+            const updatedDisplayPositions = new Map<string, { x: number; y: number; page: number }>();
+            let changed = false;
+
+            displayPositions.forEach((pos, category) => {
+                const scaled = scaleCoordinates(pos.x, pos.y, pageScale);
+                const currentDisplayPos = displayPositions.get(category);
+
+                // Periksa apakah posisi yang diskalakan berbeda secara signifikan
+                if (!currentDisplayPos ||
+                    Math.abs(currentDisplayPos.x - scaled.x) > 0.01 || // Toleransi kecil untuk floating point
+                    Math.abs(currentDisplayPos.y - scaled.y) > 0.01 ||
+                    currentDisplayPos.page !== pos.page
+                ) {
+                    updatedDisplayPositions.set(category, { x: scaled.x, y: scaled.y, page: pos.page });
+                    changed = true;
+                } else {
+                    updatedDisplayPositions.set(category, currentDisplayPos); // Pertahankan referensi yang sama
+                }
+            });
+
+            // Hanya set state jika ada perubahan nyata pada data atau ukuran Map
+            if (changed || displayPositions.size !== updatedDisplayPositions.size) {
+                setDisplayPositions(updatedDisplayPositions);
+            }
+        }
+    }, [pageScale, scaleCoordinates]); // displayPositions di sini adalah state lama yang akan digunakan untuk membandingkan.
+
+    const onDocumentLoadSuccess = useCallback(({ numPages }: { numPages: number }) => {
+        setNumPages(numPages);
+        setPdfLoading(false);
+        if (pdfContainerRef.current) {
+            const containerWidth = pdfContainerRef.current.offsetWidth;
+            if (DEFAULT_PDF_RENDER_WIDTH_PX > 0) {
+                const newScale = containerWidth / DEFAULT_PDF_RENDER_WIDTH_PX;
+                // Hanya perbarui skala jika ada perubahan yang signifikan
+                if (Math.abs(newScale - pageScale) > 0.001) {
+                    setPageScale(newScale);
+                }
+            }
+        }
+    }, [pageScale]); // Tambahkan pageScale sebagai dependensi
+
+    const onDocumentLoadError = useCallback((error: any) => {
+        console.error("Error loading PDF:", error);
+        toast.error("Gagal memuat pratinjau PDF.");
+        setPdfLoading(false);
+    }, []);
+
+    // --- PERBAIKAN: Debounce handleResize ---
+    useEffect(() => {
+        let timeoutId: NodeJS.Timeout;
+        const handleResize = () => {
+            clearTimeout(timeoutId);
+            timeoutId = setTimeout(() => {
+                if (pdfContainerRef.current && numPages > 0) {
+                    const containerWidth = pdfContainerRef.current.offsetWidth;
+                    if (DEFAULT_PDF_RENDER_WIDTH_PX > 0) {
+                        const newScale = containerWidth / DEFAULT_PDF_RENDER_WIDTH_PX;
+                        // Hanya set state jika skala berubah secara signifikan
+                        if (Math.abs(newScale - pageScale) > 0.001) {
+                            setPageScale(newScale);
+                        }
+                    }
+                }
+            }, 100); 
+        };
+
+        window.addEventListener('resize', handleResize);
+        return () => {
+            window.removeEventListener('resize', handleResize);
+            clearTimeout(timeoutId);
+        };
+    }, [numPages, pageScale]); 
+
+    const handleClick = (e: React.MouseEvent<HTMLDivElement>, pageNumber: number) => {
+        const rect = e.currentTarget.getBoundingClientRect();
         if (!rect) return;
 
         const x = e.clientX - rect.left;
         const y = e.clientY - rect.top;
 
-        let updatedFields: SignatureField[] = [...signatureFieldsLocal];
+        let updatedFields = [...signatureFieldsLocal];
+        const newDisplayPositions = new Map(displayPositions);
 
-        if (!petugasPos) {
-            setPetugasPos({ x, y });
-            updatedFields = updatedFields.filter((f) => f.category !== "Petugas");
-            updatedFields.push({ category: "Petugas", pos_x: Math.round(x), pos_y: Math.round(y) });
-            toast.success("Posisi tanda tangan Petugas telah ditentukan");
-        } else if (!penerimaPos) {
-            setPenerimaPos({ x, y });
-            updatedFields = updatedFields.filter((f) => f.category !== "Penerima");
-            updatedFields.push({ category: "Penerima", pos_x: Math.round(x), pos_y: Math.round(y) });
-            toast.success("Posisi tanda tangan Penerima telah ditentukan");
-        } else {
-            toast.warning("Posisi tanda tangan sudah lengkap (2 posisi)");
-            return;
+        const originalCoords = unscaleCoordinates(x, y, pageScale);
+
+        let targetCategory: "Petugas" | "Penerima" | null = null;
+        if (!newDisplayPositions.has("Petugas")) {
+            targetCategory = "Petugas";
+        } else if (!newDisplayPositions.has("Penerima")) {
+            targetCategory = "Penerima";
         }
 
-        setSignatureFieldsLocal(updatedFields);
-        onSignatureFieldsChange(updatedFields);
-        console.log("ProcessPdfEditor: Signature fields updated via click:", updatedFields);
+        if (targetCategory) {
+            updatedFields = updatedFields.filter((f) => f.category !== targetCategory);
+            updatedFields.push({ category: targetCategory, pos_x: originalCoords.x, pos_y: originalCoords.y, page_signature: pageNumber });
+            setSignatureFieldsLocal(updatedFields);
+
+            // Perbarui display state dengan koordinat tampilan yang baru
+            newDisplayPositions.set(targetCategory, { x, y, page: pageNumber });
+            setDisplayPositions(newDisplayPositions);
+
+            onSignatureFieldsChange(updatedFields);
+            toast.success(`Posisi ${targetCategory} berhasil ditentukan.`);
+        } else {
+            toast.warning("Anda sudah menentukan kedua posisi (Petugas dan Penerima).");
+        }
     };
 
     const handleReset = () => {
-        setPetugasPos(null);
-        setPenerimaPos(null);
+        setDisplayPositions(new Map());
         setSignatureFieldsLocal([]);
         onSignatureFieldsChange([]);
-        toast.info("Semua posisi tanda tangan telah direset");
-        console.log("ProcessPdfEditor: Signature fields reset.");
+        setPagesToRender([1]);
+        toast.info("Semua posisi tanda tangan telah direset.");
     };
-
-    function onDocumentLoadSuccess({ numPages }: { numPages: number }): void {
-        setNumPages(numPages);
-    }
 
     const handleSubmit = async () => {
         if (!token || !doc.id) {
-            toast.error("Token atau ID dokumen tidak tersedia");
+            toast.error("Token atau ID dokumen tidak tersedia.");
             return;
         }
-
         if (signatureFieldsLocal.length < 2) {
             toast.warning("Silakan tambahkan 2 posisi tanda tangan sebelum menyimpan.");
             return;
@@ -121,75 +238,110 @@ export default function ProcessPdfEditor({ doc, onSaveSuccess, onSignatureFields
 
         try {
             await updateDocWithSignatures(doc.id.toString(), signatureFieldsLocal, token);
-            toast.success("Tanda tangan berhasil disimpan");
+            toast.success("Tanda tangan berhasil disimpan.");
             if (onSaveSuccess) onSaveSuccess();
-            console.log("ProcessPdfEditor: Signature positions saved successfully.");
         } catch (error) {
-            console.error("ProcessPdfEditor: Gagal simpan:", error);
-            toast.error("Gagal menyimpan posisi tanda tangan");
+            console.error("Gagal menyimpan posisi tanda tangan:", error);
+            toast.error("Gagal menyimpan posisi tanda tangan.");
         }
     };
 
     return (
-        <div className="space-y-4">
-            <h3 className="text-lg text-gray-900 dark:text-gray-300">Letakkan Tanda Tangan</h3>
-
-            <p className="text-sm text-gray-600 dark:text-gray-300">
+        <div className="space-y-6">
+            <h3 className="text-lg font-semibold text-gray-800 dark:text-gray-200">Letakkan Tanda Tangan</h3>
+            <p className="text-sm text-gray-600 dark:text-gray-400">
                 Klik pada area PDF untuk menentukan posisi tanda tangan:
             </p>
 
+            {/* PDF Viewer */}
             <div
-                ref={canvasRef}
-                onClick={handleClick}
-                className="relative w-full max-w-[800px] mx-auto border border-gray-300 dark:border-gray-600 rounded overflow-hidden bg-white"
-                style={{ aspectRatio: "210 / 297", cursor: "crosshair" }}
+                ref={pdfContainerRef}
+                className="relative w-full mx-auto border border-gray-300 dark:border-gray-600 rounded overflow-hidden hover:shadow-lg transition-shadow"
+                style={{ maxWidth: '800px' }}
             >
-                <Document file={doc.example_file} className="w-full h-full" onLoadSuccess={onDocumentLoadSuccess}>
-                    <Page pageNumber={1} className="w-full h-full" />
-                </Document>
-
-                {petugasPos && (
-                    <div
-                        className="absolute flex items-center space-x-1 bg-red-500 text-white rounded px-1 py-0.5 text-xs font-semibold shadow-md z-10"
-                        style={{ left: `${petugasPos.x}px`, top: `${petugasPos.y}px` }}
-                    >
-                        <div className="w-3 h-3 rounded-full bg-white" />
-                        <span>Petugas</span>
+                {pdfLoading && (
+                    <div className="absolute inset-0 flex items-center justify-center bg-opacity-75 z-30">
+                        <LoadingSpinner message="Memuat pratinjau PDF..." size="full" isFullScreen/>
                     </div>
                 )}
-
-                {penerimaPos && (
-                    <div
-                        className="absolute flex items-center space-x-1 bg-green-600 text-white rounded px-1 py-0.5 text-xs font-semibold shadow-md z-10"
-                        style={{ left: `${penerimaPos.x}px`, top: `${penerimaPos.y}px` }}
+                {doc.example_file && (
+                    <Document
+                        file={doc.example_file}
+                        onLoadSuccess={onDocumentLoadSuccess}
+                        onLoadError={onDocumentLoadError}
+                        loading=""
                     >
-                        <div className="w-3 h-3 rounded-full bg-white" />
-                        <span>Penerima</span>
-                    </div>
+                        {pagesToRender.map((pageNumber) => (
+                            <div
+                                key={`page-${pageNumber}`}
+                                className="relative cursor-pointer"
+                                onClick={(e) => handleClick(e, pageNumber)}
+                            >
+                                <Page
+                                    key={`page-render-${pageNumber}`}
+                                    pageNumber={pageNumber}
+                                    scale={pageScale}
+                                    renderTextLayer={false}
+                                    renderAnnotationLayer={false}
+                                    className="w-full h-full"
+                                />
+
+                                {/* Marker for Petugas - Scaled position for display */}
+                                {displayPositions.has("Petugas") && displayPositions.get("Petugas")?.page === pageNumber && (
+                                    <div
+                                        className="absolute flex items-center space-x-1 bg-red-500 text-white text-xs font-semibold px-2 py-1 rounded shadow z-10"
+                                        style={{
+                                            left: `${displayPositions.get("Petugas")?.x}px`,
+                                            top: `${displayPositions.get("Petugas")?.y}px`
+                                        }}
+                                    >
+                                        <span className="w-2 h-2 rounded-full bg-white"></span>
+                                        <span>Petugas</span>
+                                    </div>
+                                )}
+
+                                {/* Marker for Penerima - Scaled position for display */}
+                                {displayPositions.has("Penerima") && displayPositions.get("Penerima")?.page === pageNumber && (
+                                    <div
+                                        className="absolute flex items-center space-x-1 bg-green-600 text-white text-xs font-semibold px-2 py-1 rounded shadow z-10"
+                                        style={{
+                                            left: `${displayPositions.get("Penerima")?.x}px`,
+                                            top: `${displayPositions.get("Penerima")?.y}px`
+                                        }}
+                                    >
+                                        <span className="w-2 h-2 rounded-full bg-white"></span>
+                                        <span>Penerima</span>
+                                    </div>
+                                )}
+                            </div>
+                        ))}
+                    </Document>
                 )}
             </div>
 
-            <div className="mt-4 text-center text-sm text-gray-600 dark:text-gray-300">
-                Hanya halaman pertama yang ditampilkan untuk penempatan tanda tangan.
+            <div className="text-center text-sm text-gray-500 dark:text-gray-400 mt-2">
+                Hanya halaman yang relevan (dengan bidang tanda tangan) yang ditampilkan untuk penempatan, atau halaman 1 jika belum ada.
             </div>
 
-            <div className="flex justify-center space-x-4">
+            {/* Action Buttons */}
+            <div className="flex justify-center gap-4 mt-4">
                 <button
                     onClick={handleSubmit}
                     disabled={signatureFieldsLocal.length < 2}
-                    className={`px-4 py-2 rounded text-white transition-colors ${signatureFieldsLocal.length >= 2
-                        ? "bg-blue-600 hover:bg-blue-700"
-                        : "bg-blue-300 cursor-not-allowed"
+                    className={`
+            px-5 py-2 rounded-lg font-medium transition-colors
+            ${signatureFieldsLocal.length >= 2
+                            ? 'bg-blue-600 hover:bg-blue-700 text-white'
+                            : 'bg-gray-300 text-gray-500 cursor-not-allowed'
                         }`}
                 >
                     Simpan Posisi
                 </button>
-
                 <button
                     onClick={handleReset}
-                    className="px-4 py-2 rounded border border-gray-400 hover:bg-gray-100 dark:border-gray-600 dark:hover:bg-gray-800"
+                    className="px-5 py-2 rounded-lg border border-gray-400 hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors"
                 >
-                    Reset Posisi
+                    Reset
                 </button>
             </div>
         </div>

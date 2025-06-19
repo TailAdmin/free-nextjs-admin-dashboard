@@ -4,31 +4,22 @@ import { DocTemplateResponse } from "@/types/pdfTemplate.types";
 const API_URL = process.env.NEXT_PUBLIC_API_BASE_URL;
 
 export const uploadPdfTemplate = async (
-    payload: DocTemplatePayload,
-    token: string
+    payload: Omit<DocTemplatePayload, 'example_file'>, 
+    token: string,
+    fileToUpload: File //
 ): Promise<DocTemplateResponse> => {
     const formData = new FormData();
-
-    const byteString = atob(payload.example_file.split(",")[1] || payload.example_file);
-    const mimeString = payload.example_file
-        .split(",")[0]
-        .replace("data:", "")
-        .replace(";base64", "");
-
-    const ab = new ArrayBuffer(byteString.length);
-    const ia = new Uint8Array(ab);
-    for (let i = 0; i < byteString.length; i++) {
-        ia[i] = byteString.charCodeAt(i);
-    }
-
-    const blob = new Blob([ab], { type: mimeString });
-    const file = new File([blob], payload.name, { type: mimeString });
 
     formData.append("name", payload.name);
     formData.append("description", payload.description);
     formData.append("version", payload.version);
     formData.append("created_by", payload.created_by.toString());
-    formData.append("example_file", file);
+    
+    formData.append("example_file", fileToUpload); 
+
+    if (payload.signature_fields && payload.signature_fields.length > 0) {
+        formData.append("signature_fields", JSON.stringify(payload.signature_fields));
+    }
 
     const response = await fetch(`${API_URL}/signatures/doc-templates/`, {
         method: "POST",
@@ -41,7 +32,13 @@ export const uploadPdfTemplate = async (
     if (!response.ok) {
         const errorText = await response.text();
         console.error("Raw error response:", errorText);
-        throw new Error(`Gagal mengupload dokumen. Status: ${response.status}`);
+        try {
+            const errorJson = JSON.parse(errorText);
+            console.error("Parsed error response:", errorJson);
+            throw new Error(`Gagal mengupload dokumen: ${errorJson.detail || JSON.stringify(errorJson)}`);
+        } catch (e) {
+            throw new Error(`Gagal mengupload dokumen. Status: ${response.status}. Pesan: ${errorText}`);
+        }
     }
 
     return await response.json();
@@ -49,7 +46,7 @@ export const uploadPdfTemplate = async (
 
 export const fetchAllPdfTemplates = async (token: string): Promise<DocTemplateResponse[]> => {
     try {
-        // Menggunakan endpoint /short-list/
+
         const response = await fetch(`${API_URL}/signatures/doc-templates/short-list/`, {
             method: "GET",
             headers: {

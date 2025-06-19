@@ -22,7 +22,8 @@ export const login = async (
     const { setToken, setRefreshToken } = useAuthStore.getState();
     setToken(data.access);
     setRefreshToken(data.refresh);
-
+    console.log("login")
+    console.log(data.access,data.refresh)
     return data;
 };
 

@@ -2,7 +2,7 @@
 
 import { create } from "zustand";
 import {
-    fetchAllPdfTemplates, // Ini akan memanggil fungsi yang sudah diupdate
+    fetchAllPdfTemplates, 
     deletePdfTemplate,
 } from "@/lib/services/pdfTemplateService";
 import { DocTemplateResponse } from "@/types/pdfTemplate.types";
@@ -32,8 +32,7 @@ export const useDocumentStore = create<DocumentState>()(
 
                 set({ loading: true, error: null });
                 try {
-                    // Ini akan memanggil fetchAllPdfTemplates yang sudah diupdate
-                    const data = await fetchAllPdfTemplates(token); 
+                    const data = await fetchAllPdfTemplates(token);
                     set({ templates: data, loading: false });
                 } catch (err: any) {
                     console.error("Kesalahan saat memuat dokumen:", err);
@@ -41,12 +40,12 @@ export const useDocumentStore = create<DocumentState>()(
                 }
             },
 
-            deleteTemplate: async (id, token) => {
+            deleteTemplate: async (id: number, token: string) => {
                 set({ loading: true, error: null });
                 try {
                     await deletePdfTemplate(id, token);
                     set((state) => ({
-                        templates: state.templates.filter((doc) => doc.id !== id),
+                        templates: state.templates.filter((doc) => doc.id !== String(id)),
                         loading: false,
                     }));
                 } catch (err: any) {

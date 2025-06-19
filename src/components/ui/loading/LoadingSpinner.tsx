@@ -25,7 +25,7 @@ const LoadingSpinner: React.FC<LoadingSpinnerProps> = ({
     const wrapperClasses = {
         sm: "flex items-center justify-center",
         lg: "flex items-center justify-center",
-        full: "fixed inset-0 z-50 flex items-center justify-center bg-gray-800 bg-opacity-75",
+        full: "fixed inset-0 z-50 flex items-center justify-center bg-gray-800 bg-opacity-75 backdrop-blur-sm",
     };
 
     return (
@@ -54,7 +54,7 @@ const LoadingSpinner: React.FC<LoadingSpinnerProps> = ({
                 </svg>
 
                 {message && (
-                    <span>
+                    <span className="text-gray-500 dark:text-white">
                         {message}
                     </span>
                 )}

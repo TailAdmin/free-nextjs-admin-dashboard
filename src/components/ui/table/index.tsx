@@ -25,15 +25,17 @@ interface TableRowProps {
 }
 
 // Props for TableCell
-interface TableCellProps {
+// --- PERUBAHAN UTAMA DI SINI ---
+interface TableCellProps extends React.TdHTMLAttributes<HTMLTableCellElement> {
+  // Properti `colSpan` dan semua atribut `<td>` lainnya sudah termasuk dari `React.TdHTMLAttributes`.
+  // `className` juga sudah termasuk, tapi bisa didefinisikan ulang untuk kejelasan jika mau.
   children: ReactNode; // Cell content
   isHeader?: boolean; // If true, renders as <th>, otherwise <td>
-  className?: string; // Optional className for styling
 }
 
 // Table Component
 const Table: React.FC<TableProps> = ({ children, className }) => {
-  return <table className={`min-w-full  ${className}`}>{children}</table>;
+  return <table className={`min-w-full ${className || ''}`}>{children}</table>;
 };
 
 // TableHeader Component
@@ -56,9 +58,17 @@ const TableCell: React.FC<TableCellProps> = ({
   children,
   isHeader = false,
   className,
+  ...props 
 }) => {
   const CellTag = isHeader ? "th" : "td";
-  return <CellTag className={` ${className}`}>{children}</CellTag>;
+  return (
+    <CellTag
+      className={` ${className || ''}`} 
+      {...props} 
+    >
+      {children}
+    </CellTag>
+  );
 };
 
 export { Table, TableHeader, TableBody, TableRow, TableCell };

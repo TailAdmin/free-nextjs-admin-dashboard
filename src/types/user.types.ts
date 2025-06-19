@@ -15,6 +15,7 @@ export interface User {
     profile: Profile;
     configuration: Configuration;
     fullname: string;
+    groups: { name: string; id: number }[];
 }
 
 export interface ChangePasswordPayload {
@@ -23,7 +24,7 @@ export interface ChangePasswordPayload {
 }
 
 export interface ChangePasswordResponse {
-    detail: string; 
+    detail: string;
 }
 
 export interface ForgotPasswordResponse {
@@ -32,4 +33,18 @@ export interface ForgotPasswordResponse {
 
 export interface ForgotPasswordPayload {
     email: string;
+}
+
+export interface UserData {
+    id: number;
+    first_name: string;
+    last_name: string;
+    email: string;
+    username: string;
+    configuration: {
+        id: number;
+        first_time_password: string; 
+    };
+    fullname: string;
+    group: string; 
 }

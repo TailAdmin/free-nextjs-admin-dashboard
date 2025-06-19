@@ -1,18 +1,16 @@
 "use client";
-
-import React, { useEffect, useState, use } from "react";
+import React, { useEffect, useState, useCallback } from "react"; // Tambahkan useCallback
 import { useAuthStore } from "@/lib/stores/useAuthStore";
 import { fetchDocById } from "@/lib/services/pdfTemplateService";
 import { DocTemplateResponse, SignatureField } from "@/types/pdfTemplate.types";
-import { ChevronDownIcon } from "@/icons";
 import { toast } from "sonner";
 import { QRCodeSVG } from "qrcode.react";
 import ProcessPdfEditor from "../ProcessPdfEditor";
 import Select from "@/components/form/Select";
 
-export default function Page({ params }: { params: Promise<{ id: string }> }) {
-    const resolvedParams = use(params);
-    const id = resolvedParams.id;
+
+export default function Page({ params }: { params: { id: string } }) {
+    const id = params.id;
 
     const { token } = useAuthStore();
     const [doc, setDoc] = useState<DocTemplateResponse | null>(null);
@@ -24,24 +22,13 @@ export default function Page({ params }: { params: Promise<{ id: string }> }) {
     const [qrValue, setQrValue] = useState("");
 
     const handleProcess = async () => {
-        console.log("Page: handleProcess called.");
-        console.log("Page: doc:", doc);
-        console.log("Page: selectedSigner:", selectedSigner);
-        console.log("Page: signatureFields (dari state Page):", signatureFields);
-        console.log("Page: signatureFields.length:", signatureFields.length);
-
         if (!doc || !selectedSigner || signatureFields.length < 2) {
-            console.log("Page: Validation failed. Current state:", {
-                docExists: !!doc,
-                selectedSignerExists: !!selectedSigner,
-                signatureFieldsCount: signatureFields.length
-            });
-            toast.warning("Lengkapi data (posisi tanda tangan dan petugas) sebelum proses.");
+            toast.warning("Lengkapi data sebelum proses.");
             return;
         }
-        console.log("Page: Validation passed. Proceeding with process.");
 
         const API_URL = process.env.NEXT_PUBLIC_API_BASE_URL;
+        const CLIENT_FRONTEND_BASE_URL = process.env.NEXT_PUBLIC_CLIENT_FRONTEND_URL || "http://localhost:3000";
 
         const payload = {
             signature_fields: signatureFields,
@@ -66,48 +53,43 @@ export default function Page({ params }: { params: Promise<{ id: string }> }) {
             }
 
             const result = await res.json();
-            toast.success("Proses tanda tangan berhasil dimulai");
-
-            setQrValue(result.next_url);
+            const sessionIdFromBackend = result.session_id;
+            const qrCodeValue = `${CLIENT_FRONTEND_BASE_URL}/sign/${sessionIdFromBackend}`;
+            setQrValue(qrCodeValue);
             setShowQR(true);
+
+            toast.success("Proses tanda tangan berhasil dimulai");
         } catch (err: any) {
             console.error("Page: Process error:", err);
             toast.error(`Gagal memproses tanda tangan: ${err.message}`);
         }
     };
 
-    // Callback untuk menerima data signatureFields dari ProcessPdfEditor
-    const handleSignatureFieldsChange = (fields: SignatureField[]) => {
-        setSignatureFields(fields);
-        console.log("Page: signatureFields diperbarui dari ProcessPdfEditor:", fields);
-    };
+    // --- PERBAIKAN DI SINI: Gunakan useCallback untuk menstabilkan fungsi ini ---
+    const handleSignatureFieldsChange = useCallback((fields: SignatureField[]) => {
+        setSignatureFields(fields); // Tidak perlu spread jika 'fields' sudah array baru
+    }, []); // Dependensi kosong agar fungsi ini tidak dibuat ulang di setiap render
 
     useEffect(() => {
         const loadDoc = async () => {
             if (!token) return;
-
             try {
                 const data = await fetchDocById(id, token);
                 setDoc(data);
                 if (data.signature_fields && data.signature_fields.length > 0) {
+                    // Set fields langsung, biarkan ProcessPdfEditor menangani scaling awal
                     setSignatureFields(data.signature_fields);
-                    console.log("Page: Initializing signatureFields from fetched doc:", data.signature_fields);
-                } else if (signatureFields.length > 0) { 
-                    setSignatureFields([]);
-                    console.log("Page: No initial signatureFields in doc, resetting Page state.");
                 } else {
-                    console.log("Page: No initial signatureFields in doc, Page state already empty.");
+                    setSignatureFields([]);
                 }
             } catch (error) {
-                console.error("Page: Gagal mengambil dokumen:", error);
                 toast.error("Gagal memuat dokumen.");
             } finally {
                 setLoading(false);
             }
         };
-
         loadDoc();
-    }, [id, token]); 
+    }, [id, token]);
 
     useEffect(() => {
         const loadSigners = async () => {
@@ -121,12 +103,10 @@ export default function Page({ params }: { params: Promise<{ id: string }> }) {
                         Authorization: `Bearer ${token}`,
                     },
                 });
-
                 if (!res.ok) {
                     const errorData = await res.json();
                     throw new Error(errorData.detail || "Gagal mengambil daftar penandatangan");
                 }
-
                 const data = await res.json();
                 const options = data.map((item: any) => ({
                     value: item.id,
@@ -134,61 +114,70 @@ export default function Page({ params }: { params: Promise<{ id: string }> }) {
                 }));
                 setSignerOptions(options);
             } catch (error: any) {
-                console.error("Page: Error fetching signers:", error);
                 toast.error(`Gagal memuat daftar penandatangan: ${error.message}`);
                 setSignerOptions([]);
             }
         };
-
         loadSigners();
     }, [token]);
 
-    if (!doc || loading) return <div className="p-6 text-center text-gray-500">Memuat dokumen...</div>;
+    if (loading || !doc)
+        return (
+            <div className="flex justify-center items-center h-full text-gray-500">Memuat dokumen...</div>
+        );
 
     return (
-        <div className="flex h-screen overflow-hidden">
-            <div className="flex-1 p-6 overflow-y-auto">
+        <div className="container mx-auto px-4 py-6 flex flex-col md:flex-row gap-6">
+            {/* PDF Editor */}
+            <div className="md:w-full lg:w-2/3">
                 <ProcessPdfEditor
                     doc={doc}
+                    initialSignatureFields={signatureFields} // Teruskan ini sebagai prop terpisah
                     onSignatureFieldsChange={handleSignatureFieldsChange}
                 />
             </div>
 
-            <div className="w-96 dark:bg-gray-900 shadow p-6 flex flex-col gap-4 overflow-y-auto">
-                <label htmlFor="signer" className="text-xl font-medium text-gray-600 dark:text-gray-300">
-                    Tanda Tangan Petugas
-                </label>
+            {/* Sidebar Controls */}
+            <div className="md:w-full lg:w-1/3 bg-white dark:bg-gray-800 shadow-md rounded-lg p-6 space-y-6">
+                <h2 className="text-xl font-semibold text-gray-700 dark:text-gray-200">
+                    Pilih Penandatangan
+                </h2>
 
-                <div className="relative">
+                {/* Signer Selection */}
+                <div>
+                    <label htmlFor="signer" className="block mb-2 text-sm font-medium text-gray-600 dark:text-gray-300">
+                        Petugas Penandatangan
+                    </label>
                     <Select
                         options={signerOptions}
                         placeholder="-- Pilih Petugas --"
                         onChange={(value) => setSelectedSigner(value)}
                         defaultValue={selectedSigner}
                     />
-                    <span className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-500 dark:text-gray-400 pointer-events-none">
-                        <ChevronDownIcon />
-                    </span>
                 </div>
 
+                {/* Process Button */}
                 <button
-                    className={`mt-2 w-full py-3 rounded text-white transition-colors ${
-                        selectedSigner && signatureFields.length >= 2
-                            ? "bg-blue-600 hover:bg-blue-700"
-                            : "bg-blue-300 cursor-not-allowed"
-                    }`}
-                    disabled={!selectedSigner || signatureFields.length < 2}
                     onClick={handleProcess}
+                    disabled={!selectedSigner || signatureFields.length < 2}
+                    className={`
+                        w-full py-3 rounded-lg text-white font-medium transition-all duration-200
+                        ${selectedSigner && signatureFields.length >= 2
+                            ? 'bg-gradient-to-r from-blue-600 to-indigo-600 hover:shadow-md hover:from-blue-700'
+                            : 'bg-gray-300 cursor-not-allowed'}
+                    `}
                 >
                     Proses
                 </button>
 
+                {/* QR Code Section */}
                 {showQR && qrValue && (
-                    <div className="mt-4 text-center p-4 border border-gray-300 dark:border-gray-700 rounded-md bg-white dark:bg-gray-800">
-                        <p className="text-sm text-gray-600 dark:text-gray-300 mb-2">Scan QR untuk melanjutkan proses tanda tangan:</p>
-                        <div className="flex justify-center">
+                    <div className="mt-6 p-4 bg-white dark:bg-gray-700 border border-gray-200 dark:border-gray-600 rounded-lg shadow-sm text-center animate-fadeIn">
+                        <p className="text-sm text-gray-600 dark:text-gray-300 mb-3">Scan QR untuk lanjutkan:</p>
+                        <div className="flex justify-center mb-2">
                             <QRCodeSVG value={qrValue} size={160} level="H" />
                         </div>
+                        <p className="text-xs text-gray-500">{qrValue}</p>
                     </div>
                 )}
             </div>

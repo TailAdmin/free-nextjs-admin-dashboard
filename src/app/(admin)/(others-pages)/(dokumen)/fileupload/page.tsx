@@ -17,6 +17,12 @@ export default function FileUploadPage() {
         handleDrop,
         handleSubmit,
         handleCancelUpload,
+        documentName,       
+        setDocumentName,    
+        documentDescription, 
+        setDocumentDescription, 
+        pageSignature,      
+        setPageSignature,   
     } = usePdfUploader({
         token,
         userId: user?.id ?? null,
@@ -50,6 +56,12 @@ export default function FileUploadPage() {
                     file={file}
                     fileURL={fileURL}
                     isUploading={isUploading}
+                    documentName={documentName}       
+                    setDocumentName={setDocumentName}   
+                    documentDescription={documentDescription} 
+                    setDocumentDescription={setDocumentDescription}
+                    pageSignature={pageSignature}      
+                    setPageSignature={setPageSignature}   
                 />
             )}
         </>

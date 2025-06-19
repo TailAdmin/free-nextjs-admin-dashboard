@@ -1,10 +1,11 @@
 // src/lib/services/userService.ts
-import { 
-    ApiResponseDetail, 
-    CurrentDelegationsResponse, 
-    DelegateSignaturePayload, 
-    DelegationUser, 
-} from "@/types/delegation.types"; 
+import {
+    ApiResponseDetail,
+    CurrentDelegationsResponse,
+    DelegateSignaturePayload,
+    DelegationUser,
+} from "@/types/delegation.types";
+import { UserData } from "@/types/user.types";
 
 const API_URL = process.env.NEXT_PUBLIC_API_BASE_URL;
 
@@ -13,7 +14,7 @@ export const getDelegationUsers = async (token: string): Promise<DelegationUser[
         const res = await fetch(`${API_URL}/signatures/user/user-list/`, {
             headers: {
                 Authorization: `Bearer ${token}`,
-                'Content-Type': 'application/json', 
+                'Content-Type': 'application/json',
             },
         });
 
@@ -53,7 +54,7 @@ export const getCurrentDelegations = async (token: string): Promise<CurrentDeleg
 export const delegateSignature = async (
     payload: DelegateSignaturePayload,
     token: string
-): Promise<ApiResponseDetail> => { 
+): Promise<ApiResponseDetail> => {
     try {
         const res = await fetch(`${API_URL}/signatures/user/delegations/`, {
             method: 'POST',
@@ -77,7 +78,7 @@ export const delegateSignature = async (
 };
 
 export const deleteDelegation = async (
-    payload: { user_email: string }, 
+    payload: { user_email: string },
     token: string
 ): Promise<ApiResponseDetail> => {
     try {
@@ -101,3 +102,46 @@ export const deleteDelegation = async (
         throw new Error(error.message || "Terjadi kesalahan saat membatalkan delegasi.");
     }
 };
+
+
+
+const API_BASE_URL = process.env.NEXT_PUBLIC_API_BASE_URL;
+
+export async function fetchAllUsers(token: string): Promise<UserData[]> {
+    if (!token) {
+        throw new Error("Autentikasi diperlukan: Token tidak tersedia.");
+    }
+
+    const response = await fetch(`${API_BASE_URL}/auth/admin/manage-user/`, {
+        headers: {
+            Authorization: `Bearer ${token}`,
+            "Content-Type": "application/json",
+        },
+    });
+
+    if (!response.ok) {
+        const errorText = await response.text();
+        throw new Error(`Gagal memuat pengguna: Status ${response.status} - ${errorText}`);
+    }
+
+    return response.json();
+}
+
+export async function deleteUser(userId: number, token: string): Promise<void> {
+    if (!token) {
+        throw new Error("Autentikasi diperlukan: Token tidak tersedia.");
+    }
+
+    const response = await fetch(`${API_BASE_URL}/auth/admin/manage-user/${userId}/`, {
+        method: "DELETE",
+        headers: {
+            Authorization: `Bearer ${token}`,
+            "Content-Type": "application/json",
+        },
+    });
+
+    if (!response.ok) {
+        const errorText = await response.text();
+        throw new Error(`Gagal menghapus pengguna ID ${userId}: Status ${response.status} - ${errorText}`);
+    }
+}
