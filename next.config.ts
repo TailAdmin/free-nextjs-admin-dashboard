@@ -12,14 +12,14 @@ const nextConfig: NextConfig = {
     remotePatterns: [
       {
         protocol: "http",
-        hostname: "202.10.42.172",
-        port: "8000",
+        hostname: "202.10.42.172", 
+        port: "8000",           
         pathname: "/media/**",
       },
       {
         protocol: "http",
-        hostname: "tanah.darius.my.id",
-        pathname: "/media/**", 
+        hostname: "tanah3.darius.my.id",
+        pathname: "/media/**",
       },
     ],
   },

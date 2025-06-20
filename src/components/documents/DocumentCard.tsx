@@ -1,16 +1,11 @@
+// src/components/documents/DocumentCard.tsx
 import React from "react";
 import { toast } from "sonner";
-import { PdfPreview } from "./PdfPreview";
+import Link from "next/link";
+import Image from "next/image"; 
+import { DocumentCardProps } from "@/types/pdfTemplate.types";
 
-interface DocumentCardProps {
-    doc: {
-        id: number;
-        name: string;
-        description: string;
-        example_file: string;
-    };
-    onDelete: () => void;
-}
+
 
 export const DocumentCard = React.memo(({ doc, onDelete }: DocumentCardProps) => {
     const handleDelete = () => {
@@ -48,16 +43,33 @@ export const DocumentCard = React.memo(({ doc, onDelete }: DocumentCardProps) =>
     };
 
     return (
-        <div className="w-90 bg-white dark:bg-gray-800 rounded-lg shadow-md overflow-hidden border border-gray-200 dark:border-gray-700">
-            <h3 className=" truncate px-4 py-2 bg-gray-100 dark:bg-gray-700 font-semibold text-gray-800 dark:text-gray-200">
+        <div className="bg-white dark:bg-gray-800 rounded-lg shadow-md overflow-hidden border border-gray-200 dark:border-gray-700">
+            <h3 className="px-4 py-2 bg-gray-100 dark:bg-gray-700 font-semibold text-gray-800 dark:text-gray-200 truncate">
                 {doc.name}
             </h3>
 
             <div className="p-4">
-                <p className="text-sm text-gray-600 dark:text-gray-400 mb-4">{doc.description}</p>
+                <p className="text-sm text-gray-600 dark:text-gray-400 mb-4 line-clamp-2">
+                    {doc.description || "Tidak ada deskripsi."}
+                </p>
 
-                <div className="border border-gray-300 dark:border-gray-600 rounded-md overflow-hidden h-[300px]">
-                    <PdfPreview url={`https://docs.google.com/gview?url=${encodeURIComponent(doc.example_file)}&embedded=true`} />
+                {/* Gunakan thumbnail dari API /short-list/ di sini */}
+                <div className="relative w-full h-[300px] border border-gray-300 dark:border-gray-600 rounded-md overflow-hidden bg-gray-100 dark:bg-gray-700 flex items-center justify-center">
+                    {doc.thumbnail ? (
+                        <Image
+                            src={doc.thumbnail}
+                            alt={`Thumbnail for ${doc.name}`}
+                            layout="fill"
+                            objectFit="contain" 
+                            className="rounded-md"
+                            loading="lazy"
+                            unoptimized={true}
+                        />
+                    ) : (
+                        <div className="text-gray-400 dark:text-gray-500 text-center">
+                            Tidak ada preview (thumbnail)
+                        </div>
+                    )}
                 </div>
 
                 <div className="flex justify-between mt-4">
@@ -67,9 +79,12 @@ export const DocumentCard = React.memo(({ doc, onDelete }: DocumentCardProps) =>
                     >
                         Hapus
                     </button>
-                    <button className="px-4 py-2 bg-green-600 hover:bg-green-700 text-white rounded">
+                    <Link
+                        href={`/fileproses/${doc.id}`}
+                        className="px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded"
+                    >
                         Proses
-                    </button>
+                    </Link>
                 </div>
             </div>
         </div>

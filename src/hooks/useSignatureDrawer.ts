@@ -1,4 +1,4 @@
-import React, { useRef, useState } from "react";
+import React, { useRef, useState, useEffect } from "react";
 
 interface UseSignatureDrawerProps {
     onDrawEnd?: (dataUrl: string | null) => void; 
@@ -7,6 +7,20 @@ interface UseSignatureDrawerProps {
 export const useSignatureDrawer = ({ onDrawEnd }: UseSignatureDrawerProps) => {
     const canvasRef = useRef<HTMLCanvasElement | null>(null);
     const [isDrawing, setIsDrawing] = useState(false);
+
+    useEffect(() => {
+        const canvas = canvasRef.current;
+        if (canvas) {
+            const ctx = canvas.getContext("2d");
+            if (ctx) {
+
+                ctx.strokeStyle = "#000"; 
+                ctx.lineWidth = 2; 
+                ctx.lineCap = "round";
+                ctx.lineJoin = "round"; 
+            }
+        }
+    }, []); 
 
     const startDrawing = (e: React.MouseEvent<HTMLCanvasElement> | React.TouchEvent<HTMLCanvasElement>) => {
         const coords = getCoordinates(e);
@@ -30,21 +44,20 @@ export const useSignatureDrawer = ({ onDrawEnd }: UseSignatureDrawerProps) => {
         if (!ctx) return;
 
         ctx.lineTo(coords.x, coords.y);
-        ctx.strokeStyle = "#000";
-        ctx.lineWidth = 2;
-        ctx.lineCap = "round";
         ctx.stroke();
     };
 
     const endDrawing = () => {
         setIsDrawing(false);
-        const dataUrl = canvasRef.current?.toDataURL() || "";
+        const dataUrl = canvasRef.current?.toDataURL('image/png') || "";
         if (onDrawEnd) onDrawEnd(dataUrl);
     };
 
     const clearCanvas = () => {
         const ctx = canvasRef.current?.getContext("2d");
-        ctx?.clearRect(0, 0, canvasRef.current?.width || 0, canvasRef.current?.height || 0);
+        if (ctx && canvasRef.current) {
+            ctx.clearRect(0, 0, canvasRef.current.width, canvasRef.current.height);
+        }
         if (onDrawEnd) {
             onDrawEnd(null);
         }

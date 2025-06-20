@@ -20,3 +20,18 @@ export const saveUserSignature = async (
 
     return await response.json();
 };
+
+export const getUserSignature = async (userId: number, token: string) => {
+    const res = await fetch(`${API_URL}/signatures/user?owner=${userId}`, {
+        headers: {
+            Authorization: `Bearer ${token}`,
+        },
+    });
+
+    if (!res.ok) {
+        throw new Error("Gagal fetch tanda tangan");
+    }
+
+    const data = await res.json();
+    return data[0]; 
+};
