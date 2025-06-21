@@ -126,6 +126,5 @@ export default function DocumentGrid() {
                 </>
             )}
         </div>
-        </div>
     );
 }
