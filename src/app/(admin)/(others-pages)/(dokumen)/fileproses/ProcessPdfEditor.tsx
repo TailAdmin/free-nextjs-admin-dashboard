@@ -1,10 +1,7 @@
 import React, { useState, useCallback, useRef, useEffect } from 'react';
 import { useDropzone } from 'react-dropzone';
 import { PDFDocument, rgb } from 'pdf-lib';
-// import { DOCUMENT_TEMPLATE_SAMPLE } from '@/partials/data/document-sample';
-// import { ISignaturePosition } from '@/types/docu-sign-type';
-// import { useDispatch } from 'react-redux';
-// import { setFile } from '@/store/signature/reducer';
+
 
 interface SignaturePosition {
   x: number;
@@ -25,7 +22,6 @@ type Props = {
 };
 
 export default function PdfUploader({ id }: Props) {
-  // const sampleList = DOCUMENT_TEMPLATE_SAMPLE.filter((val) => val.id == id)[0];
   const deafultSignaturePosition = [{'x':0,'y':0,pageNumber:1}]
 
   const [pdfFile, setPdfFile] = useState<File | null>(null);
