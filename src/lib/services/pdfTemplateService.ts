@@ -1,5 +1,6 @@
-import { DocTemplatePayload, SignatureField } from "@/types/pdfTemplate.types";
+import { DocTemplatePayload, SignatureField, SignerDelegation } from "@/types/pdfTemplate.types";
 import { DocTemplateResponse } from "@/types/pdfTemplate.types";
+import { SignatureResponse } from "@/types/signature.types";
 
 const API_URL = process.env.NEXT_PUBLIC_API_BASE_URL;
 
@@ -119,3 +120,22 @@ export const deletePdfTemplate = async (id: number, token: string): Promise<void
         throw new Error(`Gagal menghapus dokumen ID: ${id}`);
     }
 };
+
+export async function fetchSignerDelegations(token: string): Promise<SignerDelegation[]> {
+    const response = await fetch(`${API_URL}/signatures/user/delegations/`, {
+        method: "GET",
+        headers: {
+            "Content-Type": "application/json",
+            "Authorization": `Bearer ${token}`,
+        },
+        cache: 'no-store'
+    });
+
+    if (!response.ok) {
+        const errorData = await response.json();
+        throw new Error(errorData.detail || "Gagal mengambil daftar penandatangan");
+    }
+
+    const data: SignerDelegation[] = await response.json();
+    return data;
+}
