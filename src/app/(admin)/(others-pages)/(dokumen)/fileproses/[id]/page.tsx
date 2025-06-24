@@ -1,20 +1,23 @@
-// src/app/(admin)/(others-pages)/(dokumen)/fileproses/[id]/page.tsx
 "use client";
-
 import React, { useEffect, useState, useCallback } from "react";
 import { useAuthStore } from "@/lib/stores/useAuthStore";
 import { fetchDocById, fetchSignerDelegations } from "@/lib/services/pdfTemplateService";
-import { DocTemplateResponse, ProcessStartResponse, SignatureField, SignerDelegation } from "@/types/pdfTemplate.types"; // Import SignerDelegation
+import {
+    DocTemplateResponse,
+    ProcessStartResponse,
+    SignatureField,
+    SignerDelegation,
+} from "@/types/pdfTemplate.types";
 import { toast } from "sonner";
 import { QRCodeSVG } from "qrcode.react";
 import Select from "@/components/form/Select";
 import LoadingSpinner from "@/components/ui/loading/LoadingSpinner";
 import DropzoneComponent from "@/components/form/form-elements/DropZone";
 import ProcessPdfEditor from "../ProcessPdfEditor";
+import { Modal } from "@/components/ui/modal";
 
 export default function Page({ params }: { params: { id: string } }) {
     const id = params.id;
-
     const { token } = useAuthStore();
     const [doc, setDoc] = useState<DocTemplateResponse | null>(null);
     const [loading, setLoading] = useState(true);
@@ -23,12 +26,17 @@ export default function Page({ params }: { params: { id: string } }) {
     const [signatureFields, setSignatureFields] = useState<SignatureField[]>([]);
     const [showQR, setShowQR] = useState(false);
     const [qrValue, setQrValue] = useState("");
-
     const [pdfRenderURL, setPdfRenderURL] = useState<string | null>(null);
     const [localUploadedFileURL, setLocalUploadedFileURL] = useState<string | null>(null);
+    const [previewPdfUrl, setPreviewPdfUrl] = useState<string | null>(null);
+    const [isPreviewModalOpen, setIsPreviewModalOpen] = useState(false);
     const [showDropzone, setShowDropzone] = useState(false);
 
-    // Fungsi untuk memuat dokumen dari server
+    // Ambil NEXT_PUBLIC_API_BASE_URL dari .env
+    const API_URL = process.env.NEXT_PUBLIC_API_BASE_URL || "https://tanah3.darius.my.id/api/v1";
+    const CLIENT_FRONTEND_BASE_URL =
+        process.env.NEXT_PUBLIC_CLIENT_FRONTEND_URL || "http://localhost:3000";
+
     const loadDoc = useCallback(async () => {
         if (!token) {
             console.warn("Page: Token not available for fetching document.");
@@ -37,17 +45,13 @@ export default function Page({ params }: { params: { id: string } }) {
         }
         setLoading(true);
         try {
-            console.log(`Page: Fetching document with ID: ${id}`);
             const data = await fetchDocById(id, token);
             setDoc(data);
-
             if (!localUploadedFileURL) {
                 setSignatureFields(data.signature_fields || []);
                 setPdfRenderURL(data.example_file || null);
-                console.log("Page: Doc loaded from server. example_file:", data.example_file);
-                console.log("Page: Initial doc loaded with signature fields:", data.signature_fields);
             } else {
-                console.log("Page: Doc loaded from server, but local file is already set. Keeping local file:", localUploadedFileURL);
+                console.log("Page: Local file is already set.", localUploadedFileURL);
             }
         } catch (error) {
             toast.error("Gagal memuat dokumen.");
@@ -62,7 +66,6 @@ export default function Page({ params }: { params: { id: string } }) {
 
     useEffect(() => {
         loadDoc();
-
         return () => {
             if (localUploadedFileURL) {
                 URL.revokeObjectURL(localUploadedFileURL);
@@ -75,26 +78,19 @@ export default function Page({ params }: { params: { id: string } }) {
         loadDoc();
     }, [loadDoc]);
 
-
     const handleProcess = async () => {
         if (!doc || !doc.id || !selectedSigner || signatureFields.length < 2 || !pdfRenderURL) {
             toast.warning("Lengkapi data sebelum proses.");
             return;
         }
 
-        const API_URL = process.env.NEXT_PUBLIC_API_BASE_URL;
-        const CLIENT_FRONTEND_BASE_URL = process.env.NEXT_PUBLIC_CLIENT_FRONTEND_URL || "http://localhost:3000";
-
-        // ============== START: Perubahan untuk mengirim file PDF ==============
         let pdfFileToSend: File | Blob | null = null;
         let fileName: string = "";
 
-        // Jika ada file lokal yang diunggah, gunakan itu
         if (localUploadedFileURL) {
             try {
                 const response = await fetch(localUploadedFileURL);
                 const blob = await response.blob();
-                // Asumsi nama file asli bisa didapatkan, atau buat nama default
                 fileName = `uploaded_doc_${Date.now()}.pdf`;
                 pdfFileToSend = new File([blob], fileName, { type: "application/pdf" });
             } catch (error) {
@@ -103,13 +99,11 @@ export default function Page({ params }: { params: { id: string } }) {
                 return;
             }
         } else if (doc.example_file) {
-            // Jika tidak ada file lokal, gunakan example_file dari dokumen yang diambil dari server
             try {
                 const response = await fetch(doc.example_file);
                 const blob = await response.blob();
-                // Ekstrak nama file dari URL atau buat nama default
-                const urlParts = doc.example_file.split('/');
-                fileName = urlParts[urlParts.length - 1].split('?')[0] || `template_doc_${doc.id}.pdf`;
+                const urlParts = doc.example_file.split("/");
+                fileName = urlParts[urlParts.length - 1].split("?")[0] || `template_doc_${doc.id}.pdf`;
                 pdfFileToSend = new File([blob], fileName, { type: "application/pdf" });
             } catch (error) {
                 console.error("Failed to fetch example_file from URL:", error);
@@ -127,21 +121,19 @@ export default function Page({ params }: { params: { id: string } }) {
         }
 
         const formData = new FormData();
-        formData.append("temp_file", pdfFileToSend); // Nama field "temp_file" sesuai error backend
+        formData.append("temp_file", pdfFileToSend);
         formData.append("signature_fields", JSON.stringify(signatureFields));
         formData.append("template_id", doc.id);
         formData.append("primary_signature", selectedSigner);
-        // ============== END: Perubahan untuk mengirim file PDF ==============
 
         try {
             toast.info("Memulai proses tanda tangan...");
             const res = await fetch(`${API_URL}/signatures/process/start/`, {
                 method: "POST",
                 headers: {
-                    // Penting: Jangan set 'Content-Type' untuk FormData secara manual, browser akan melakukannya dengan boundary
                     Authorization: `Bearer ${token}`,
                 },
-                body: formData, // Kirim FormData
+                body: formData,
             });
 
             if (!res.ok) {
@@ -151,9 +143,15 @@ export default function Page({ params }: { params: { id: string } }) {
 
             const result: ProcessStartResponse = await res.json();
             const sessionIdFromBackend = result.session_id;
+
             const qrCodeValue = `${CLIENT_FRONTEND_BASE_URL}/sign/${sessionIdFromBackend}`;
             setQrValue(qrCodeValue);
             setShowQR(true);
+
+            // Simpan access-file dari session untuk preview
+            const previewUrl = `${API_URL}/signatures/process/temp-file/${sessionIdFromBackend}/`;
+            setPreviewPdfUrl(previewUrl);
+            setIsPreviewModalOpen(true);
 
             toast.success("Proses tanda tangan berhasil dimulai");
         } catch (err: any) {
@@ -172,26 +170,21 @@ export default function Page({ params }: { params: { id: string } }) {
             toast.warning("Tidak ada file yang dipilih.");
             return;
         }
-
         if (file.type !== "application/pdf") {
             toast.error("Format file tidak didukung. Harap unggah file PDF.");
             return;
         }
 
         toast.info("Mempersiapkan pratinjau file lokal...");
-
         try {
             if (localUploadedFileURL) {
                 URL.revokeObjectURL(localUploadedFileURL);
             }
-
             const newLocalURL = URL.createObjectURL(file);
             setLocalUploadedFileURL(newLocalURL);
-            setPdfRenderURL(newLocalURL); // Set URL yang akan dirender ProcessPdfEditor ke URL lokal ini
-            setSignatureFields([]); // Reset signature fields saat file baru diunggah
+            setPdfRenderURL(newLocalURL);
+            setSignatureFields([]);
             setShowDropzone(false);
-
-            console.log("Page: Local PDF uploaded. newLocalURL:", newLocalURL);
             toast.success("Pratinjau file lokal berhasil dimuat.");
         } catch (error: any) {
             console.error("Page: File preview error:", error);
@@ -206,14 +199,12 @@ export default function Page({ params }: { params: { id: string } }) {
                 return;
             }
             try {
-                // Menggunakan SignerDelegation dari pdfTemplate.types untuk mapping
                 const data: SignerDelegation[] = await fetchSignerDelegations(token);
-                const options = data.map((item: SignerDelegation) => ({ // Ganti SignatureResponse menjadi SignerDelegation
+                const options = data.map((item: SignerDelegation) => ({
                     value: item.id,
                     label: item.owner,
                 }));
                 setSignerOptions(options);
-                console.log("Page: Fetched signer options:", options);
             } catch (error: any) {
                 toast.error(`Gagal memuat daftar penandatangan: ${error.message}`);
                 setSignerOptions([]);
@@ -224,7 +215,6 @@ export default function Page({ params }: { params: { id: string } }) {
     }, [token]);
 
     if (loading || !doc || !doc.id || !pdfRenderURL) {
-        console.log("Page is loading or doc/doc.id/pdfRenderURL is not available yet.", { loading, doc, pdfRenderURL });
         return (
             <div className="flex justify-center items-center h-full text-gray-500 min-h-screen">
                 <LoadingSpinner message="Memuat dokumen..." />
@@ -232,7 +222,10 @@ export default function Page({ params }: { params: { id: string } }) {
         );
     }
 
-    const docForPdfEditor: DocTemplateResponse = { ...doc as DocTemplateResponse, example_file: pdfRenderURL };
+    const docForPdfEditor: DocTemplateResponse = {
+        ...doc,
+        example_file: pdfRenderURL,
+    };
 
     return (
         <div className="container mx-auto px-4 py-6 flex flex-col md:flex-row gap-6">
@@ -250,13 +243,8 @@ export default function Page({ params }: { params: { id: string } }) {
                             Ganti File PDF
                         </button>
                     )}
-                    {showDropzone && (
-                        <DropzoneComponent
-                            onDrop={handleFileUpload}
-                        />
-                    )}
+                    {showDropzone && <DropzoneComponent onDrop={handleFileUpload} />}
                 </div>
-
                 {pdfRenderURL ? (
                     <ProcessPdfEditor
                         doc={docForPdfEditor}
@@ -266,19 +254,16 @@ export default function Page({ params }: { params: { id: string } }) {
                     />
                 ) : (
                     <div className="flex items-center justify-center h-[400px] text-gray-500 dark:text-gray-400 border border-gray-200 dark:border-gray-700 rounded-lg">
-                        Tidak ada file PDF untuk ditampilkan. Silakan unggah file baru di atas.
+                        Tidak ada file PDF untuk ditampilkan. Silakan unggah file baru.
                     </div>
                 )}
             </div>
 
             <div className="md:w-full lg:w-1/3 bg-white dark:bg-gray-800 shadow-md rounded-lg p-6 space-y-6">
-                <h2 className="text-xl font-semibold text-gray-700 dark:text-gray-200">
-                    Opsi Dokumen
-                </h2>
+                <h2 className="text-xl font-semibold text-gray-700 dark:text-gray-200">Opsi Dokumen</h2>
                 <hr className="border-gray-200 dark:border-gray-700" />
-                <h2 className="text-xl font-semibold text-gray-700 dark:text-gray-200">
-                    Pilih Penandatangan
-                </h2>
+
+                <h2 className="text-xl font-semibold text-gray-700 dark:text-gray-200">Pilih Penandatangan</h2>
                 <div>
                     <label htmlFor="signer" className="block mb-2 text-sm font-medium text-gray-600 dark:text-gray-300">
                         Petugas Penandatangan
@@ -290,28 +275,54 @@ export default function Page({ params }: { params: { id: string } }) {
                         defaultValue={selectedSigner}
                     />
                 </div>
+
                 <button
                     onClick={handleProcess}
                     disabled={!selectedSigner || signatureFields.length < 2 || !pdfRenderURL}
                     className={`
-                        w-full py-3 rounded-lg text-white font-medium transition-all duration-200
-                        ${selectedSigner && signatureFields.length >= 2 && pdfRenderURL
+            w-full py-3 rounded-lg text-white font-medium transition-all duration-200
+            ${selectedSigner && signatureFields.length >= 2 && pdfRenderURL
                             ? 'bg-gradient-to-r from-blue-600 to-indigo-600 hover:shadow-md hover:from-blue-700'
-                            : 'bg-gray-300 cursor-not-allowed'}
-                    `}
+                            : 'bg-gray-300 cursor-not-allowed'
+                        }
+          `}
                 >
                     Proses
                 </button>
+
                 {showQR && qrValue && (
-                    <div className="mt-6 p-4 bg-white dark:bg-gray-700 border border-gray-200 dark:border-gray-600 rounded-lg shadow-sm text-center animate-fadeIn">
-                        <p className="text-sm text-gray-600 dark:text-gray-300 mb-3">Scan QR untuk lanjutkan:</p>
-                        <div className="flex justify-center mb-2">
-                            <QRCodeSVG value={qrValue} size={160} level="H" />
+                    <>
+                        <div className="mt-6 p-4 bg-white dark:bg-gray-700 border border-gray-200 dark:border-gray-600 rounded-lg shadow-sm text-center animate-fadeIn">
+                            <p className="text-sm text-gray-600 dark:text-gray-300 mb-3">Scan QR untuk lanjutkan:</p>
+                            <div className="flex justify-center mb-2">
+                                <QRCodeSVG value={qrValue} size={160} level="H" />
+                            </div>
+                            <p className="text-xs text-gray-500">{qrValue}</p>
                         </div>
-                        <p className="text-xs text-gray-500">{qrValue}</p>
-                    </div>
+
+                        {/* Tombol Preview */}
+                        <button
+                            onClick={() => setIsPreviewModalOpen(true)}
+                            className="w-full mt-4 py-2 bg-green-600 hover:bg-green-700 text-white font-medium rounded-lg transition-colors duration-200"
+                        >
+                            Preview PDF
+                        </button>
+                    </>
                 )}
             </div>
+
+            {/* Modal Preview PDF */}
+            {previewPdfUrl && (
+                <Modal isOpen={isPreviewModalOpen} onClose={() => setIsPreviewModalOpen(false)} isFullscreen>
+                    <div className="h-screen w-full flex flex-col">
+                        <iframe
+                            src={previewPdfUrl}
+                            className="flex-1 w-full h-full border-none"
+                            title="Preview PDF"
+                        ></iframe>
+                    </div>
+                </Modal>
+            )}
         </div>
     );
 }

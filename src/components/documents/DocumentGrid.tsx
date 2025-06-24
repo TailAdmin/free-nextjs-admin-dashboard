@@ -9,7 +9,7 @@ import Button from "../ui/button/Button";
 import Input from "../form/input/InputField";
 
 // Konfigurasi pagination
-const ITEMS_PER_PAGE = 6;
+const ITEMS_PER_PAGE = 3;
 
 export default function DocumentGrid() {
     const { token } = useAuthStore();
