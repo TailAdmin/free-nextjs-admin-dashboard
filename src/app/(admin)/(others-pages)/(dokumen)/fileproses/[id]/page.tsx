@@ -15,6 +15,8 @@ import LoadingSpinner from "@/components/ui/loading/LoadingSpinner";
 import DropzoneComponent from "@/components/form/form-elements/DropZone";
 import ProcessPdfEditor from "../ProcessPdfEditor";
 import { Modal } from "@/components/ui/modal";
+import Input from "@/components/form/input/InputField";
+import Label from "@/components/form/Label";
 
 export default function Page({ params }: { params: { id: string } }) {
     const id = params.id;
@@ -31,6 +33,8 @@ export default function Page({ params }: { params: { id: string } }) {
     const [previewPdfUrl, setPreviewPdfUrl] = useState<string | null>(null);
     const [isPreviewModalOpen, setIsPreviewModalOpen] = useState(false);
     const [showDropzone, setShowDropzone] = useState(false);
+    const [signee_name, setSignee_name] = useState("");
+
 
     // Ambil NEXT_PUBLIC_API_BASE_URL dari .env
     const API_URL = process.env.NEXT_PUBLIC_API_BASE_URL || "https://tanah3.darius.my.id/api/v1";
@@ -125,6 +129,7 @@ export default function Page({ params }: { params: { id: string } }) {
         formData.append("signature_fields", JSON.stringify(signatureFields));
         formData.append("template_id", doc.id);
         formData.append("primary_signature", selectedSigner);
+        formData.append("signee_name", signee_name);
 
         try {
             toast.info("Memulai proses tanda tangan...");
@@ -260,7 +265,8 @@ export default function Page({ params }: { params: { id: string } }) {
             </div>
 
             <div className="md:w-full lg:w-1/3 bg-white dark:bg-gray-800 shadow-md rounded-lg p-6 space-y-6">
-                <h2 className="text-xl font-semibold text-gray-700 dark:text-gray-200">Opsi Dokumen</h2>
+                <Label>Masukan Nama Penerima</Label>
+                <Input type="text" placeholder="Felas" required value={signee_name} onChange={(e) => setSignee_name(e.target.value)}/>
                 <hr className="border-gray-200 dark:border-gray-700" />
 
                 <h2 className="text-xl font-semibold text-gray-700 dark:text-gray-200">Pilih Penandatangan</h2>
