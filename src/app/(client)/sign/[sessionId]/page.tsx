@@ -9,7 +9,6 @@ import React, {
 import * as pdfjs from 'pdfjs-dist';
 import { PDFDocumentProxy } from 'pdfjs-dist/types/src/display/api';
 import { useAuthStore } from '@/lib/stores/useAuthStore';
-import { SignatureApiResponse, SignatureField } from '@/types/signatureProcess.types';
 import { toast } from 'sonner';
 import { useParams } from 'next/navigation';
 import { PDFDocument, rgb } from 'pdf-lib';
@@ -17,6 +16,46 @@ import CustomSignaturePad from '@/components/canvas/SignaturePad';
 
 // Set worker source for PDF.js
 pdfjs.GlobalWorkerOptions.workerSrc = '/pdf.worker.min.mjs';
+
+// --- Definisi Tipe Data yang Disesuaikan ---
+// Perbarui atau definisikan ulang SignatureApiResponse dan SignatureField
+// agar sesuai dengan respons API yang baru.
+// Contoh minimal (Anda mungkin sudah memiliki definisi yang lebih lengkap):
+interface SignatureField {
+    category: 'Petugas' | 'Penerima';
+    pos_x: number;
+    pos_y: number;
+    page_signature: number;
+}
+
+interface SignatureApiResponse {
+    session_id: string;
+    status: string;
+    metadata: {
+        status: string;
+        data: {
+            signature_fields: string; // Ini string JSON yang perlu di-parse
+            signee_name: string;
+            template_id: string;
+            temp_file: string | null;
+            primary_signature: string;
+            'created-by': {
+                id: number;
+                username: string;
+            };
+        };
+        'signature-preview-metadata': {
+            file_id: string;
+            access_url: string;
+            expires_in: number;
+            starttime: string;
+            endtime: string;
+            message: string;
+        };
+    };
+}
+// --- Akhir Definisi Tipe Data ---
+
 
 interface PdfPageRendererProps {
     pageNum: number;
@@ -218,7 +257,8 @@ const SignSessionPage: React.FC = () => {
                 const pdfDocToModify = await PDFDocument.load(new Uint8Array(pdfBytes));
                 const pages = pdfDocToModify.getPages();
 
-                const fields: SignatureField[] = JSON.parse(currentSignatureData.metadata.data.data.signature_fields);
+                // PERBAIKAN DI SINI: Akses signature_fields dari currentSignatureData.metadata.data
+                const fields: SignatureField[] = JSON.parse(currentSignatureData.metadata.data.signature_fields);
                 const field = fields.find((f) => f.category === category);
                 if (!field) throw new Error(`Field untuk ${category} tidak ditemukan`);
 
@@ -257,7 +297,7 @@ const SignSessionPage: React.FC = () => {
                 setIsSigning(false);
             }
         },
-        [] // Dependensi toast dihapus karena tidak ada di scope ini atau sudah dari import
+        []
     );
 
     useEffect(() => {
@@ -269,12 +309,18 @@ const SignSessionPage: React.FC = () => {
                 return;
             }
             try {
-                const startRes = await fetch(`${API_BASE_URL}/signatures/process/start/${sessionId}`, );
+                // PERBAIKAN DI SINI: Tambahkan header Authorization ke panggilan API pertama
+                const startRes = await fetch(`${API_BASE_URL}/signatures/process/start/${sessionId}`, {
+                    headers: {
+                        'Authorization': `Bearer ${token}`,
+                    },
+                });
                 if (!startRes.ok) throw new Error('Gagal mengambil data sesi');
                 const data: SignatureApiResponse = await startRes.json();
                 setSignatureData(data);
 
-                const pdfUrl = data?.metadata?.data?.['signature-preview-metadata']?.access_url;
+                // PERBAIKAN DI SINI: Akses access_url dari data.metadata['signature-preview-metadata']
+                const pdfUrl = data?.metadata?.['signature-preview-metadata']?.access_url;
                 if (!pdfUrl) throw new Error('URL PDF tidak tersedia');
 
                 // Set documentUrl untuk komponen Document (jika digunakan)
@@ -293,13 +339,14 @@ const SignSessionPage: React.FC = () => {
                 setNumPages(pdf.numPages);
                 setIsPdfLoaded(true); // PDF berhasil dimuat
 
-                const fields: SignatureField[] = JSON.parse(data.metadata.data.data.signature_fields);
+                // PERBAIKAN DI SINI: Akses signature_fields dari data.metadata.data
+                const fields: SignatureField[] = JSON.parse(data.metadata.data.signature_fields);
                 setCurrentSignatureFields(fields);
                 setClientSignatureField(fields.find(f => f.category === 'Penerima') || null);
                 setStaffSignatureField(fields.find(f => f.category === 'Petugas') || null);
 
-
-                const primarySigId = data?.metadata?.data?.data?.primary_signature;
+                // PERBAIKAN DI SINI: Akses primary_signature dari data.metadata.data
+                const primarySigId = data?.metadata?.data?.primary_signature;
                 if (primarySigId) {
                     const imgRes = await fetch(`${API_BASE_URL}/signatures/user/${primarySigId}/image/`, {
                         headers: { Authorization: `Bearer ${token}` },
@@ -312,7 +359,8 @@ const SignSessionPage: React.FC = () => {
                     }
                 }
             } catch (err: any) {
-                setError(err.message || 'Terjadi kesalahan');
+                console.error('Error fetching data:', err); // Ubah pesan error agar lebih spesifik
+                setError(err.message || 'Terjadi kesalahan saat memuat dokumen');
                 setIsPdfLoaded(true); // Pastikan loading spinner hilang meskipun ada error
             } finally {
                 setIsLoading(false);
@@ -334,7 +382,7 @@ const SignSessionPage: React.FC = () => {
 
     // Fungsi dummy untuk menyamai gaya yang diberikan
     const handleSignatureSave = useCallback((dataUrl: string) => {
-        setPenerimaSignatureDataUrl(dataUrl); 
+        setPenerimaSignatureDataUrl(dataUrl);
     }, []);
 
     const handleProcessPdf = async () => {
@@ -403,7 +451,7 @@ const SignSessionPage: React.FC = () => {
         // Hitung skala halaman berdasarkan lebar container jika diperlukan
         if (pdfContainerRef.current) {
             const containerWidth = pdfContainerRef.current.offsetWidth;
-            const page =  await pdf.getPage(1); // Tunggu hingga Promise selesai dan dapatkan objek PDFPageProxy
+            const page = await pdf.getPage(1); // Tunggu hingga Promise selesai dan dapatkan objek PDFPageProxy
             const viewport = page.getViewport({ scale: 1 });
             setPageScale(containerWidth / viewport.width);
         }
@@ -451,7 +499,7 @@ const SignSessionPage: React.FC = () => {
                                 pdfBytes={modifiedPdfBytes}
                                 petugasSignatureImageUrl={petugasSignatureImageUrl}
                                 penerimaSignatureDataUrl={penerimaSignatureDataUrl}
-                                signatureFieldsJson={signatureData?.metadata.data.data.signature_fields}
+                                signatureFieldsJson={signatureData?.metadata.data.signature_fields} 
                                 pdfDocProxy={pdfDoc}
                                 pageWidth={pageToRenderWidth} // Teruskan lebar yang dihitung
                             />
@@ -499,8 +547,8 @@ const SignSessionPage: React.FC = () => {
                         onClick={handleProcessPdf}
                         disabled={isSubmitting || !penerimaSignatureDataUrl || !clientSignatureField} // Sesuaikan logika disabled
                         className={`mt-4 px-4 py-2 rounded-md transition-colors ${isSubmitting || !penerimaSignatureDataUrl || !clientSignatureField
-                            ? "bg-green-300 cursor-not-allowed"
-                            : "bg-green-600 hover:bg-green-700 text-white"
+                                ? "bg-green-300 cursor-not-allowed"
+                                : "bg-green-600 hover:bg-green-700 text-white"
                             }`}
                     >
                         {isSubmitting && !signedPdfBlob

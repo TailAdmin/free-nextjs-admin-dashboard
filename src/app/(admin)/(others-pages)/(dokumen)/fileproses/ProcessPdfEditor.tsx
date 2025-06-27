@@ -15,7 +15,6 @@ import { updateDocWithSignatures } from "@/lib/services/pdfTemplateService"; // 
 import LoadingSpinner from "@/components/ui/loading/LoadingSpinner"; // Asumsi LoadingSpinner ada
 
 pdfjs.GlobalWorkerOptions.workerSrc = `//unpkg.com/pdfjs-dist@${pdfjs.version}/build/pdf.worker.min.mjs`;
-
 const DEFAULT_PDF_RENDER_WIDTH_PX = 794; // Ukuran lebar default render PDF (sesuai lebar asli halaman A4)
 
 export default function ProcessPdfEditor({
