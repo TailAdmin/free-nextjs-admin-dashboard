@@ -30,6 +30,8 @@ export default function Page({ params }: { params: { id: string } }) {
     const [isPreviewModalOpen, setIsPreviewModalOpen] = useState(false);
     const [showDropzone, setShowDropzone] = useState(true);
     const [signee_name, setSignee_name] = useState("");
+    const [confirmSignatureUrl, setConfirmSignatureUrl] = useState<string | null>(null);
+    const [sessionId, setSessionId] = useState<string | null>(null);
     const API_URL = process.env.NEXT_PUBLIC_API_BASE_URL || "https://tanah3.darius.my.id/api/v1";
     const CLIENT_FRONTEND_BASE_URL = process.env.NEXT_PUBLIC_CLIENT_FRONTEND_URL || "http://localhost:3000";
 
@@ -118,15 +120,56 @@ export default function Page({ params }: { params: { id: string } }) {
             }
             const result: ProcessStartResponse = await res.json();
             const sessionIdFromBackend = result.session_id;
+            setSessionId(sessionIdFromBackend);
             const qrCodeValue = `${CLIENT_FRONTEND_BASE_URL}/sign/${sessionIdFromBackend}`;
             setQrValue(qrCodeValue);
             setShowQR(true);
-            const previewUrl = `${API_URL}/signatures/process/temp-file/${sessionIdFromBackend}/`;
-            setPreviewPdfUrl(previewUrl);
-            setIsPreviewModalOpen(true);
+            const accessFileUrl = result.metadata["confirm-signature-metadata"]["access-file"] || null;
+            setConfirmSignatureUrl(accessFileUrl);
             toast.success("Proses tanda tangan berhasil dimulai");
         } catch (err: any) {
             toast.error(`Gagal memproses tanda tangan: ${err.message}`);
+        }
+    };
+
+    const fetchConfirmSignatureUrl = async () => {
+        if (!sessionId) {
+            toast.warning("Session ID tidak ditemukan.");
+            return;
+        }
+
+        try {
+            const res = await fetch(`${API_URL}/signatures/process/start/${sessionId}`, {
+                method: "GET",
+                headers: { Authorization: `Bearer ${token}` },
+            });
+
+            if (!res.ok) throw new Error("Gagal mengambil metadata");
+            const result = await res.json();
+
+            const accessFileUrl =
+                result?.metadata?.["confirm-signature-metadata"]?.["access-file"] || null;
+
+            if (!accessFileUrl) {
+                toast.error("URL Preview PDF tidak tersedia.");
+                return;
+            }
+
+            // Tambahkan langkah tambahan jika URL hanya kembalikan JSON
+            const pdfRes = await fetch(accessFileUrl, {
+                method: "GET",
+                headers: { Authorization: `Bearer ${token}` },
+            });
+
+            if (!pdfRes.ok) throw new Error("Gagal mengambil file PDF");
+
+            const blob = await pdfRes.blob();
+            const fileURL = URL.createObjectURL(blob);
+
+            setPreviewPdfUrl(fileURL);
+            setIsPreviewModalOpen(true);
+        } catch (err: any) {
+            toast.error(`Gagal mengambil preview: ${err.message}`);
         }
     };
 
@@ -275,9 +318,15 @@ export default function Page({ params }: { params: { id: string } }) {
                             </div>
                             <p className="text-[10px] text-gray-500 break-all">{qrValue}</p>
                         </div>
+
+                        {/* Tombol Preview Menggunakan confirmSignatureUrl */}
                         <button
-                            onClick={() => setIsPreviewModalOpen(true)}
-                            className="w-full mt-2 py-1 bg-green-600 hover:bg-green-700 text-white font-medium rounded text-xs"
+                            onClick={fetchConfirmSignatureUrl}
+                            disabled={!sessionId}
+                            className={`
+            w-full mt-2 py-1 font-medium rounded text-xs transition-colors
+            ${sessionId ? "bg-green-600 hover:bg-green-700 text-white" : "bg-gray-300 text-gray-500 cursor-not-allowed"}
+        `}
                         >
                             Preview PDF
                         </button>

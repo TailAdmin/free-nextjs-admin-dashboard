@@ -59,10 +59,49 @@ export interface SignerDelegation {
 
 // src/types/signature.types.ts
 
+export interface SignaturePreviewMetadata {
+    file_id: string;
+    access_url: string;
+    expires_in: number;
+    starttime: string;
+    endtime: string;
+    message: string;
+}
+
+export interface ConfirmSignatureMetadata {
+    session_id: string;
+    file_id: string;
+    metadata: {
+        file_id: string;
+        access_url: string;
+        expires_in: number;
+        starttime: string;
+    };
+    "access-file": string; // Ini adalah properti yang Anda cari
+    expire_sec: number;
+}
+
+export interface ProcessStartMetadata {
+    status: string;
+    data: {
+        signature_fields: string;
+        signee_name: string;
+        template_id: string;
+        temp_file: string | null;
+        primary_signature: string;
+        "created-by": {
+            id: number;
+            username: string;
+        };
+    };
+    "signature-preview-metadata": SignaturePreviewMetadata;
+    "confirm-signature-metadata": ConfirmSignatureMetadata;
+}
+
 export interface ProcessStartResponse {
     session_id: string;
-    // Anda bisa tambahkan properti lain yang mungkin dikembalikan backend
-    // temp_file_url_with_primary_signature?: string;
+    status: string;
+    metadata: ProcessStartMetadata; // Tambahkan properti metadata ini
 }
 
 export interface SignatureResponse {
