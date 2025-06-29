@@ -5,8 +5,6 @@ import Link from "next/link";
 import Image from "next/image"; 
 import { DocumentCardProps } from "@/types/pdfTemplate.types";
 
-
-
 export const DocumentCard = React.memo(({ doc, onDelete }: DocumentCardProps) => {
     const handleDelete = () => {
         toast.custom(
