@@ -1,11 +1,10 @@
 import { DocTemplatePayload, SignatureField, SignerDelegation } from "@/types/pdfTemplate.types";
 import { DocTemplateResponse } from "@/types/pdfTemplate.types";
-import { SignatureResponse } from "@/types/signature.types";
 
 const API_URL = process.env.NEXT_PUBLIC_API_BASE_URL;
 
 export const uploadPdfTemplate = async (
-    payload: Omit<DocTemplatePayload, 'example_file'>, 
+    payload: Omit<DocTemplatePayload, 'example_file'>,
     token: string,
     fileToUpload: File //
 ): Promise<DocTemplateResponse> => {
@@ -15,8 +14,8 @@ export const uploadPdfTemplate = async (
     formData.append("description", payload.description);
     formData.append("version", payload.version);
     formData.append("created_by", payload.created_by.toString());
-    
-    formData.append("example_file", fileToUpload); 
+
+    formData.append("example_file", fileToUpload);
 
     if (payload.signature_fields && payload.signature_fields.length > 0) {
         formData.append("signature_fields", JSON.stringify(payload.signature_fields));
@@ -70,6 +69,12 @@ export const fetchAllPdfTemplates = async (token: string): Promise<DocTemplateRe
 };
 
 export const fetchDocById = async (id: string, token: string): Promise<DocTemplateResponse> => {
+    // Validasi ID yang lebih sederhana, karena ini UUID string
+    if (!id || typeof id !== 'string') {
+        console.error(`Kesalahan: ID dokumen tidak valid atau bukan string: "${id}"`);
+        throw new Error(`ID dokumen tidak valid untuk diambil: ${id}`);
+    }
+
     const response = await fetch(`${API_URL}/signatures/doc-templates/${id}/`, {
         headers: {
             Authorization: `Bearer ${token}`,
@@ -77,9 +82,16 @@ export const fetchDocById = async (id: string, token: string): Promise<DocTempla
     });
 
     if (!response.ok) {
-        const errorText = await response.text();
-        console.error("Error fetching doc:", errorText);
-        throw new Error(`Gagal mengambil dokumen ID: ${id}`);
+        let errorDetail = `Gagal mengambil dokumen ID: ${id}`;
+        try {
+            const errorJson = await response.json();
+            errorDetail = errorJson.detail || errorDetail;
+        } catch (e) {
+            const errorText = await response.text();
+            errorDetail = errorText || errorDetail;
+        }
+        console.error("Error fetching doc:", response.status, errorDetail);
+        throw new Error(errorDetail);
     }
 
     return await response.json();
@@ -106,7 +118,13 @@ export const updateDocWithSignatures = async (
     return await response.json();
 };
 
-export const deletePdfTemplate = async (id: number, token: string): Promise<void> => {
+export const deletePdfTemplate = async (id: string, token: string): Promise<void> => { 
+    // Validasi sederhana untuk memastikan ID tidak kosong atau bukan string
+    if (!id || typeof id !== 'string') {
+        console.error(`Kesalahan: ID dokumen tidak valid untuk dihapus: "${id}"`);
+        throw new Error(`ID dokumen tidak valid untuk dihapus: ${id}`);
+    }
+
     const response = await fetch(`${API_URL}/signatures/doc-templates/${id}/`, {
         method: "DELETE",
         headers: {
@@ -115,9 +133,16 @@ export const deletePdfTemplate = async (id: number, token: string): Promise<void
     });
 
     if (!response.ok) {
-        const errorText = await response.text();
-        console.error("Error delete:", errorText);
-        throw new Error(`Gagal menghapus dokumen ID: ${id}`);
+        let errorDetail = `Gagal menghapus dokumen ID: ${id}`;
+        try {
+            const errorJson = await response.json();
+            errorDetail = errorJson.detail || errorDetail;
+        } catch (e) {
+            const errorText = await response.text();
+            errorDetail = errorText || errorDetail;
+        }
+        console.error("Error delete:", response.status, errorDetail);
+        throw new Error(errorDetail);
     }
 };
 

@@ -35,16 +35,18 @@ export interface ForgotPasswordPayload {
     email: string;
 }
 
+// src/types/user.types.ts (Contoh)
 export interface UserData {
     id: number;
     first_name: string;
     last_name: string;
     email: string;
+    fullname: string;
     username: string;
     configuration: {
         id: number;
-        first_time_password: string; 
+        first_time_password: string;
     };
-    fullname: string;
-    group: string; 
+    is_active: boolean; // Pastikan ini ada
+    group?: string; // Sesuai dengan kode Anda
 }

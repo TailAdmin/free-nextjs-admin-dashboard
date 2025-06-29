@@ -1,7 +1,11 @@
+// src/hooks/useTableGroup.ts
 import { useState, useEffect, useRef, useMemo, useCallback } from "react";
+import { toast } from "sonner";
 import { useAuthStore } from "@/lib/stores/useAuthStore";
-import { fetchAllUsers, deleteUser } from "@/lib/services/userService";
+import { fetchAllUsers, disableUser, enableUser } from "@/lib/services/userService";
 import { UserData } from "@/types/user.types";
+// import { confirmAlert } from "react-confirm-alert"; // ❌ Tidak perlu lagi jika menggunakan Sonner untuk "konfirmasi"
+// import "react-confirm-alert/src/react-confirm-alert.css"; // ❌ Tidak perlu lagi
 
 interface UseTableGroupReturn {
     isLoading: boolean;
@@ -10,12 +14,13 @@ interface UseTableGroupReturn {
     filteredTableData: UserData[];
     selectedUserIds: Set<number>;
     searchTerm: string;
-    inputRef: React.RefObject<HTMLInputElement | null>; 
+    inputRef: React.RefObject<HTMLInputElement | null>;
     handleSearchChange: (e: React.ChangeEvent<HTMLInputElement>) => void;
     handleSelectRow: (id: number) => void;
     handleSelectAll: () => void;
-    handleDeleteSelected: () => Promise<void>;
-    handleDeleteSingleUser: (userId: number, username: string) => Promise<void>;
+    handleDisableSelected: () => Promise<void>;
+    handleDisableSingleUser: (userId: number, username: string) => Promise<void>;
+    handleEnableSingleUser: (userId: number, username: string) => Promise<void>;
     getUsers: () => Promise<void>;
 }
 
@@ -27,7 +32,6 @@ export function useTableGroup(): UseTableGroupReturn {
     const [selectedUserIds, setSelectedUserIds] = useState<Set<number>>(new Set());
     const [searchTerm, setSearchTerm] = useState<string>("");
     const inputRef = useRef<HTMLInputElement>(null);
-
 
     const getUsers = useCallback(async () => {
         if (!token) {
@@ -46,6 +50,9 @@ export function useTableGroup(): UseTableGroupReturn {
         } catch (err: any) {
             console.error("Gagal memuat data pengguna:", err);
             setError(err.message || "Terjadi kesalahan saat memuat data pengguna.");
+            toast.error("Gagal memuat data pengguna", {
+                description: err.message || "Silakan coba lagi.",
+            });
         } finally {
             setIsLoading(false);
         }
@@ -93,62 +100,136 @@ export function useTableGroup(): UseTableGroupReturn {
         }
     }, [selectedUserIds.size, filteredTableData]);
 
-    const handleDeleteSelected = useCallback(async () => {
+    const handleDisableSelected = useCallback(async () => {
         if (selectedUserIds.size === 0) {
-            alert("Pilih setidaknya satu pengguna untuk dihapus.");
+            toast.warning("Tidak ada pengguna dipilih");
             return;
         }
 
-        if (!confirm(`Apakah Anda yakin ingin menghapus ${selectedUserIds.size} pengguna yang dipilih?`)) {
-            return;
-        }
+        const confirmToastId = toast.info(
+            `Apakah Anda yakin ingin menonaktifkan ${selectedUserIds.size} pengguna yang dipilih?`,
+            {
+                action: {
+                    label: "Ya, Nonaktifkan",
+                    onClick: async () => {
+                        setIsLoading(true);
+                        try {
+                            if (!token) throw new Error("Token autentikasi tidak tersedia.");
 
-        setIsLoading(true);
-        try {
-            if (!token) throw new Error("Token autentikasi tidak tersedia.");
+                            const disablePromises = Array.from(selectedUserIds).map((userId) =>
+                                disableUser(userId, token)
+                            );
 
-            const deletePromises = Array.from(selectedUserIds).map((userId) =>
-                deleteUser(userId, token)
-            );
+                            await Promise.all(disablePromises);
 
-            await Promise.all(deletePromises);
-
-            await getUsers();
-            setSelectedUserIds(new Set());
-            alert("Pengguna berhasil dihapus!");
-        } catch (err: any) {
-            console.error("Gagal menghapus pengguna:", err);
-            setError(err.message || "Terjadi kesalahan saat menghapus pengguna.");
-            alert(`Gagal menghapus beberapa pengguna: ${err.message}`);
-        } finally {
-            setIsLoading(false);
-        }
+                            await getUsers();
+                            setSelectedUserIds(new Set());
+                            toast.success("Pengguna berhasil dinonaktifkan!");
+                        } catch (err: any) {
+                            console.error("Gagal menonaktifkan pengguna:", err);
+                            setError(err.message || "Terjadi kesalahan saat menonaktifkan pengguna.");
+                            toast.error("Gagal menonaktifkan pengguna", {
+                                description: err.message,
+                            });
+                        } finally {
+                            setIsLoading(false);
+                        }
+                    },
+                },
+                cancel: {
+                    label: "Batal",
+                    onClick: () => {
+                        toast.dismiss(confirmToastId);
+                    },
+                },
+                duration: Infinity, // Toast akan tetap ada sampai di-dismiss atau di-klik
+            }
+        );
     }, [selectedUserIds, token, getUsers]);
 
-    const handleDeleteSingleUser = useCallback(async (userId: number, username: string) => {
-        if (!confirm(`Apakah Anda yakin ingin menghapus pengguna '${username}'?`)) {
-            return;
-        }
+    const handleDisableSingleUser = useCallback(async (userId: number, username: string) => {
+        const confirmToastId = toast.info(
+            `Apakah Anda yakin ingin menonaktifkan pengguna '${username}'?`,
+            {
+                action: {
+                    label: "Ya, Nonaktifkan",
+                    onClick: async () => {
+                        setIsLoading(true);
+                        try {
+                            if (!token) throw new Error("Token autentikasi tidak tersedia.");
 
-        setIsLoading(true);
-        try {
-            if (!token) throw new Error("Token autentikasi tidak tersedia.");
+                            await disableUser(userId, token);
+                            setTableData((prevData) =>
+                                prevData.map((user) =>
+                                    user.id === userId ? { ...user, is_active: false } : user
+                                )
+                            );
+                            setSelectedUserIds((prevSelected) => {
+                                const newSelected = new Set(prevSelected);
+                                newSelected.delete(userId);
+                                return newSelected;
+                            });
+                            toast.success(`Pengguna '${username}' berhasil dinonaktifkan!`);
+                        } catch (err: any) {
+                            console.error("Gagal menonaktifkan pengguna tunggal:", err);
+                            setError(err.message || "Terjadi kesalahan saat menonaktifkan pengguna.");
+                            toast.error(`Gagal menonaktifkan pengguna`, {
+                                description: err.message,
+                            });
+                        } finally {
+                            setIsLoading(false);
+                        }
+                    },
+                },
+                cancel: {
+                    label: "Batal",
+                    onClick: () => {
+                        toast.dismiss(confirmToastId);
+                    },
+                },
+                duration: Infinity,
+            }
+        );
+    }, [token]);
 
-            await deleteUser(userId, token);
-            setTableData((prevData) => prevData.filter((user) => user.id !== userId));
-            setSelectedUserIds((prevSelected) => {
-                const newSelected = new Set(prevSelected);
-                newSelected.delete(userId);
-                return newSelected;
-            });
-            alert(`Pengguna '${username}' berhasil dihapus!`);
-        } catch (err: any) {
-            console.error("Gagal menghapus pengguna tunggal:", err);
-            setError(err.message || "Terjadi kesalahan saat menghapus pengguna.");
-            alert(`Gagal menghapus pengguna: ${err.message}`);
-        } finally {
-            setIsLoading(false);
-        }
+    const handleEnableSingleUser = useCallback(async (userId: number, username: string) => {
+        const confirmToastId = toast.info(
+            `Apakah Anda yakin ingin mengaktifkan pengguna '${username}'?`,
+            {
+                action: {
+                    label: "Ya, Aktifkan",
+                    onClick: async () => {
+                        setIsLoading(true);
+                        try {
+                            if (!token) throw new Error("Token autentikasi tidak tersedia.");
+
+                            await enableUser(userId, token);
+                            setTableData((prevData) =>
+                                prevData.map((user) =>
+                                    user.id === userId ? { ...user, is_active: true } : user
+                                )
+                            );
+                            toast.success(`Pengguna '${username}' berhasil diaktifkan!`);
+                        } catch (err: any) {
+                            console.error("Gagal mengaktifkan pengguna tunggal:", err);
+                            setError(err.message || "Terjadi kesalahan saat mengaktifkan pengguna.");
+                            toast.error(`Gagal mengaktifkan pengguna`, {
+                                description: err.message,
+                            });
+                        } finally {
+                            setIsLoading(false);
+                        }
+                    },
+                },
+                cancel: {
+                    label: "Batal",
+                    onClick: () => {
+                        toast.dismiss(confirmToastId);
+                    },
+                },
+                duration: Infinity,
+            }
+        );
     }, [token]);
 
     useEffect(() => {
@@ -176,8 +257,9 @@ export function useTableGroup(): UseTableGroupReturn {
         handleSearchChange,
         handleSelectRow,
         handleSelectAll,
-        handleDeleteSelected,
-        handleDeleteSingleUser,
+        handleDisableSelected,
+        handleDisableSingleUser,
+        handleEnableSingleUser,
         getUsers,
     };
 }

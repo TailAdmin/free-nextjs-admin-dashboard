@@ -13,7 +13,7 @@ interface DocumentState {
     loading: boolean;
     error: string | null;
     fetchTemplates: (token: string, force?: boolean) => Promise<void>;
-    deleteTemplate: (id: number, token: string) => Promise<void>;
+    deleteTemplate: (id: string, token: string) => Promise<void>;
     setTemplates: (templates: DocTemplateResponse[]) => void;
 }
 
@@ -40,12 +40,12 @@ export const useDocumentStore = create<DocumentState>()(
                 }
             },
 
-            deleteTemplate: async (id: number, token: string) => {
+            deleteTemplate: async (id: string, token: string) => { 
                 set({ loading: true, error: null });
                 try {
-                    await deletePdfTemplate(id, token);
+                    await deletePdfTemplate(id, token); 
                     set((state) => ({
-                        templates: state.templates.filter((doc) => doc.id !== String(id)),
+                        templates: state.templates.filter((doc) => doc.id !== id), 
                         loading: false,
                     }));
                 } catch (err: any) {
