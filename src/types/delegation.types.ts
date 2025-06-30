@@ -19,8 +19,12 @@ export interface ApiResponseDetail {
     message?: string;
 }
 
-export interface CurrentDelegationsResponse {
-    id: string; 
+export interface DelegationItem {
+    id: string;
     file: string;
-    owner: number; 
+    owner: number;
+    to_user_email: string; 
+    
 }
+
+export type CurrentDelegationsResponse = DelegationItem[];

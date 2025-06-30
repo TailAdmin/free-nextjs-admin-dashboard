@@ -7,14 +7,10 @@ import Button from "@/components/ui/button/Button";
 import { Table, TableBody, TableCell, TableHeader, TableRow } from "@/components/ui/table";
 import Checkbox from "@/components/form/input/Checkbox";
 import Badge from "@/components/ui/badge/Badge";
-import { TrashBinIcon } from "@/icons";
+import { CheckCircleIcon, TrashBinIcon } from "@/icons";
 import { useTableGroup } from "@/hooks/useTableGroup";
 
 
-/**
- * @param group Nama grup pengguna.
- * @returns Warna badge yang sesuai.
- */
 const getBadgeColor = (group: string): "success" | "warning" | "info" => {
     switch (group.toLowerCase()) {
         case "superadmin":
@@ -26,6 +22,10 @@ const getBadgeColor = (group: string): "success" | "warning" | "info" => {
         default:
             return "info";
     }
+};
+
+const getStatusBadgeColor = (isActive: boolean): "success" | "error" => {
+    return isActive ? "success" : "error";
 };
 
 export default function TableGroup() {
@@ -40,8 +40,9 @@ export default function TableGroup() {
         handleSearchChange,
         handleSelectRow,
         handleSelectAll,
-        handleDeleteSelected,
-        handleDeleteSingleUser,
+        handleDisableSelected,
+        handleDisableSingleUser,
+        handleEnableSingleUser,
     } = useTableGroup();
 
 
@@ -69,11 +70,11 @@ export default function TableGroup() {
 
             <div className="p-4 flex flex-col lg:flex-row justify-between items-center gap-4">
                 <Button
-                    onClick={handleDeleteSelected}
+                    onClick={handleDisableSelected}
                     disabled={selectedUserIds.size === 0}
                     className="bg-red-600 hover:bg-red-700 text-white font-bold py-2 px-4 rounded inline-flex items-center gap-2"
                 >
-                    Hapus Dipilih ({selectedUserIds.size})
+                    Nonaktifkan Dipilih ({selectedUserIds.size})
                 </Button>
 
                 <div className="w-full lg:w-auto">
@@ -100,7 +101,7 @@ export default function TableGroup() {
                                 ref={inputRef}
                                 type="text"
                                 placeholder="Cari atau ketik perintah..."
-                                className="dark:bg-dark-900 h-11 w-full rounded-lg border border-gray-200 bg-transparent py-2.5 pl-12 pr-14 text-sm text-gray-800 shadow-theme-xs placeholder:text-gray-400 focus:border-brand-300 focus:outline-hidden focus:ring-3 focus:ring-brand-500/10 dark:border-gray-800 dark:bg-gray-900 dark:bg-white/[0.03] dark:text-white/90 dark:placeholder:text-white/30 dark:focus:border-brand-800 xl:w-[430px]"
+                                className="dark:bg-dark-900 h-11 w-full rounded-lg border border-gray-200 bg-transparent py-2.5 pl-12 pr-14 text-sm text-gray-800 shadow-theme-xs placeholder:text-gray-400 focus:border-brand-300 focus:outline-hidden focus:ring-3 focus:ring-brand-500/10 dark:border-gray-800 dark:bg-gray-900  dark:text-white/90 dark:placeholder:text-white/30 dark:focus:border-brand-800 xl:w-[430px]"
                                 value={searchTerm}
                                 onChange={handleSearchChange}
                             />
@@ -156,6 +157,13 @@ export default function TableGroup() {
                                 >
                                     Grup
                                 </TableCell>
+                                {/* Kolom Status */}
+                                <TableCell
+                                    isHeader
+                                    className="px-5 py-3 font-medium text-gray-500 text-start text-theme-xs dark:text-gray-400"
+                                >
+                                    Status
+                                </TableCell>
                                 <TableCell
                                     isHeader
                                     className="px-5 py-3 font-medium text-gray-500 text-start text-theme-xs dark:text-gray-400"
@@ -177,29 +185,20 @@ export default function TableGroup() {
                                         </TableCell>
                                         <TableCell className="px-5 py-4 sm:px-6 text-start">
                                             <div className="flex items-center gap-3">
-                                                <div className="w-10 h-10 overflow-hidden rounded-full">
-                                                    <Image
-                                                        width={40}
-                                                        height={40}
-                                                        src="/images/user/default-user.jpg"
-                                                        alt={user.fullname}
-                                                        className="object-cover w-full h-full"
-                                                    />
-                                                </div>
                                                 <div>
-                                                    <span className="block font-medium text-gray-800 text-theme-sm dark:text-white/90">
+                                                    <span className={`block font-medium text-theme-sm ${user.is_active ? 'text-gray-800 dark:text-white/90' : 'text-red-500 dark:text-red-400'}`}>
                                                         {user.fullname}
                                                     </span>
-                                                    <span className="block text-gray-500 text-theme-xs dark:text-gray-400">
+                                                    <span className={`block text-theme-xs ${user.is_active ? 'text-gray-500 dark:text-gray-400' : 'text-red-400 dark:text-red-300'}`}>
                                                         {user.email}
                                                     </span>
                                                 </div>
                                             </div>
                                         </TableCell>
-                                        <TableCell className="px-4 py-3 text-gray-500 text-start text-theme-sm dark:text-gray-400">
+                                        <TableCell className={`px-4 py-3 text-start text-theme-sm ${user.is_active ? 'text-gray-500 dark:text-gray-400' : 'text-red-500 dark:text-red-400'}`}>
                                             {user.email}
                                         </TableCell>
-                                        <TableCell className="px-4 py-3 text-gray-500 text-start text-theme-sm dark:text-gray-400">
+                                        <TableCell className={`px-4 py-3 text-start text-theme-sm ${user.is_active ? 'text-gray-500 dark:text-gray-400' : 'text-red-500 dark:text-red-400'}`}>
                                             {user.username}
                                         </TableCell>
                                         <TableCell className="px-4 py-3 text-gray-500 text-start text-theme-sm dark:text-gray-400">
@@ -210,18 +209,36 @@ export default function TableGroup() {
                                                 {user.group ?? "Tidak Diketahui"}
                                             </Badge>
                                         </TableCell>
+                                        {/* Sel untuk Kolom Status */}
+                                        <TableCell className="px-4 py-3 text-start text-theme-sm">
+                                            <Badge
+                                                size="sm"
+                                                color={getStatusBadgeColor(user.is_active)}
+                                            >
+                                                {user.is_active ? "Aktif" : "Nonaktif"}
+                                            </Badge>
+                                        </TableCell>
+                                        {/* Aksi berdasarkan status is_active */}
                                         <TableCell className="px-4 py-3 text-start">
-                                            <TrashBinIcon
-                                                className="h-6 w-6 text-red-500 cursor-pointer hover:text-red-700 transition-colors"
-                                                onClick={() => handleDeleteSingleUser(user.id, user.username)}
-                                                title={`Hapus pengguna ${user.username}`}
-                                            />
+                                            {user.is_active ? (
+                                                <TrashBinIcon // Ikon untuk menonaktifkan (karena user aktif)
+                                                    className="h-6 w-6 text-red-500 cursor-pointer hover:text-red-700 transition-colors"
+                                                    onClick={() => handleDisableSingleUser(user.id, user.username)}
+                                                    title={`Nonaktifkan pengguna ${user.username}`}
+                                                />
+                                            ) : (
+                                                <CheckCircleIcon // Ikon untuk mengaktifkan (karena user nonaktif)
+                                                    className="h-6 w-6 text-green-500 cursor-pointer hover:text-green-700 transition-colors"
+                                                    onClick={() => handleEnableSingleUser(user.id, user.username)}
+                                                    title={`Aktifkan pengguna ${user.username}`}
+                                                />
+                                            )}
                                         </TableCell>
                                     </TableRow>
                                 ))
                             ) : (
                                 <TableRow>
-                                    <TableCell colSpan={6} className="px-4 py-3 text-center text-gray-500 dark:text-gray-400">
+                                    <TableCell colSpan={7} className="px-4 py-3 text-center text-gray-500 dark:text-gray-400">
                                         {isFilteredDataEmpty ?
                                             "Tidak ada pengguna yang cocok dengan pencarian Anda." :
                                             "Tidak ada data pengguna."

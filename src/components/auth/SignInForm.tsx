@@ -1,29 +1,28 @@
+// src/components/auth/SignInForm.tsx
 "use client";
 
 import React, { useState } from "react";
 import { useRouter } from "next/navigation";
-import { login, fetchUserData, forgotPassword } from "@/lib/services/authService"; // Import forgotPassword
+import { login, fetchUserData, forgotPassword } from "@/lib/services/authService";
 import { useAuthStore } from "@/lib/stores/useAuthStore";
 import LoadingSpinner from "@/components/ui/loading/LoadingSpinner";
 import Button from "@/components/ui/button/Button";
-import { useModal } from "../../hooks/useModal"; // Pastikan path ini benar untuk useModal Anda
-import { Modal } from "../ui/modal"; // Pastikan path ini benar untuk Modal UI Anda
-import { toast } from "sonner"; // Pastikan sudah diimport
+import { useModal } from "../../hooks/useModal";
+import { Modal } from "../ui/modal";
+import { toast } from "sonner";
 
 export default function SignInForm() {
     const [username, setUsername] = useState<string>("");
     const [password, setPassword] = useState<string>("");
-    const [showPassword, setShowPassword] = useState<boolean>(false); 
+    const [showPassword, setShowPassword] = useState<boolean>(false);
     const [error, setError] = useState<string>("");
     const [loading, setLoading] = useState(false);
     const router = useRouter();
 
-    // State dan fungsi untuk modal "Forgot Password"
     const { isOpen: isForgotModalOpen, openModal: openForgotModal, closeModal: closeForgotModal } = useModal();
     const [forgotEmail, setForgotEmail] = useState<string>("");
     const [forgotLoading, setForgotLoading] = useState<boolean>(false);
     const [forgotError, setForgotError] = useState<string>("");
-
 
     const { setToken, setUser } = useAuthStore();
 
@@ -40,12 +39,17 @@ export default function SignInForm() {
             setUser(userData);
 
             router.push("/");
-        } catch (err: any) { // Tangkap error lebih spesifik
+        } catch (err: any) {
+            console.error("Login error:", err); // Log error lengkap
             let errorMessage = "Username atau password salah.";
-            if (err.message) {
-                errorMessage = err.message; // Gunakan pesan error dari service
+            // Coba ambil pesan error dari respons API jika ada (dari Axios error object)
+            if (err.response && err.response.data && err.response.data.detail) {
+                errorMessage = err.response.data.detail;
+            } else if (err.message) {
+                errorMessage = err.message;
             }
             setError(errorMessage);
+            toast.error(errorMessage); // Tampilkan toast error juga
         } finally {
             setLoading(false);
         }
@@ -71,7 +75,7 @@ export default function SignInForm() {
             console.error("Forgot password error:", err);
             const errorMessage = err.message || "Gagal mengirim link reset password. Silakan coba lagi.";
             setForgotError(errorMessage);
-            toast.error(errorMessage); // Tampilkan toast error juga
+            toast.error(errorMessage);
         } finally {
             setForgotLoading(false);
         }
@@ -80,11 +84,7 @@ export default function SignInForm() {
     return (
         <div className="max-w-md w-full bg-white rounded-xl shadow-lg p-8">
             <h2 className="text-2xl font-bold text-gray-900 mb-6 text-center">Sign In</h2>
-
-            {error && (
-                <p className="text-red-500 text-sm text-center mb-4">{error}</p>
-            )}
-
+            
             <form onSubmit={handleSubmit} className="space-y-4">
                 <div>
                     <label className="block text-sm font-medium text-gray-700 mb-1">Email</label>
@@ -108,7 +108,6 @@ export default function SignInForm() {
                         required
                         className="w-full px-4 py-2 border text-black border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 outline-none transition-all pr-12"
                     />
-                    {/* Toggle Password Visibility */}
                     <button
                         type="button"
                         onClick={() => setShowPassword((prev) => !prev)}
@@ -132,9 +131,9 @@ export default function SignInForm() {
                 </Button>
 
                 <div className="flex items-center justify-between">
-                    <a 
-                        href="#" 
-                        onClick={(e) => { e.preventDefault(); openForgotModal(); }} // Panggil openForgotModal
+                    <a
+                        href="#"
+                        onClick={(e) => { e.preventDefault(); openForgotModal(); }}
                         className="text-sm text-indigo-600 hover:text-indigo-500"
                     >
                         Forgot password?
@@ -175,7 +174,7 @@ export default function SignInForm() {
                                 onChange={(e) => setForgotEmail(e.target.value)}
                                 placeholder="nama@email.com"
                                 required
-                                className="w-full px-4 py-2 border text-gray-500 dark:text-gray-400  border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 outline-none transition-all"
+                                className="w-full px-4 py-2 border text-gray-500 dark:text-gray-400 border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 outline-none transition-all"
                             />
                         </div>
                         <Button

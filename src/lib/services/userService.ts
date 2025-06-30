@@ -103,16 +103,12 @@ export const deleteDelegation = async (
     }
 };
 
-
-
-const API_BASE_URL = process.env.NEXT_PUBLIC_API_BASE_URL;
-
 export async function fetchAllUsers(token: string): Promise<UserData[]> {
     if (!token) {
         throw new Error("Autentikasi diperlukan: Token tidak tersedia.");
     }
 
-    const response = await fetch(`${API_BASE_URL}/auth/admin/manage-user/`, {
+    const response = await fetch(`${API_URL}/auth/admin/manage-user/`, {
         headers: {
             Authorization: `Bearer ${token}`,
             "Content-Type": "application/json",
@@ -127,13 +123,13 @@ export async function fetchAllUsers(token: string): Promise<UserData[]> {
     return response.json();
 }
 
-export async function deleteUser(userId: number, token: string): Promise<void> {
+export async function disableUser(userId: number, token: string): Promise<void> {
     if (!token) {
         throw new Error("Autentikasi diperlukan: Token tidak tersedia.");
     }
 
-    const response = await fetch(`${API_BASE_URL}/auth/admin/manage-user/${userId}/`, {
-        method: "DELETE",
+    const response = await fetch(`${API_URL}/auth/admin/manage-user/${userId}/disable-user/`, {
+        method: "POST",
         headers: {
             Authorization: `Bearer ${token}`,
             "Content-Type": "application/json",
@@ -142,6 +138,26 @@ export async function deleteUser(userId: number, token: string): Promise<void> {
 
     if (!response.ok) {
         const errorText = await response.text();
-        throw new Error(`Gagal menghapus pengguna ID ${userId}: Status ${response.status} - ${errorText}`);
+        throw new Error(`Gagal menonaktifkan pengguna ID ${userId}: Status ${response.status} - ${errorText}`);
+    }
+}
+
+// Fungsi baru untuk mengaktifkan pengguna
+export async function enableUser(userId: number, token: string): Promise<void> {
+    if (!token) {
+        throw new Error("Autentikasi diperlukan: Token tidak tersedia.");
+    }
+
+    const response = await fetch(`${API_URL}/auth/admin/manage-user/${userId}/enable-user/`, {
+        method: "POST",
+        headers: {
+            Authorization: `Bearer ${token}`,
+            "Content-Type": "application/json",
+        },
+    });
+
+    if (!response.ok) {
+        const errorText = await response.text();
+        throw new Error(`Gagal mengaktifkan pengguna ID ${userId}: Status ${response.status} - ${errorText}`);
     }
 }

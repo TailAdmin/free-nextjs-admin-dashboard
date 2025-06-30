@@ -11,11 +11,12 @@ import LoadingSpinner from "../ui/loading/LoadingSpinner";
 
 import {
     getDelegationUsers,
+    getCurrentDelegations,
     delegateSignature,
     deleteDelegation,
 } from "@/lib/services/userService";
 
-import { DelegationUser } from "@/types/delegation.types";
+import { DelegationUser, DelegationItem } from "@/types/delegation.types"; // Import DelegationItem
 import { UserSignatureProps } from "@/types/signature.types";
 
 export default function UserSignature({
@@ -44,8 +45,14 @@ export default function UserSignature({
             setInitialDelegatesLoading(true);
             try {
                 const allUsers: DelegationUser[] = await getDelegationUsers(token);
+                // Pastikan getCurrentDelegations mengembalikan array DelegationItem
+                const currentDelegations: DelegationItem[] = await getCurrentDelegations(token); // Tipe sudah benar di sini
 
-                const currentlyDelegatedEmails: string[] = [];
+                // Jika API tidak mengembalikan 'to_user_email', Anda tidak bisa melakukan ini.
+                // Anda HARUS memastikan API Anda mengembalikan email pengguna yang didelegasikan.
+                const currentlyDelegatedEmails: string[] = currentDelegations.map(
+                    (delegation: DelegationItem) => delegation.to_user_email // Pastikan to_user_email ada di DelegationItem
+                );
 
                 const mappedOptions = allUsers.map((user) => ({
                     value: user.email,
@@ -56,8 +63,8 @@ export default function UserSignature({
                 setCurrentSelectedDelegates(currentlyDelegatedEmails);
 
             } catch (error) {
-                console.error("Error fetching user list for delegation:", error);
-                toast.error("Gagal memuat daftar pengguna untuk delegasi. Silakan refresh halaman.");
+                console.error("Error fetching user list or current delegations:", error);
+                toast.error("Gagal memuat daftar pengguna atau delegasi. Silakan refresh halaman.");
             } finally {
                 setInitialDelegatesLoading(false);
             }
@@ -88,20 +95,83 @@ export default function UserSignature({
             const delegatesToAdd = [...newDelegatesSet].filter(email => !previousDelegatesSet.has(email));
             const delegatesToRemove = [...previousDelegatesSet].filter(email => !newDelegatesSet.has(email));
 
-            if (delegatesToAdd.length > 0) {
-                await Promise.all(delegatesToAdd.map(email => delegateSignature({ user_email: email }, token)));
+            const delegationPromises: Promise<any>[] = [];
+            const failedDelegations: { email: string; message: string }[] = [];
+            const failedRemovals: { email: string; message: string }[] = [];
+
+            for (const email of delegatesToAdd) {
+                delegationPromises.push(
+                    delegateSignature({ user_email: email }, token)
+                        .then(() => {})
+                        .catch((error) => {
+                            failedDelegations.push({
+                                email,
+                                message: error.message || "Gagal menambah delegasi.",
+                            });
+                        })
+                );
             }
 
-            if (delegatesToRemove.length > 0) {
-                await Promise.all(delegatesToRemove.map(email => deleteDelegation({ user_email: email }, token)));
+            for (const email of delegatesToRemove) {
+                delegationPromises.push(
+                    deleteDelegation({ user_email: email }, token)
+                        .then(() => {})
+                        .catch((error) => {
+                            failedRemovals.push({
+                                email,
+                                message: error.message || "Gagal menghapus delegasi.",
+                            });
+                        })
+                );
+            }
+
+            await Promise.allSettled(delegationPromises);
+
+            let successMessages: string[] = [];
+            if (delegatesToAdd.length > 0 && failedDelegations.length === 0) {
+                successMessages.push("Delegasi tanda tangan berhasil ditambahkan.");
+            }
+            if (delegatesToRemove.length > 0 && failedRemovals.length === 0) {
+                successMessages.push("Delegasi tanda tangan berhasil dihapus.");
+            }
+            if (successMessages.length > 0) {
+                toast.success(successMessages.join(" "));
+            } else if (
+                delegatesToAdd.length === 0 &&
+                delegatesToRemove.length === 0 &&
+                failedDelegations.length === 0 &&
+                failedRemovals.length === 0
+            ) {
+                toast.info("Tidak ada perubahan delegasi yang perlu disimpan.");
             }
 
 
-            const updatedOptions = multiOptions.map(option => ({
-                ...option,
-                selected: newDelegatesSet.has(option.value)
+            if (failedDelegations.length > 0) {
+                const messages = failedDelegations.map(f => `${f.email} (${f.message.split(":")[1]?.trim() || "gagal"})`).join(", ");
+                toast.error(`Gagal mendelegasikan ke: ${messages}.`);
+                console.error("Gagal menambah delegasi:", failedDelegations);
+            }
+
+            if (failedRemovals.length > 0) {
+                const messages = failedRemovals.map(f => `${f.email} (${f.message.split(":")[1]?.trim() || "gagal"})`).join(", ");
+                toast.error(`Gagal menghapus delegasi dari: ${messages}.`);
+                console.error("Gagal menghapus delegasi:", failedRemovals);
+            }
+
+            // Memuat ulang data delegasi setelah operasi selesai
+            const allUsersAfterAttempt: DelegationUser[] = await getDelegationUsers(token);
+            const currentDelegationsAfterAttempt: DelegationItem[] = await getCurrentDelegations(token); // Pastikan ini array
+
+            const currentlyDelegatedEmailsAfterAttempt =
+                currentDelegationsAfterAttempt.map((delegation: DelegationItem) => delegation.to_user_email);
+
+            const updatedOptions = allUsersAfterAttempt.map((user) => ({
+                value: user.email,
+                text: user.fullname,
+                selected: currentlyDelegatedEmailsAfterAttempt.includes(user.email),
             }));
             setMultiOptions(updatedOptions);
+            setCurrentSelectedDelegates(currentlyDelegatedEmailsAfterAttempt);
 
         } catch (error: any) {
             console.error("Error saving delegation:", error);
@@ -173,7 +243,6 @@ export default function UserSignature({
                     <MultiSelect
                         label="Pilih User untuk Delegasi"
                         options={multiOptions}
-                        defaultSelected={currentSelectedDelegates}
                         onChange={handleMultiSelectChange}
                     />
                 )}
