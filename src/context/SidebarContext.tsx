@@ -34,31 +34,32 @@ export const SidebarProvider: React.FC<{ children: React.ReactNode }> = ({
   const [activeItem, setActiveItem] = useState<string | null>(null);
   const [openSubmenu, setOpenSubmenu] = useState<string | null>(null);
 
-  useEffect(() => {
-    const handleResize = () => {
-      const mobile = window.innerWidth < 768;
-      setIsMobile(mobile);
-      if (!mobile) {
-        setIsMobileOpen(false);
-      }
-    };
-
-    handleResize();
-    window.addEventListener("resize", handleResize);
-
-    return () => {
-      window.removeEventListener("resize", handleResize);
-    };
-  }, []);
-
-  const toggleSidebar = () => {
-    setIsExpanded((prev) => !prev);
+ useEffect(() => {
+  const handleResize = () => {
+    const mobile = window.innerWidth < 768;
+    setIsMobile(mobile);
+    if (!mobile) {
+      setIsMobileOpen(false);
+    }
   };
 
-  const toggleMobileSidebar = () => {
-    setIsMobileOpen((prev) => !prev);
-  };
+  // Добавляем дебаунс (например, 100 мс)
+  const debouncedResize = debounce(handleResize, 100);
+  window.addEventListener("resize", debouncedResize);
 
+  return () => {
+    window.removeEventListener("resize", debouncedResize);
+  };
+}, []);
+
+// Вспомогательная функция debounce (можно вынести в утилиты)
+function debounce(fn: () => void, delay: number) {
+  let timer: NodeJS.Timeout;
+  return () => {
+    clearTimeout(timer);
+    timer = setTimeout(fn, delay);
+  };
+}
   const toggleSubmenu = (item: string) => {
     setOpenSubmenu((prev) => (prev === item ? null : item));
   };
