@@ -18,9 +18,6 @@ import CustomSignaturePad from '@/components/canvas/SignaturePad';
 pdfjs.GlobalWorkerOptions.workerSrc = '/pdf.worker.min.mjs';
 
 // --- Definisi Tipe Data yang Disesuaikan ---
-// Perbarui atau definisikan ulang SignatureApiResponse dan SignatureField
-// agar sesuai dengan respons API yang baru.
-// Contoh minimal (Anda mungkin sudah memiliki definisi yang lebih lengkap):
 interface SignatureField {
     category: 'Petugas' | 'Penerima';
     pos_x: number;
@@ -30,9 +27,9 @@ interface SignatureField {
 
 interface SignatureApiResponse {
     session_id: string;
-    status: string;
+    status: string; // Status utama dari /start/{session_id}
     metadata: {
-        status: string;
+        status: string; // Status dari metadata (ini bisa berbeda, hati-hati!)
         data: {
             signature_fields: string; // Ini string JSON yang perlu di-parse
             signee_name: string;
@@ -54,8 +51,14 @@ interface SignatureApiResponse {
         };
     };
 }
-// --- Akhir Definisi Tipe Data ---
 
+// Tambahan: Interface untuk respons dari /signatures/process/status
+interface StatusResponseObject {
+    status: string;
+    timestamp: string;
+    payload: Record<string, any>; // Bisa kosong atau berisi data tambahan
+}
+// --- Akhir Definisi Tipe Data ---
 
 interface PdfPageRendererProps {
     pageNum: number;
@@ -214,7 +217,7 @@ const PdfPageRenderer: React.FC<PdfPageRendererProps> = ({
 const SignSessionPage: React.FC = () => {
     const params = useParams();
     const sessionId = params.sessionId as string;
-    const { token } = useAuthStore();
+    const { token, user } = useAuthStore();
     const [pdfDoc, setPdfDoc] = useState<PDFDocumentProxy | null>(null);
     const [numPages, setNumPages] = useState<number>(0);
     const [currentPage, setCurrentPage] = useState<number>(1);
@@ -222,23 +225,43 @@ const SignSessionPage: React.FC = () => {
     const [petugasSignatureImageUrl, setPetugasSignatureImageUrl] = useState<string | null>(null);
     const [penerimaSignatureDataUrl, setPenerimaSignatureDataUrl] = useState<string | null>(null);
     const [isLoading, setIsLoading] = useState<boolean>(true);
-    const [isSigning, setIsSigning] = useState<boolean>(false);
+    const [isSigning, setIsSigning] = useState<boolean>(false); // Mengindikasikan apakah penerima sedang menandatangani
     const [error, setError] = useState<string | null>(null);
     const [modifiedPdfBytes, setModifiedPdfBytes] = useState<Uint8Array | null>(null);
     const API_BASE_URL = process.env.NEXT_PUBLIC_API_BASE_URL;
 
-    // State untuk mensimulasikan `isPdfLoaded`
     const [isPdfLoaded, setIsPdfLoaded] = useState(false);
     const [isSubmitting, setIsSubmitting] = useState(false);
     const [signedPdfBlob, setSignedPdfBlob] = useState<Blob | null>(null);
+    const [isCheckingStatus, setIsCheckingStatus] = useState<boolean>(false); // New state for status check loading
 
-    // Dummy data dan fungsi untuk menyamai struktur return dari contoh style
-    const [documentUrl, setDocumentUrl] = useState<string | null>(null); // Akan diisi dengan data URL PDF
     const pdfContainerRef = useRef<HTMLDivElement>(null);
-    const [pageScale, setPageScale] = useState(1); // Skala halaman
+    const [pageScale, setPageScale] = useState(1);
     const [clientSignatureField, setClientSignatureField] = useState<SignatureField | null>(null);
     const [staffSignatureField, setStaffSignatureField] = useState<SignatureField | null>(null);
     const [currentSignatureFields, setCurrentSignatureFields] = useState<SignatureField[]>([]);
+
+
+    // Fungsi untuk mengirim status proses ke backend
+    const sendProcessStatus = useCallback(async (status: string, currentSessionId: string) => {
+        try {
+            await fetch(`${API_BASE_URL}/signatures/process/status/`, {
+                method: "POST",
+                headers: {
+                    "Content-Type": "application/json",
+                    Authorization: `Bearer ${token}`
+                },
+                body: JSON.stringify({
+                    session_id: currentSessionId,
+                    status: status,
+                    created_by: user?.id || null
+                })
+            });
+            console.log(`Status proses '${status}' berhasil dikirim untuk session ID: ${currentSessionId}`);
+        } catch (error) {
+            console.error("Gagal mengirim status proses:", error);
+        }
+    }, [API_BASE_URL, token, user?.id]);
 
 
     const placeSignatureOnPdf = useCallback(
@@ -257,7 +280,6 @@ const SignSessionPage: React.FC = () => {
                 const pdfDocToModify = await PDFDocument.load(new Uint8Array(pdfBytes));
                 const pages = pdfDocToModify.getPages();
 
-                // PERBAIKAN DI SINI: Akses signature_fields dari currentSignatureData.metadata.data
                 const fields: SignatureField[] = JSON.parse(currentSignatureData.metadata.data.signature_fields);
                 const field = fields.find((f) => f.category === category);
                 if (!field) throw new Error(`Field untuk ${category} tidak ditemukan`);
@@ -283,7 +305,7 @@ const SignSessionPage: React.FC = () => {
                 const width = 100; // Lebar tanda tangan di PDF
                 const height = width / (signatureImage.width / signatureImage.height);
                 const x = field.pos_x;
-                const y = pageHeight - field.pos_y - height;
+                const y = pageHeight - field.pos_y - height; // Koordinat Y PDF dihitung dari bawah
 
                 page.drawImage(signatureImage, { x, y, width, height });
 
@@ -300,74 +322,76 @@ const SignSessionPage: React.FC = () => {
         []
     );
 
-    useEffect(() => {
-        const fetchData = async () => {
-            if (!sessionId || !token || !API_BASE_URL) {
-                setError('Data sesi atau token tidak tersedia.');
-                setIsLoading(false);
-                setIsPdfLoaded(true); // Pastikan loading spinner hilang
-                return;
+    // Fungsi untuk memuat ulang data PDF dan tanda tangan
+    const loadPdfAndSignatureData = useCallback(async () => {
+        if (!sessionId || !token || !API_BASE_URL) {
+            setError('Data sesi atau token tidak tersedia.');
+            setIsLoading(false);
+            setIsPdfLoaded(true);
+            return;
+        }
+
+        setIsLoading(true);
+        setError(null);
+        try {
+            const startRes = await fetch(`${API_BASE_URL}/signatures/process/start/${sessionId}`, {
+                headers: { 'Authorization': `Bearer ${token}` },
+            });
+            if (!startRes.ok) {
+                const errorData = await startRes.json();
+                throw new Error(errorData.detail || 'Gagal mengambil data sesi');
             }
-            try {
-                // PERBAIKAN DI SINI: Tambahkan header Authorization ke panggilan API pertama
-                const startRes = await fetch(`${API_BASE_URL}/signatures/process/start/${sessionId}`, {
-                    headers: {
-                        'Authorization': `Bearer ${token}`,
-                    },
+            const data: SignatureApiResponse = await startRes.json();
+            setSignatureData(data);
+
+            const pdfUrl = data?.metadata?.['signature-preview-metadata']?.access_url;
+            if (!pdfUrl) throw new Error('URL PDF tidak tersedia');
+
+            const pdfRes = await fetch(pdfUrl, { headers: { Authorization: `Bearer ${token}` } });
+            if (!pdfRes.ok) {
+                const errorData = await pdfRes.json();
+                throw new Error(errorData.detail || 'Gagal mengambil PDF');
+            }
+
+            const arrayBuffer = await pdfRes.arrayBuffer();
+            const pdfBytes = new Uint8Array(arrayBuffer);
+            setModifiedPdfBytes(pdfBytes);
+
+            const pdf = await pdfjs.getDocument(new Uint8Array(pdfBytes)).promise;
+            setPdfDoc(pdf);
+            setNumPages(pdf.numPages);
+            setIsPdfLoaded(true);
+
+            const fields: SignatureField[] = JSON.parse(data.metadata.data.signature_fields);
+            setCurrentSignatureFields(fields);
+            setClientSignatureField(fields.find(f => f.category === 'Penerima') || null);
+            setStaffSignatureField(fields.find(f => f.category === 'Petugas') || null);
+
+            const primarySigId = data?.metadata?.data?.primary_signature;
+            if (primarySigId) {
+                const imgRes = await fetch(`${API_BASE_URL}/signatures/user/${primarySigId}/image/`, {
+                    headers: { Authorization: `Bearer ${token}` },
                 });
-                if (!startRes.ok) throw new Error('Gagal mengambil data sesi');
-                const data: SignatureApiResponse = await startRes.json();
-                setSignatureData(data);
-
-                // PERBAIKAN DI SINI: Akses access_url dari data.metadata['signature-preview-metadata']
-                const pdfUrl = data?.metadata?.['signature-preview-metadata']?.access_url;
-                if (!pdfUrl) throw new Error('URL PDF tidak tersedia');
-
-                // Set documentUrl untuk komponen Document (jika digunakan)
-                setDocumentUrl(pdfUrl);
-
-                const pdfRes = await fetch(pdfUrl, { headers: { Authorization: `Bearer ${token}` } });
-                if (!pdfRes.ok) throw new Error('Gagal mengambil PDF');
-
-                const arrayBuffer = await pdfRes.arrayBuffer(); // Ambil ArrayBuffer
-                const pdfBytes = new Uint8Array(arrayBuffer); // Buat Uint8Array sekali
-                setModifiedPdfBytes(pdfBytes);
-
-                // Gunakan salinan baru untuk PDF.js
-                const pdf = await pdfjs.getDocument(new Uint8Array(pdfBytes)).promise;
-                setPdfDoc(pdf);
-                setNumPages(pdf.numPages);
-                setIsPdfLoaded(true); // PDF berhasil dimuat
-
-                // PERBAIKAN DI SINI: Akses signature_fields dari data.metadata.data
-                const fields: SignatureField[] = JSON.parse(data.metadata.data.signature_fields);
-                setCurrentSignatureFields(fields);
-                setClientSignatureField(fields.find(f => f.category === 'Penerima') || null);
-                setStaffSignatureField(fields.find(f => f.category === 'Petugas') || null);
-
-                // PERBAIKAN DI SINI: Akses primary_signature dari data.metadata.data
-                const primarySigId = data?.metadata?.data?.primary_signature;
-                if (primarySigId) {
-                    const imgRes = await fetch(`${API_BASE_URL}/signatures/user/${primarySigId}/image/`, {
-                        headers: { Authorization: `Bearer ${token}` },
-                    });
-                    if (imgRes.ok) {
-                        const imgData = await imgRes.json();
-                        setPetugasSignatureImageUrl(imgData.image_url);
-                        // Gunakan salinan baru untuk menempatkan tanda tangan
-                        await placeSignatureOnPdf(imgData.image_url, data, new Uint8Array(pdfBytes), 'Petugas');
-                    }
+                if (imgRes.ok) {
+                    const imgData = await imgRes.json();
+                    setPetugasSignatureImageUrl(imgData.image_url);
+                    await placeSignatureOnPdf(imgData.image_url, data, new Uint8Array(pdfBytes), 'Petugas');
                 }
-            } catch (err: any) {
-                console.error('Error fetching data:', err); // Ubah pesan error agar lebih spesifik
-                setError(err.message || 'Terjadi kesalahan saat memuat dokumen');
-                setIsPdfLoaded(true); // Pastikan loading spinner hilang meskipun ada error
-            } finally {
-                setIsLoading(false);
             }
-        };
-        if (token) fetchData();
+        } catch (err: any) {
+            console.error('Error fetching data:', err);
+            setError(err.message || 'Terjadi kesalahan saat memuat dokumen');
+            setIsPdfLoaded(true);
+        } finally {
+            setIsLoading(false);
+        }
     }, [sessionId, token, API_BASE_URL, placeSignatureOnPdf]);
+
+
+    useEffect(() => {
+        if (token) loadPdfAndSignatureData();
+    }, [token, loadPdfAndSignatureData]);
+
 
     const handleSave = useCallback(
         async (dataUrl: string) => {
@@ -379,11 +403,6 @@ const SignSessionPage: React.FC = () => {
         },
         [signatureData, modifiedPdfBytes, placeSignatureOnPdf]
     );
-
-    // Fungsi dummy untuk menyamai gaya yang diberikan
-    const handleSignatureSave = useCallback((dataUrl: string) => {
-        setPenerimaSignatureDataUrl(dataUrl);
-    }, []);
 
     const handleProcessPdf = async () => {
         setIsSubmitting(true);
@@ -413,6 +432,7 @@ const SignSessionPage: React.FC = () => {
             formData.append('temp_file', signedPdfBlob, `signed_document_${sessionId}.pdf`);
             formData.append('session_id', sessionId);
 
+            // 1. Kirim file PDF yang sudah ditandatangani
             const response = await fetch(`${API_BASE_URL}/signatures/process/temp-file/`, {
                 method: 'POST',
                 headers: {
@@ -427,40 +447,96 @@ const SignSessionPage: React.FC = () => {
             }
 
             toast.success('Dokumen berhasil dikirim!');
-            // Mungkin navigasi atau refresh data setelah berhasil
+
+            // 2. Perbarui status sesi menjadi "client signed"
+            await sendProcessStatus("client signed", sessionId);
+            toast.success('Status tanda tangan berhasil diperbarui!');
+
         } catch (err: any) {
-            console.error("Error submitting signed PDF:", err);
-            toast.error(`Gagal mengirim dokumen: ${err.message}`);
+            console.error("Error submitting signed PDF or updating status:", err);
+            toast.error(`Gagal mengirim dokumen atau memperbarui status: ${err.message}`);
         } finally {
             setIsSubmitting(false);
         }
     };
 
-    // Placeholder untuk LoadingSpinner (Anda perlu mengganti ini dengan komponen LoadingSpinner Anda yang sebenarnya)
+    // --- Fungsi Baru: checkSignatureStatus ---
+    const checkSignatureStatus = useCallback(async () => {
+        if (!sessionId || !token || !API_BASE_URL) {
+            toast.error("Session ID atau token tidak tersedia.");
+            return;
+        }
+
+        setIsCheckingStatus(true);
+        try {
+            const statusRes = await fetch(`${API_BASE_URL}/signatures/process/status?sid=${sessionId}`, {
+                method: "GET",
+                headers: { Authorization: `Bearer ${token}` },
+            });
+
+            if (!statusRes.ok) {
+                const errorData = await statusRes.json();
+                throw new Error(errorData.detail || "Gagal mengambil status proses");
+            }
+
+            const statusResult: (string | StatusResponseObject)[] = await statusRes.json();
+
+            const statusObjects = statusResult.filter(
+                (item: any): item is StatusResponseObject => typeof item === 'object' && item !== null && 'status' in item && 'timestamp' in item
+            );
+
+            if (statusObjects.length === 0) {
+                toast.warning("Tidak ada data status yang valid ditemukan.");
+                return;
+            }
+
+            statusObjects.sort((a, b) => {
+                const dateA = new Date(a.timestamp).getTime();
+                const dateB = new Date(b.timestamp).getTime();
+                return dateB - dateA;
+            });
+
+            const latestStatusObject = statusObjects[0];
+            const currentBackendStatus = latestStatusObject.status;
+
+            if (currentBackendStatus === "retry") {
+                toast.info("Status 'retry' diterima. Silakan tanda tangan ulang.");
+                // --- AWAL PERUBAHAN PENTING DI SINI ---
+                setPenerimaSignatureDataUrl(null); // Hapus tanda tangan penerima yang lama
+                setSignedPdfBlob(null); // Hapus PDF yang sudah ditandatangani
+                setIsSigning(false); // Pastikan CustomSignaturePad terlihat lagi
+                await loadPdfAndSignatureData(); // PENTING: Memuat ulang PDF ASLI dan menerapkan kembali tanda tangan petugas jika ada.
+                // --- AKHIR PERUBAHAN PENTING DI SINI ---
+            } else if (currentBackendStatus === "client signed") {
+                toast.success("Dokumen sudah ditandatangani oleh klien. Anda bisa melanjutkan ke pengiriman.");
+                // Memuat ulang PDF untuk menampilkan tanda tangan penerima jika belum terlihat
+                if (!penerimaSignatureDataUrl) {
+                    await loadPdfAndSignatureData();
+                }
+            } else if (currentBackendStatus === "selesai") {
+                toast.info("Proses tanda tangan sudah selesai dan dokumen telah difinalisasi.");
+                // Mungkin navigasi ke halaman lain atau tampilkan informasi bahwa sudah selesai.
+            } else if (currentBackendStatus === "dibatalkan") {
+                toast.warning("Proses tanda tangan telah dibatalkan.");
+            } else {
+                toast.info(`Status saat ini: ${currentBackendStatus}. Harap tunggu.`);
+            }
+
+        } catch (err: any) {
+            console.error("Error checking status:", err);
+            toast.error(`Gagal cek status: ${err.message}`);
+        } finally {
+            setIsCheckingStatus(false);
+        }
+    }, [sessionId, token, API_BASE_URL, sendProcessStatus, penerimaSignatureDataUrl, loadPdfAndSignatureData]);
+
+    // Placeholder untuk LoadingSpinner
     const LoadingSpinner: React.FC<{ size: string; message: string; isFullScreen?: boolean }> = ({ message, isFullScreen }) => (
         <div className={`flex flex-col items-center justify-center ${isFullScreen ? 'w-screen h-screen' : ''}`}>
             <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-gray-900 dark:border-gray-100"></div>
             <p className="mt-4 text-gray-700 dark:text-gray-300">{message}</p>
         </div>
     );
-
-
-    const onDocumentLoadSuccess = async (pdf: PDFDocumentProxy) => {
-        setNumPages(pdf.numPages);
-        setIsPdfLoaded(true);
-        // Hitung skala halaman berdasarkan lebar container jika diperlukan
-        if (pdfContainerRef.current) {
-            const containerWidth = pdfContainerRef.current.offsetWidth;
-            const page = await pdf.getPage(1); // Tunggu hingga Promise selesai dan dapatkan objek PDFPageProxy
-            const viewport = page.getViewport({ scale: 1 });
-            setPageScale(containerWidth / viewport.width);
-        }
-    };
-
-    const handlePageRenderSuccess = () => {
-        // Logika setelah halaman dirender jika diperlukan
-    };
-
 
     const pageToRenderWidth = useMemo(() => {
         if (pdfContainerRef.current) {
@@ -471,7 +547,7 @@ const SignSessionPage: React.FC = () => {
 
 
     if (error) {
-        return <div className="text-red-500 p-4">{error}</div>;
+        return <div className="text-red-500 p-4 text-center">{error}</div>;
     }
 
     return (
@@ -484,7 +560,7 @@ const SignSessionPage: React.FC = () => {
             )}
 
             {/* Konten utama hanya muncul setelah PDF selesai dirender */}
-            <div className={`flex flex-col lg:flex-row h-screen overflow-hidden bg-gray-50 dark:bg-gray-900 ${isPdfLoaded ? '' : 'hidden'}`}>
+            <div className="flex flex-col lg:flex-row h-screen overflow-hidden bg-gray-50 dark:bg-gray-900">
                 <div className="flex-1 p-4 overflow-y-auto">
                     <h2 className="text-xl font-semibold mb-4 text-gray-800 dark:text-white">
                         Dokumen untuk ditandatangani
@@ -499,9 +575,9 @@ const SignSessionPage: React.FC = () => {
                                 pdfBytes={modifiedPdfBytes}
                                 petugasSignatureImageUrl={petugasSignatureImageUrl}
                                 penerimaSignatureDataUrl={penerimaSignatureDataUrl}
-                                signatureFieldsJson={signatureData?.metadata.data.signature_fields} 
+                                signatureFieldsJson={signatureData?.metadata.data.signature_fields}
                                 pdfDocProxy={pdfDoc}
-                                pageWidth={pageToRenderWidth} // Teruskan lebar yang dihitung
+                                pageWidth={pageToRenderWidth}
                             />
                         ) : (
                             !isLoading && <p className="p-4 text-center text-gray-600 dark:text-gray-400">Tidak ada halaman PDF.</p>
@@ -540,15 +616,35 @@ const SignSessionPage: React.FC = () => {
 
                 {/* Sidebar signature pad */}
                 <div className="w-full lg:w-96 dark:bg-gray-800 shadow p-6 flex flex-col gap-4 overflow-y-auto">
-                    <CustomSignaturePad onSave={handleSave} /> {/* Menggunakan handleSave yang sudah ada */}
+                    {/* Kondisional: tampilkan SignaturePad jika penerima belum tanda tangan atau statusnya retry */}
+                    {!penerimaSignatureDataUrl || (penerimaSignatureDataUrl && isSigning) ? (
+                        <CustomSignaturePad onSave={handleSave} />
+                    ) : (
+                        <div className="border border-gray-300 dark:border-gray-600 p-4 rounded-md text-center text-gray-700 dark:text-gray-300">
+                            <p>Tanda tangan Penerima sudah ada.</p>
+                            <img src={penerimaSignatureDataUrl} alt="Penerima Signature" className="mx-auto mt-2 max-w-full h-auto" />
+                        </div>
+                    )}
+
+                    {/* Tombol Cek Status */}
+                    <button
+                        onClick={checkSignatureStatus}
+                        disabled={isCheckingStatus || isSubmitting}
+                        className={`mt-4 px-4 py-2 rounded-md transition-colors ${isCheckingStatus || isSubmitting
+                            ? "bg-gray-400 cursor-not-allowed"
+                            : "bg-blue-600 hover:bg-blue-700 text-white"
+                            }`}
+                    >
+                        {isCheckingStatus ? "Memeriksa Status..." : "Cek Status"}
+                    </button>
 
                     {/* Button untuk memproses PDF (seperti "Siapkan Dokumen untuk Pengiriman") */}
                     <button
                         onClick={handleProcessPdf}
-                        disabled={isSubmitting || !penerimaSignatureDataUrl || !clientSignatureField} // Sesuaikan logika disabled
-                        className={`mt-4 px-4 py-2 rounded-md transition-colors ${isSubmitting || !penerimaSignatureDataUrl || !clientSignatureField
-                                ? "bg-green-300 cursor-not-allowed"
-                                : "bg-green-600 hover:bg-green-700 text-white"
+                        disabled={isSubmitting || !penerimaSignatureDataUrl || !clientSignatureField}
+                        className={`px-4 py-2 rounded-md transition-colors ${isSubmitting || !penerimaSignatureDataUrl || !clientSignatureField
+                            ? "bg-green-300 cursor-not-allowed"
+                            : "bg-green-600 hover:bg-green-700 text-white"
                             }`}
                     >
                         {isSubmitting && !signedPdfBlob
