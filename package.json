@@ -11,7 +11,9 @@
     "format": "prettier --write .",
     "format:check": "prettier --check .",
     "type-check": "tsc --noEmit",
-    "quality:check": "npm run lint:check && npm run format:check && npm run type-check"
+    "quality:check": "npm run lint:check && npm run format:check && npm run type-check",
+    "pre-commit:manual": "lint-staged",
+    "prepare": "husky"
   },
   "dependencies": {
     "@fullcalendar/core": "^6.1.15",
@@ -54,10 +56,25 @@
     "eslint-plugin-prettier": "^5.5.1",
     "eslint-plugin-react": "^7.37.5",
     "eslint-plugin-react-hooks": "^5.2.0",
+    "husky": "^9.1.7",
+    "lint-staged": "^16.1.2",
     "postcss": "^8",
     "prettier": "^3.6.2",
     "tailwindcss": "^4.0.0",
+    "tsc-files": "^1.1.4",
     "typescript": "^5"
+  },
+  "lint-staged": {
+    "*.{js,jsx,ts,tsx}": [
+      "node_modules\\.bin\\eslint --fix --max-warnings=0",
+      "node_modules\\.bin\\prettier --write"
+    ],
+    "*.{json,md,css,scss}": [
+      "node_modules\\.bin\\prettier --write"
+    ],
+    "*.{ts,tsx}": [
+      "node_modules\\.bin\\tsc-files --noEmit"
+    ]
   },
   "overrides": {
     "@react-jvectormap/core": {
