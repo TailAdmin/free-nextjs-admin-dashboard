@@ -1,20 +1,20 @@
-"use client";
-import React from "react";
-import ComponentCard from "../../common/ComponentCard";
-import Label from "../Label";
-import Input from "../input/InputField";
-import { EnvelopeIcon } from "../../../icons";
-import PhoneInput from "../group-input/PhoneInput";
+'use client';
+import React from 'react';
+import ComponentCard from '../../common/ComponentCard';
+import Label from '../Label';
+import Input from '../input/InputField';
+import { EnvelopeIcon } from '../../../icons';
+import PhoneInput from '../group-input/PhoneInput';
 
 export default function InputGroup() {
   const countries = [
-    { code: "US", label: "+1" },
-    { code: "GB", label: "+44" },
-    { code: "CA", label: "+1" },
-    { code: "AU", label: "+61" },
+    { code: 'US', label: '+1' },
+    { code: 'GB', label: '+44' },
+    { code: 'CA', label: '+1' },
+    { code: 'AU', label: '+61' },
   ];
   const handlePhoneNumberChange = (phoneNumber: string) => {
-    console.log("Updated phone number:", phoneNumber);
+    console.log('Updated phone number:', phoneNumber);
   };
   return (
     <ComponentCard title="Input Group">
@@ -40,7 +40,7 @@ export default function InputGroup() {
             placeholder="+1 (555) 000-0000"
             onChange={handlePhoneNumberChange}
           />
-        </div>{" "}
+        </div>{' '}
         <div>
           <Label>Phone</Label>
           <PhoneInput

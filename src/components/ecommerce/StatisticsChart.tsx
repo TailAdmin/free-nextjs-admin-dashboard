@@ -1,12 +1,12 @@
-"use client";
-import React from "react";
+'use client';
+import React from 'react';
 // import Chart from "react-apexcharts";
-import { ApexOptions } from "apexcharts";
-import ChartTab from "../common/ChartTab";
-import dynamic from "next/dynamic";
+import { ApexOptions } from 'apexcharts';
+import ChartTab from '../common/ChartTab';
+import dynamic from 'next/dynamic';
 
 // Dynamically import the ReactApexChart component
-const ReactApexChart = dynamic(() => import("react-apexcharts"), {
+const ReactApexChart = dynamic(() => import('react-apexcharts'), {
   ssr: false,
 });
 
@@ -14,25 +14,25 @@ export default function StatisticsChart() {
   const options: ApexOptions = {
     legend: {
       show: false, // Hide legend
-      position: "top",
-      horizontalAlign: "left",
+      position: 'top',
+      horizontalAlign: 'left',
     },
-    colors: ["#465FFF", "#9CB9FF"], // Define line colors
+    colors: ['#465FFF', '#9CB9FF'], // Define line colors
     chart: {
-      fontFamily: "Outfit, sans-serif",
+      fontFamily: 'Outfit, sans-serif',
       height: 310,
-      type: "line", // Set the chart type to 'line'
+      type: 'line', // Set the chart type to 'line'
       toolbar: {
         show: false, // Hide chart toolbar
       },
     },
     stroke: {
-      curve: "straight", // Define the line style (straight, smooth, or step)
+      curve: 'straight', // Define the line style (straight, smooth, or step)
       width: [2, 2], // Line width for each dataset
     },
 
     fill: {
-      type: "gradient",
+      type: 'gradient',
       gradient: {
         opacityFrom: 0.55,
         opacityTo: 0,
@@ -40,7 +40,7 @@ export default function StatisticsChart() {
     },
     markers: {
       size: 0, // Size of the marker points
-      strokeColors: "#fff", // Marker border color
+      strokeColors: '#fff', // Marker border color
       strokeWidth: 2,
       hover: {
         size: 6, // Marker size on hover
@@ -64,24 +64,24 @@ export default function StatisticsChart() {
     tooltip: {
       enabled: true, // Enable tooltip
       x: {
-        format: "dd MMM yyyy", // Format for x-axis tooltip
+        format: 'dd MMM yyyy', // Format for x-axis tooltip
       },
     },
     xaxis: {
-      type: "category", // Category-based x-axis
+      type: 'category', // Category-based x-axis
       categories: [
-        "Jan",
-        "Feb",
-        "Mar",
-        "Apr",
-        "May",
-        "Jun",
-        "Jul",
-        "Aug",
-        "Sep",
-        "Oct",
-        "Nov",
-        "Dec",
+        'Jan',
+        'Feb',
+        'Mar',
+        'Apr',
+        'May',
+        'Jun',
+        'Jul',
+        'Aug',
+        'Sep',
+        'Oct',
+        'Nov',
+        'Dec',
       ],
       axisBorder: {
         show: false, // Hide x-axis border
@@ -96,14 +96,14 @@ export default function StatisticsChart() {
     yaxis: {
       labels: {
         style: {
-          fontSize: "12px", // Adjust font size for y-axis labels
-          colors: ["#6B7280"], // Color of the labels
+          fontSize: '12px', // Adjust font size for y-axis labels
+          colors: ['#6B7280'], // Color of the labels
         },
       },
       title: {
-        text: "", // Remove y-axis title
+        text: '', // Remove y-axis title
         style: {
-          fontSize: "0px",
+          fontSize: '0px',
         },
       },
     },
@@ -111,11 +111,11 @@ export default function StatisticsChart() {
 
   const series = [
     {
-      name: "Sales",
+      name: 'Sales',
       data: [180, 190, 170, 160, 175, 165, 170, 205, 230, 210, 240, 235],
     },
     {
-      name: "Revenue",
+      name: 'Revenue',
       data: [40, 30, 50, 40, 55, 40, 70, 100, 110, 120, 150, 140],
     },
   ];

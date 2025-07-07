@@ -1,10 +1,10 @@
-"use client";
-import Checkbox from "@/components/form/input/Checkbox";
-import Input from "@/components/form/input/InputField";
-import Label from "@/components/form/Label";
-import { ChevronLeftIcon, EyeCloseIcon, EyeIcon } from "@/icons";
-import Link from "next/link";
-import React, { useState } from "react";
+'use client';
+import Checkbox from '@/components/form/input/Checkbox';
+import Input from '@/components/form/input/InputField';
+import Label from '@/components/form/Label';
+import { ChevronLeftIcon, EyeCloseIcon, EyeIcon } from '@/icons';
+import Link from 'next/link';
+import React, { useState } from 'react';
 
 export default function SignUpForm() {
   const [showPassword, setShowPassword] = useState(false);
@@ -131,7 +131,7 @@ export default function SignUpForm() {
                   <div className="relative">
                     <Input
                       placeholder="Enter your password"
-                      type={showPassword ? "text" : "password"}
+                      type={showPassword ? 'text' : 'password'}
                     />
                     <span
                       onClick={() => setShowPassword(!showPassword)}
@@ -153,11 +153,11 @@ export default function SignUpForm() {
                     onChange={setIsChecked}
                   />
                   <p className="inline-block font-normal text-gray-500 dark:text-gray-400">
-                    By creating an account means you agree to the{" "}
+                    By creating an account means you agree to the{' '}
                     <span className="text-gray-800 dark:text-white/90">
                       Terms and Conditions,
-                    </span>{" "}
-                    and our{" "}
+                    </span>{' '}
+                    and our{' '}
                     <span className="text-gray-800 dark:text-white">
                       Privacy Policy
                     </span>

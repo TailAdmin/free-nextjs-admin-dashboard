@@ -1,17 +1,17 @@
-"use client";
-import React, { useState, useRef, useEffect } from "react";
-import FullCalendar from "@fullcalendar/react";
-import dayGridPlugin from "@fullcalendar/daygrid";
-import timeGridPlugin from "@fullcalendar/timegrid";
-import interactionPlugin from "@fullcalendar/interaction";
+'use client';
+import React, { useState, useRef, useEffect } from 'react';
+import FullCalendar from '@fullcalendar/react';
+import dayGridPlugin from '@fullcalendar/daygrid';
+import timeGridPlugin from '@fullcalendar/timegrid';
+import interactionPlugin from '@fullcalendar/interaction';
 import {
   EventInput,
   DateSelectArg,
   EventClickArg,
   EventContentArg,
-} from "@fullcalendar/core";
-import { useModal } from "@/hooks/useModal";
-import { Modal } from "@/components/ui/modal";
+} from '@fullcalendar/core';
+import { useModal } from '@/hooks/useModal';
+import { Modal } from '@/components/ui/modal';
 
 interface CalendarEvent extends EventInput {
   extendedProps: {
@@ -23,42 +23,42 @@ const Calendar: React.FC = () => {
   const [selectedEvent, setSelectedEvent] = useState<CalendarEvent | null>(
     null
   );
-  const [eventTitle, setEventTitle] = useState("");
-  const [eventStartDate, setEventStartDate] = useState("");
-  const [eventEndDate, setEventEndDate] = useState("");
-  const [eventLevel, setEventLevel] = useState("");
+  const [eventTitle, setEventTitle] = useState('');
+  const [eventStartDate, setEventStartDate] = useState('');
+  const [eventEndDate, setEventEndDate] = useState('');
+  const [eventLevel, setEventLevel] = useState('');
   const [events, setEvents] = useState<CalendarEvent[]>([]);
   const calendarRef = useRef<FullCalendar>(null);
   const { isOpen, openModal, closeModal } = useModal();
 
   const calendarsEvents = {
-    Danger: "danger",
-    Success: "success",
-    Primary: "primary",
-    Warning: "warning",
+    Danger: 'danger',
+    Success: 'success',
+    Primary: 'primary',
+    Warning: 'warning',
   };
 
   useEffect(() => {
     // Initialize with some events
     setEvents([
       {
-        id: "1",
-        title: "Event Conf.",
-        start: new Date().toISOString().split("T")[0],
-        extendedProps: { calendar: "Danger" },
+        id: '1',
+        title: 'Event Conf.',
+        start: new Date().toISOString().split('T')[0],
+        extendedProps: { calendar: 'Danger' },
       },
       {
-        id: "2",
-        title: "Meeting",
-        start: new Date(Date.now() + 86400000).toISOString().split("T")[0],
-        extendedProps: { calendar: "Success" },
+        id: '2',
+        title: 'Meeting',
+        start: new Date(Date.now() + 86400000).toISOString().split('T')[0],
+        extendedProps: { calendar: 'Success' },
       },
       {
-        id: "3",
-        title: "Workshop",
-        start: new Date(Date.now() + 172800000).toISOString().split("T")[0],
-        end: new Date(Date.now() + 259200000).toISOString().split("T")[0],
-        extendedProps: { calendar: "Primary" },
+        id: '3',
+        title: 'Workshop',
+        start: new Date(Date.now() + 172800000).toISOString().split('T')[0],
+        end: new Date(Date.now() + 259200000).toISOString().split('T')[0],
+        extendedProps: { calendar: 'Primary' },
       },
     ]);
   }, []);
@@ -74,8 +74,8 @@ const Calendar: React.FC = () => {
     const event = clickInfo.event;
     setSelectedEvent(event as unknown as CalendarEvent);
     setEventTitle(event.title);
-    setEventStartDate(event.start?.toISOString().split("T")[0] || "");
-    setEventEndDate(event.end?.toISOString().split("T")[0] || "");
+    setEventStartDate(event.start?.toISOString().split('T')[0] || '');
+    setEventEndDate(event.end?.toISOString().split('T')[0] || '');
     setEventLevel(event.extendedProps.calendar);
     openModal();
   };
@@ -83,8 +83,8 @@ const Calendar: React.FC = () => {
   const handleAddOrUpdateEvent = () => {
     if (selectedEvent) {
       // Update existing event
-      setEvents((prevEvents) =>
-        prevEvents.map((event) =>
+      setEvents(prevEvents =>
+        prevEvents.map(event =>
           event.id === selectedEvent.id
             ? {
                 ...event,
@@ -106,17 +106,17 @@ const Calendar: React.FC = () => {
         allDay: true,
         extendedProps: { calendar: eventLevel },
       };
-      setEvents((prevEvents) => [...prevEvents, newEvent]);
+      setEvents(prevEvents => [...prevEvents, newEvent]);
     }
     closeModal();
     resetModalFields();
   };
 
   const resetModalFields = () => {
-    setEventTitle("");
-    setEventStartDate("");
-    setEventEndDate("");
-    setEventLevel("");
+    setEventTitle('');
+    setEventStartDate('');
+    setEventEndDate('');
+    setEventLevel('');
     setSelectedEvent(null);
   };
 
@@ -128,9 +128,9 @@ const Calendar: React.FC = () => {
           plugins={[dayGridPlugin, timeGridPlugin, interactionPlugin]}
           initialView="dayGridMonth"
           headerToolbar={{
-            left: "prev,next addEventButton",
-            center: "title",
-            right: "dayGridMonth,timeGridWeek,timeGridDay",
+            left: 'prev,next addEventButton',
+            center: 'title',
+            right: 'dayGridMonth,timeGridWeek,timeGridDay',
           }}
           events={events}
           selectable={true}
@@ -139,7 +139,7 @@ const Calendar: React.FC = () => {
           eventContent={renderEventContent}
           customButtons={{
             addEventButton: {
-              text: "Add Event +",
+              text: 'Add Event +',
               click: openModal,
             },
           }}
@@ -153,7 +153,7 @@ const Calendar: React.FC = () => {
         <div className="flex flex-col px-2 overflow-y-auto custom-scrollbar">
           <div>
             <h5 className="mb-2 font-semibold text-gray-800 modal-title text-theme-xl dark:text-white/90 lg:text-2xl">
-              {selectedEvent ? "Edit Event" : "Add Event"}
+              {selectedEvent ? 'Edit Event' : 'Add Event'}
             </h5>
             <p className="text-sm text-gray-500 dark:text-gray-400">
               Plan your next big moment: schedule or edit an event to stay on
@@ -170,7 +170,7 @@ const Calendar: React.FC = () => {
                   id="event-title"
                   type="text"
                   value={eventTitle}
-                  onChange={(e) => setEventTitle(e.target.value)}
+                  onChange={e => setEventTitle(e.target.value)}
                   className="dark:bg-dark-900 h-11 w-full rounded-lg border border-gray-300 bg-transparent px-4 py-2.5 text-sm text-gray-800 shadow-theme-xs placeholder:text-gray-400 focus:border-brand-300 focus:outline-hidden focus:ring-3 focus:ring-brand-500/10 dark:border-gray-700 dark:bg-gray-900 dark:text-white/90 dark:placeholder:text-white/30 dark:focus:border-brand-800"
                 />
               </div>
@@ -202,8 +202,8 @@ const Calendar: React.FC = () => {
                           <span className="flex items-center justify-center w-5 h-5 mr-2 border border-gray-300 rounded-full box dark:border-gray-700">
                             <span
                               className={`h-2 w-2 rounded-full bg-white ${
-                                eventLevel === key ? "block" : "hidden"
-                              }`}  
+                                eventLevel === key ? 'block' : 'hidden'
+                              }`}
                             ></span>
                           </span>
                         </span>
@@ -224,7 +224,7 @@ const Calendar: React.FC = () => {
                   id="event-start-date"
                   type="date"
                   value={eventStartDate}
-                  onChange={(e) => setEventStartDate(e.target.value)}
+                  onChange={e => setEventStartDate(e.target.value)}
                   className="dark:bg-dark-900 h-11 w-full appearance-none rounded-lg border border-gray-300 bg-transparent bg-none px-4 py-2.5 pl-4 pr-11 text-sm text-gray-800 shadow-theme-xs placeholder:text-gray-400 focus:border-brand-300 focus:outline-hidden focus:ring-3 focus:ring-brand-500/10 dark:border-gray-700 dark:bg-gray-900 dark:text-white/90 dark:placeholder:text-white/30 dark:focus:border-brand-800"
                 />
               </div>
@@ -239,7 +239,7 @@ const Calendar: React.FC = () => {
                   id="event-end-date"
                   type="date"
                   value={eventEndDate}
-                  onChange={(e) => setEventEndDate(e.target.value)}
+                  onChange={e => setEventEndDate(e.target.value)}
                   className="dark:bg-dark-900 h-11 w-full appearance-none rounded-lg border border-gray-300 bg-transparent bg-none px-4 py-2.5 pl-4 pr-11 text-sm text-gray-800 shadow-theme-xs placeholder:text-gray-400 focus:border-brand-300 focus:outline-hidden focus:ring-3 focus:ring-brand-500/10 dark:border-gray-700 dark:bg-gray-900 dark:text-white/90 dark:placeholder:text-white/30 dark:focus:border-brand-800"
                 />
               </div>
@@ -258,7 +258,7 @@ const Calendar: React.FC = () => {
               type="button"
               className="btn btn-success btn-update-event flex w-full justify-center rounded-lg bg-brand-500 px-4 py-2.5 text-sm font-medium text-white hover:bg-brand-600 sm:w-auto"
             >
-              {selectedEvent ? "Update Changes" : "Add Event"}
+              {selectedEvent ? 'Update Changes' : 'Add Event'}
             </button>
           </div>
         </div>

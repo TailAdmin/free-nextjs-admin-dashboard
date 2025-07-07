@@ -1,4 +1,4 @@
-import React from "react";
+import React from 'react';
 
 interface ComponentCardProps {
   title: string;
@@ -10,8 +10,8 @@ interface ComponentCardProps {
 const ComponentCard: React.FC<ComponentCardProps> = ({
   title,
   children,
-  className = "",
-  desc = "",
+  className = '',
+  desc = '',
 }) => {
   return (
     <div

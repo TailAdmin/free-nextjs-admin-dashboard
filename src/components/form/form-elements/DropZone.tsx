@@ -1,21 +1,21 @@
-"use client";
-import React from "react";
-import ComponentCard from "../../common/ComponentCard";
-import { useDropzone } from "react-dropzone";
+'use client';
+import React from 'react';
+import ComponentCard from '../../common/ComponentCard';
+import { useDropzone } from 'react-dropzone';
 
 const DropzoneComponent: React.FC = () => {
   const onDrop = (acceptedFiles: File[]) => {
-    console.log("Files dropped:", acceptedFiles);
+    console.log('Files dropped:', acceptedFiles);
     // Handle file uploads here
   };
 
   const { getRootProps, getInputProps, isDragActive } = useDropzone({
     onDrop,
     accept: {
-      "image/png": [],
-      "image/jpeg": [],
-      "image/webp": [],
-      "image/svg+xml": [],
+      'image/png': [],
+      'image/jpeg': [],
+      'image/webp': [],
+      'image/svg+xml': [],
     },
   });
   return (
@@ -26,8 +26,8 @@ const DropzoneComponent: React.FC = () => {
           className={`dropzone rounded-xl   border-dashed border-gray-300 p-7 lg:p-10
         ${
           isDragActive
-            ? "border-brand-500 bg-gray-100 dark:bg-gray-800"
-            : "border-gray-300 bg-gray-50 dark:border-gray-700 dark:bg-gray-900"
+            ? 'border-brand-500 bg-gray-100 dark:bg-gray-800'
+            : 'border-gray-300 bg-gray-50 dark:border-gray-700 dark:bg-gray-900'
         }
       `}
           id="demo-upload"
@@ -57,7 +57,7 @@ const DropzoneComponent: React.FC = () => {
 
             {/* Text Content */}
             <h4 className="mb-3 font-semibold text-gray-800 text-theme-xl dark:text-white/90">
-              {isDragActive ? "Drop Files Here" : "Drag & Drop Files Here"}
+              {isDragActive ? 'Drop Files Here' : 'Drag & Drop Files Here'}
             </h4>
 
             <span className=" text-center mb-5 block w-full max-w-[290px] text-sm text-gray-700 dark:text-gray-400">

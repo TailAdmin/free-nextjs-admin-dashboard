@@ -1,13 +1,13 @@
-import ComponentCard from "@/components/common/ComponentCard";
-import PageBreadcrumb from "@/components/common/PageBreadCrumb";
-import Avatar from "@/components/ui/avatar/Avatar";
-import { Metadata } from "next";
-import React from "react";
+import ComponentCard from '@/components/common/ComponentCard';
+import PageBreadcrumb from '@/components/common/PageBreadCrumb';
+import Avatar from '@/components/ui/avatar/Avatar';
+import { Metadata } from 'next';
+import React from 'react';
 
 export const metadata: Metadata = {
-  title: "Next.js Avatars | TailAdmin - Next.js Dashboard Template",
+  title: 'Next.js Avatars | TailAdmin - Next.js Dashboard Template',
   description:
-    "This is Next.js Avatars page for TailAdmin - Next.js Tailwind CSS Admin Dashboard Template",
+    'This is Next.js Avatars page for TailAdmin - Next.js Tailwind CSS Admin Dashboard Template',
 };
 
 export default function AvatarPage() {
@@ -93,7 +93,7 @@ export default function AvatarPage() {
               status="offline"
             />
           </div>
-        </ComponentCard>{" "}
+        </ComponentCard>{' '}
         <ComponentCard title="Avatar with busy indicator">
           <div className="flex flex-col items-center justify-center gap-5 sm:flex-row">
             <Avatar

@@ -1,4 +1,4 @@
-import React, { ReactNode } from "react";
+import React, { ReactNode } from 'react';
 
 // Props for Table
 interface TableProps {
@@ -57,7 +57,7 @@ const TableCell: React.FC<TableCellProps> = ({
   isHeader = false,
   className,
 }) => {
-  const CellTag = isHeader ? "th" : "td";
+  const CellTag = isHeader ? 'th' : 'td';
   return <CellTag className={` ${className}`}>{children}</CellTag>;
 };
 

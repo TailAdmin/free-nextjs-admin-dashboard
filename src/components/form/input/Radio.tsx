@@ -1,4 +1,4 @@
-import React from "react";
+import React from 'react';
 
 interface RadioProps {
   id: string; // Unique ID for the radio button
@@ -18,7 +18,7 @@ const Radio: React.FC<RadioProps> = ({
   checked,
   label,
   onChange,
-  className = "",
+  className = '',
   disabled = false,
 }) => {
   return (
@@ -26,8 +26,8 @@ const Radio: React.FC<RadioProps> = ({
       htmlFor={id}
       className={`relative flex cursor-pointer  select-none items-center gap-3 text-sm font-medium ${
         disabled
-          ? "text-gray-300 dark:text-gray-600 cursor-not-allowed"
-          : "text-gray-700 dark:text-gray-400"
+          ? 'text-gray-300 dark:text-gray-600 cursor-not-allowed'
+          : 'text-gray-700 dark:text-gray-400'
       } ${className}`}
     >
       <input
@@ -43,17 +43,17 @@ const Radio: React.FC<RadioProps> = ({
       <span
         className={`flex h-5 w-5 items-center justify-center rounded-full border-[1.25px] ${
           checked
-            ? "border-brand-500 bg-brand-500"
-            : "bg-transparent border-gray-300 dark:border-gray-700"
+            ? 'border-brand-500 bg-brand-500'
+            : 'bg-transparent border-gray-300 dark:border-gray-700'
         } ${
           disabled
-            ? "bg-gray-100 dark:bg-gray-700 border-gray-200 dark:border-gray-700"
-            : ""
+            ? 'bg-gray-100 dark:bg-gray-700 border-gray-200 dark:border-gray-700'
+            : ''
         }`}
       >
         <span
           className={`h-2 w-2 rounded-full bg-white ${
-            checked ? "block" : "hidden"
+            checked ? 'block' : 'hidden'
           }`}
         ></span>
       </span>
