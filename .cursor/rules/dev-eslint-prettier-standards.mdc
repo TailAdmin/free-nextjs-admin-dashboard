@@ -1,0 +1,331 @@
+---
+description: Used when writing ESLint & Prettier linting configurations
+globs: 
+alwaysApply: false
+---
+# ESLint + Prettier Standards
+
+Establishes consistent code quality and formatting standards for TypeScript Next.js projects using ESLint for linting and Prettier for code formatting.
+
+## Prerequisites
+
+State all requirements upfront:
+- Node.js 20.x+ installed
+- Windows PowerShell or Command Prompt
+- Next.js project with TypeScript already initialized
+- VS Code or compatible editor
+
+## Core Principle
+
+**All code must pass ESLint validation and follow Prettier formatting standards before being committed to ensure consistent code quality across the team.**
+
+## Step-by-Step Instructions
+
+### Step 1: Install Required Dependencies
+
+Install ESLint, Prettier, and related packages:
+
+```powershell
+npm install --save-dev eslint prettier eslint-config-prettier eslint-plugin-prettier @typescript-eslint/eslint-plugin @typescript-eslint/parser eslint-plugin-react eslint-plugin-react-hooks eslint-plugin-jsx-a11y
+# Expected output: Dependencies installed successfully
+```
+
+**Expected result**: All ESLint and Prettier packages are installed in `devDependencies`.
+
+### Step 2: Create ESLint Configuration
+
+Create `.eslintrc.json` in project root:
+
+```powershell
+New-Item -ItemType File -Path ".eslintrc.json" -Force
+# Expected output: File created successfully
+```
+
+Add the following configuration to `.eslintrc.json`:
+
+```json
+{
+  "extends": [
+    "next/core-web-vitals",
+    "@typescript-eslint/recommended",
+    "plugin:react/recommended",
+    "plugin:react-hooks/recommended",
+    "plugin:jsx-a11y/recommended",
+    "prettier"
+  ],
+  "parser": "@typescript-eslint/parser",
+  "parserOptions": {
+    "ecmaVersion": "latest",
+    "sourceType": "module",
+    "ecmaFeatures": {
+      "jsx": true
+    }
+  },
+  "plugins": [
+    "@typescript-eslint",
+    "react",
+    "react-hooks",
+    "jsx-a11y",
+    "prettier"
+  ],
+  "rules": {
+    "prettier/prettier": "error",
+    "@typescript-eslint/no-unused-vars": "error",
+    "@typescript-eslint/no-explicit-any": "warn",
+    "react/react-in-jsx-scope": "off",
+    "react/prop-types": "off",
+    "@typescript-eslint/explicit-function-return-type": "off",
+    "@typescript-eslint/explicit-module-boundary-types": "off",
+    "react-hooks/rules-of-hooks": "error",
+    "react-hooks/exhaustive-deps": "warn",
+    "jsx-a11y/anchor-is-valid": "off"
+  },
+  "settings": {
+    "react": {
+      "version": "detect"
+    }
+  }
+}
+```
+
+**Expected result**: ESLint configuration file exists with TypeScript and React support.
+
+### Step 3: Create Prettier Configuration
+
+Create `.prettierrc.json` in project root:
+
+```powershell
+New-Item -ItemType File -Path ".prettierrc.json" -Force
+# Expected output: File created successfully
+```
+
+Add the following configuration to `.prettierrc.json`:
+
+```json
+{
+  "semi": true,
+  "singleQuote": true,
+  "tabWidth": 2,
+  "trailingComma": "es5",
+  "printWidth": 80,
+  "useTabs": false,
+  "bracketSpacing": true,
+  "bracketSameLine": false,
+  "arrowParens": "avoid"
+}
+```
+
+**Expected result**: Prettier configuration file exists with consistent formatting rules.
+
+### Step 4: Create Prettier Ignore File
+
+Create `.prettierignore` to exclude certain files:
+
+```powershell
+New-Item -ItemType File -Path ".prettierignore" -Force
+# Expected output: File created successfully
+```
+
+Add the following to `.prettierignore`:
+
+```
+# Dependencies
+node_modules
+.pnp
+.pnp.js
+
+# Production builds
+.next/
+out/
+build/
+dist/
+
+# Environment files
+.env
+.env.local
+.env.development.local
+.env.test.local
+.env.production.local
+
+# Logs
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+
+# Package manager files
+package-lock.json
+yarn.lock
+pnpm-lock.yaml
+
+# Generated files
+*.tsbuildinfo
+.vercel
+```
+
+**Expected result**: Prettier will ignore specified files and directories.
+
+### Step 5: Add NPM Scripts
+
+Add the following scripts to your `package.json`:
+
+```json
+{
+  "scripts": {
+    "lint": "next lint",
+    "lint:fix": "next lint --fix",
+    "format": "prettier --write .",
+    "format:check": "prettier --check ."
+  }
+}
+```
+
+**Expected result**: NPM scripts are available for linting and formatting.
+
+### Step 6: VS Code Integration
+
+Create `.vscode/settings.json` for editor integration:
+
+```powershell
+if (-not (Test-Path ".vscode")) { New-Item -ItemType Directory -Path ".vscode" }
+New-Item -ItemType File -Path ".vscode/settings.json" -Force
+# Expected output: VS Code settings directory and file created
+```
+
+Add the following to `.vscode/settings.json`:
+
+```json
+{
+  "editor.formatOnSave": true,
+  "editor.defaultFormatter": "esbenp.prettier-vscode",
+  "editor.codeActionsOnSave": {
+    "source.fixAll.eslint": "explicit"
+  },
+  "eslint.validate": [
+    "javascript",
+    "typescript",
+    "javascriptreact",
+    "typescriptreact"
+  ]
+}
+```
+
+**Expected result**: VS Code automatically formats and lints code on save.
+
+## Verification Steps
+
+How to confirm the rule was followed correctly:
+- [ ] Run `npm run lint` and verify no errors
+- [ ] Run `npm run format:check` and verify formatting is consistent
+- [ ] Open a TypeScript file in VS Code and verify automatic formatting on save
+- [ ] Create a simple formatting error and verify it's fixed automatically
+
+**Success criteria verification:**
+```powershell
+# Test linting
+npm run lint
+# Should show: "✓ No ESLint warnings or errors"
+
+# Test formatting
+npm run format:check
+# Should show: All files formatted correctly or list files needing formatting
+
+# Test TypeScript integration
+Get-Content tsconfig.json | Select-String baseUrl
+# Should show TypeScript configuration exists
+```
+
+## Troubleshooting Common Issues
+
+### Problem: ESLint and Prettier Conflicts
+**Symptoms**: 
+- ESLint errors about formatting rules
+- Contradictory formatting behavior
+
+**Solution**: 
+```powershell
+# Verify eslint-config-prettier is installed and configured
+Get-Content .eslintrc.json | Select-String prettier
+# Should show "prettier" in extends array as the last item
+```
+
+### Problem: VS Code Not Auto-formatting
+**Symptoms**: 
+- Files not formatting on save
+- Manual format command not working
+
+**Solution**: 
+```powershell
+# Verify VS Code settings exist
+Test-Path .vscode/settings.json
+# Should return: True
+
+# Check if Prettier extension is installed
+# In VS Code: Ctrl+Shift+X, search for "Prettier - Code formatter"
+```
+
+### Problem: TypeScript Linting Errors
+**Symptoms**: 
+- Unexpected TypeScript errors in ESLint
+- Parser errors for TypeScript files
+
+**Solution**: 
+```powershell
+# Verify TypeScript ESLint packages are installed
+npm list @typescript-eslint/parser @typescript-eslint/eslint-plugin
+# Should show both packages installed
+```
+
+## Success Criteria
+
+The rule implementation is complete when:
+- [x] ESLint runs without configuration errors on all TypeScript files
+- [x] Prettier formats all files consistently according to configuration
+- [x] VS Code auto-formats and auto-fixes lint issues on save
+- [x] All team members see identical formatting results
+
+## Examples
+
+✅ **Correct Implementation:**
+```typescript
+// File: src/components/Button.tsx
+interface ButtonProps {
+  children: React.ReactNode;
+  onClick?: () => void;
+  variant?: 'primary' | 'secondary';
+}
+
+export const Button: React.FC<ButtonProps> = ({ 
+  children, 
+  onClick, 
+  variant = 'primary' 
+}) => {
+  return (
+    <button
+      className={`btn btn-${variant}`}
+      onClick={onClick}
+      type="button"
+    >
+      {children}
+    </button>
+  );
+};
+```
+
+❌ **Incorrect Implementation:**
+```typescript
+// File: src/components/Button.tsx - Poor formatting and linting issues
+interface ButtonProps{
+children:React.ReactNode,
+onClick?:()=>void,
+variant?:'primary'|'secondary'
+}
+
+export const Button:React.FC<ButtonProps>=({children,onClick,variant='primary'})=>{
+return (<button className={`btn btn-${variant}`} onClick={onClick} type="button">{children}</button>)
+}
+```
+
+---
+
+**Note**: This rule ensures consistent code quality and formatting across all TypeScript files in the Next.js project, preventing style conflicts and improving code readability.
+

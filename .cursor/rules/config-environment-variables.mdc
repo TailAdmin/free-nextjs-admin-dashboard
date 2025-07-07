@@ -1,0 +1,519 @@
+---
+description: Used when managing environment variables
+globs: 
+alwaysApply: false
+---
+# Environment Variables Management
+
+Establishes secure environment variable management patterns for TypeScript Next.js projects, ensuring proper configuration isolation, validation, and type safety across development and production environments.
+
+## Prerequisites
+
+State all requirements upfront:
+- Next.js project with TypeScript already initialized
+- Windows PowerShell or Command Prompt
+- Understanding of environment separation (dev/staging/production)
+- Basic knowledge of environment variable security
+
+## Core Principle
+
+**All configuration must be externalized through environment variables with proper validation, type safety, and security considerations to ensure applications work consistently across all environments.**
+
+## Step-by-Step Instructions
+
+### Step 1: Create Environment Variable Structure
+
+Set up the proper environment file hierarchy:
+
+```powershell
+# Create environment files
+New-Item -ItemType File -Path ".env.local" -Force
+New-Item -ItemType File -Path ".env.example" -Force
+# Expected output: Environment files created
+
+# Verify .gitignore excludes sensitive env files
+Get-Content .gitignore | Select-String "\.env"
+# Expected output: Should show .env files are ignored
+```
+
+**Expected result**: Environment files are created and sensitive files are excluded from git.
+
+### Step 2: Configure Environment File Hierarchy
+
+Set up `.env.example` with all required variables (no sensitive values):
+
+```bash
+# Database Configuration
+DATABASE_URL=postgresql://user:password@localhost:5432/myapp
+DATABASE_URL_TEST=postgresql://user:password@localhost:5432/myapp_test
+
+# Authentication
+NEXTAUTH_SECRET=your-secret-here
+NEXTAUTH_URL=http://localhost:3000
+
+# External APIs
+NEXT_PUBLIC_API_URL=http://localhost:3001/api
+STRIPE_SECRET_KEY=sk_test_your_stripe_secret_key_here
+NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY=pk_test_your_stripe_publishable_key_here
+
+# Email Service
+RESEND_API_KEY=your_resend_api_key_here
+
+# Redis (optional)
+REDIS_URL=redis://localhost:6379
+
+# Application Configuration
+NODE_ENV=development
+NEXT_PUBLIC_APP_NAME=My App
+NEXT_PUBLIC_APP_VERSION=1.0.0
+```
+
+**Expected result**: Template file exists with all necessary configuration variables.
+
+### Step 3: Create Type-Safe Environment Configuration
+
+Create `src/lib/config/env.ts` for centralized environment management:
+
+```typescript
+import { z } from 'zod';
+
+// Define environment variable schema
+const envSchema = z.object({
+  // Node Environment
+  NODE_ENV: z.enum(['development', 'test', 'production']).default('development'),
+  
+  // Database
+  DATABASE_URL: z.string().url('DATABASE_URL must be a valid URL'),
+  DATABASE_URL_TEST: z.string().url().optional(),
+  
+  // Authentication
+  NEXTAUTH_SECRET: z.string().min(32, 'NEXTAUTH_SECRET must be at least 32 characters'),
+  NEXTAUTH_URL: z.string().url('NEXTAUTH_URL must be a valid URL'),
+  
+  // External APIs
+  STRIPE_SECRET_KEY: z.string().startsWith('sk_', 'STRIPE_SECRET_KEY must start with sk_'),
+  RESEND_API_KEY: z.string().optional(),
+  
+  // Redis (optional)
+  REDIS_URL: z.string().url().optional(),
+});
+
+// Define client-side environment variables (NEXT_PUBLIC_*)
+const clientEnvSchema = z.object({
+  NEXT_PUBLIC_API_URL: z.string().url('NEXT_PUBLIC_API_URL must be a valid URL'),
+  NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY: z.string().startsWith('pk_', 'NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY must start with pk_'),
+  NEXT_PUBLIC_APP_NAME: z.string().min(1, 'NEXT_PUBLIC_APP_NAME is required'),
+  NEXT_PUBLIC_APP_VERSION: z.string().min(1, 'NEXT_PUBLIC_APP_VERSION is required'),
+});
+
+// Parse and validate environment variables
+const serverEnv = envSchema.parse(process.env);
+const clientEnv = clientEnvSchema.parse({
+  NEXT_PUBLIC_API_URL: process.env.NEXT_PUBLIC_API_URL,
+  NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY: process.env.NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY,
+  NEXT_PUBLIC_APP_NAME: process.env.NEXT_PUBLIC_APP_NAME,
+  NEXT_PUBLIC_APP_VERSION: process.env.NEXT_PUBLIC_APP_VERSION,
+});
+
+// Export validated environment variables
+export const env = {
+  ...serverEnv,
+  ...clientEnv,
+} as const;
+
+// Type-safe environment access
+export type Env = typeof env;
+
+// Helper functions
+export const isDevelopment = env.NODE_ENV === 'development';
+export const isProduction = env.NODE_ENV === 'production';
+export const isTest = env.NODE_ENV === 'test';
+
+// Database URL selector
+export const getDatabaseUrl = () => {
+  if (isTest && env.DATABASE_URL_TEST) {
+    return env.DATABASE_URL_TEST;
+  }
+  return env.DATABASE_URL;
+};
+
+export default env;
+```
+
+**Expected result**: Type-safe environment configuration with validation and helper functions.
+
+### Step 4: Install Required Dependencies
+
+Install Zod for environment variable validation:
+
+```powershell
+npm install zod
+# Expected output: Zod installed successfully
+```
+
+**Expected result**: Zod is installed for schema validation.
+
+### Step 5: Create Environment Variable Types
+
+Create `src/env.d.ts` for TypeScript environment variable types:
+
+```typescript
+declare global {
+  namespace NodeJS {
+    interface ProcessEnv {
+      // Node Environment
+      NODE_ENV: 'development' | 'test' | 'production';
+      
+      // Database
+      DATABASE_URL: string;
+      DATABASE_URL_TEST?: string;
+      
+      // Authentication
+      NEXTAUTH_SECRET: string;
+      NEXTAUTH_URL: string;
+      
+      // External APIs
+      STRIPE_SECRET_KEY: string;
+      RESEND_API_KEY?: string;
+      
+      // Client-side variables (NEXT_PUBLIC_*)
+      NEXT_PUBLIC_API_URL: string;
+      NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY: string;
+      NEXT_PUBLIC_APP_NAME: string;
+      NEXT_PUBLIC_APP_VERSION: string;
+      
+      // Optional
+      REDIS_URL?: string;
+    }
+  }
+}
+
+export {};
+```
+
+**Expected result**: TypeScript provides autocomplete and type checking for environment variables.
+
+### Step 6: Usage Patterns
+
+Use environment variables correctly throughout the application:
+
+```typescript
+// ✅ Server-side usage (API routes, server components)
+import { env } from '@/lib/config/env';
+
+export default async function handler() {
+  // Access validated environment variables
+  const stripeSecretKey = env.STRIPE_SECRET_KEY;
+  const databaseUrl = env.DATABASE_URL;
+  
+  // Use helper functions
+  if (env.isDevelopment) {
+    console.log('Development mode');
+  }
+}
+
+// ✅ Client-side usage (only NEXT_PUBLIC_* variables)
+import { env } from '@/lib/config/env';
+
+export default function Component() {
+  // These are safe to use on client-side
+  const apiUrl = env.NEXT_PUBLIC_API_URL;
+  const appName = env.NEXT_PUBLIC_APP_NAME;
+  
+  return <div>{appName}</div>;
+}
+```
+
+**Expected result**: Environment variables are used securely with proper client/server separation.
+
+## Environment Variable Security Standards
+
+### Client vs Server Variables
+
+**Server-only variables (sensitive):**
+- Database URLs, API keys, secrets
+- Authentication secrets
+- Third-party service keys
+- Should NOT have `NEXT_PUBLIC_` prefix
+
+**Client-side variables (public):**
+- Public API endpoints
+- Feature flags for UI
+- Public configuration values
+- MUST have `NEXT_PUBLIC_` prefix
+
+### Naming Conventions
+
+```bash
+# ✅ Correct naming
+DATABASE_URL=postgresql://...
+STRIPE_SECRET_KEY=sk_...
+NEXT_PUBLIC_API_URL=https://api.example.com
+NEXT_PUBLIC_FEATURE_ENABLED=true
+
+# ❌ Incorrect naming
+db_url=postgresql://...
+StripeSecretKey=sk_...
+API_URL=https://api.example.com  # Missing NEXT_PUBLIC_ for client use
+NEXT_PUBLIC_SECRET_KEY=sk_...    # Sensitive data with public prefix
+```
+
+### Environment File Priority
+
+Next.js loads environment files in this order (higher priority overwrites lower):
+1. `.env.local` (all environments, should be git-ignored)
+2. `.env.development`, `.env.production`, `.env.test` (environment-specific)
+3. `.env` (all environments, checked into git)
+
+## Verification Steps
+
+How to confirm the rule was followed correctly:
+- [ ] Environment variables are properly validated with Zod schema
+- [ ] TypeScript provides autocomplete for environment variables
+- [ ] Client-side code only accesses NEXT_PUBLIC_ variables
+- [ ] Sensitive variables are excluded from client bundle
+- [ ] .env.example contains all required variables without sensitive values
+
+**Success criteria verification:**
+```powershell
+# Test environment variable validation
+npm run dev
+# Should start without validation errors
+
+# Check if sensitive variables are excluded from client bundle
+npm run build
+Get-Content .next/static/chunks/*.js | Select-String "DATABASE_URL"
+# Should return no matches (sensitive vars not in client bundle)
+
+# Verify TypeScript integration
+# Open VS Code and type 'process.env.' - should show autocomplete
+```
+
+## Build vs Runtime Environment Validation
+
+### Critical Pattern: Handling Docker and Build Contexts
+
+**Problem**: Environment validation fails during Next.js build or Docker build because variables aren't available during static generation.
+
+**Common Error:**
+```
+Error [ZodError]: [
+  {
+    "code": "invalid_type",
+    "expected": "string", 
+    "received": "undefined",
+    "path": ["DATABASE_URL"],
+    "message": "Required"
+  }
+]
+```
+
+**Root Cause**: Zod validation runs during Next.js static generation phase when environment variables may not be available.
+
+**Solution Pattern:**
+```typescript
+// Build-time detection utility
+const isBuildTime = () => {
+  // Next.js build phase detection
+  if (process.env.NEXT_PHASE === 'phase-production-build') return true;
+  if (process.env.npm_lifecycle_event === 'build') return true;
+  
+  // Docker build context detection  
+  if (process.env.NODE_ENV === 'production' && !process.env.DATABASE_URL) return true;
+  
+  return false;
+};
+
+// Environment parsing with build-time safety
+function parseServerEnv() {
+  if (isBuildTime()) {
+    console.warn('⚠️  Environment validation skipped during build');
+    return {
+      // Provide placeholder values that satisfy schema validation
+      NODE_ENV: (process.env.NODE_ENV as 'development' | 'test' | 'production') || 'development',
+      DATABASE_URL: process.env.DATABASE_URL || 'postgresql://placeholder',
+      NEXTAUTH_SECRET: process.env.NEXTAUTH_SECRET || 'placeholder-secret-key-minimum-32-chars',
+      NEXTAUTH_URL: process.env.NEXTAUTH_URL || 'http://localhost:3000',
+      STRIPE_SECRET_KEY: process.env.STRIPE_SECRET_KEY || 'sk_test_placeholder',
+      // ... other required fields with safe defaults
+    };
+  }
+  
+  // Normal validation for runtime
+  return envSchema.parse(process.env);
+}
+
+// Runtime validation function
+export function validateRuntimeEnv() {
+  if (typeof window !== 'undefined') return; // Skip on client-side
+  
+  // Skip validation during build time
+  if (isBuildTime()) {
+    console.warn('⚠️  Runtime environment validation skipped during build');
+    return;
+  }
+  
+  try {
+    envSchema.parse(process.env);
+    console.log('✅ Environment validation passed');
+  } catch (error) {
+    console.error('❌ Environment validation failed:', error);
+    if (process.env.NODE_ENV === 'production') {
+      throw new Error('Invalid environment configuration in production');
+    }
+  }
+}
+```
+
+**When to Use This Pattern:**
+- Docker builds with Next.js applications
+- CI/CD pipelines that run `npm run build`
+- Static site generation with server-side environment variables
+- Any context where build-time and runtime environments differ
+
+**Integration with Application Layout:**
+```typescript
+// app/layout.tsx
+import { validateRuntimeEnv } from '@/lib/config/env';
+
+// Validate environment at runtime (not during build)
+validateRuntimeEnv();
+
+export default function RootLayout({ children }) {
+  return (
+    <html>
+      <body>{children}</body>
+    </html>
+  );
+}
+```
+
+## Troubleshooting Common Issues
+
+### Problem: Environment Variables Not Loading
+**Symptoms**: 
+- Variables undefined in application
+- Validation errors on startup
+
+**Solution**: 
+```powershell
+# Check if .env.local exists and has correct variables
+Test-Path .env.local
+Get-Content .env.local | Select-String "DATABASE_URL"
+
+# Restart development server
+npm run dev
+```
+
+### Problem: Environment Validation During Build
+**Symptoms**:
+- Docker build fails with Zod validation errors
+- `npm run build` fails with missing environment variables
+- Static generation errors in CI/CD
+
+**Solution**:
+```powershell
+# 1. Implement build-time detection pattern (see above)
+# 2. Test locally before Docker build
+npm run lint
+npx tsc --noEmit
+npm run build  # Should pass with build-time detection
+
+# 3. Then proceed with Docker build
+docker-compose build
+```
+
+### Problem: Sensitive Data in Client Bundle
+**Symptoms**: 
+- Database URLs or secrets visible in browser
+- Security warnings in production
+
+**Solution**: 
+```powershell
+# Check for NEXT_PUBLIC_ prefix on sensitive variables
+Get-Content .env.local | Select-String "NEXT_PUBLIC_.*SECRET"
+# Should return no matches
+
+# Remove NEXT_PUBLIC_ prefix from sensitive variables
+# Rebuild the application
+npm run build
+```
+
+### Problem: TypeScript Type Errors
+**Symptoms**: 
+- TypeScript errors about undefined environment variables
+- Missing autocomplete for env vars
+
+**Solution**: 
+```powershell
+# Verify env.d.ts exists and is properly configured
+Test-Path src/env.d.ts
+Get-Content src/env.d.ts | Select-String "ProcessEnv"
+
+# Restart TypeScript server in VS Code: Ctrl+Shift+P > "TypeScript: Restart TS Server"
+```
+
+## Success Criteria
+
+The rule implementation is complete when:
+- [x] All environment variables are validated with Zod schema
+- [x] TypeScript provides full type safety for environment variables
+- [x] Client/server separation is properly enforced
+- [x] Sensitive data is never exposed to client-side code
+- [x] Development workflow includes proper environment file management
+
+## Examples
+
+✅ **Correct Implementation:**
+```typescript
+// lib/config/env.ts - Centralized configuration
+import { z } from 'zod';
+
+const envSchema = z.object({
+  DATABASE_URL: z.string().url(),
+  NEXTAUTH_SECRET: z.string().min(32),
+});
+
+export const env = envSchema.parse(process.env);
+
+// components/ApiClient.tsx - Proper usage
+import { env } from '@/lib/config/env';
+
+export function ApiClient() {
+  // ✅ Using public environment variable on client
+  const apiUrl = env.NEXT_PUBLIC_API_URL;
+  
+  return <div>API: {apiUrl}</div>;
+}
+
+// api/database.ts - Server-side usage
+import { env } from '@/lib/config/env';
+
+export function connectDatabase() {
+  // ✅ Using sensitive variable on server only
+  return connect(env.DATABASE_URL);
+}
+```
+
+❌ **Incorrect Implementation:**
+```typescript
+// ❌ Direct process.env access without validation
+export function connectDatabase() {
+  return connect(process.env.DATABASE_URL); // No validation
+}
+
+// ❌ Using sensitive data on client-side
+export function ClientComponent() {
+  const dbUrl = process.env.DATABASE_URL; // Exposed to client!
+  return <div>{dbUrl}</div>;
+}
+
+// ❌ Inconsistent naming
+const API_key = process.env.api_key; // Poor naming convention
+const publicUrl = process.env.NEXT_PUBLIC_SECRET; // Conflicting naming
+```
+
+---
+
+**Note**: This rule ensures secure and type-safe environment variable management across all environments while preventing accidental exposure of sensitive data to client-side code.
+

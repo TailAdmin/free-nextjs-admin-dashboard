@@ -1,0 +1,425 @@
+---
+description: Used when creating migrations for a databases using Prisma migrate
+globs: 
+alwaysApply: false
+---
+# Database Migration Standards (Prisma)
+
+Comprehensive standards for managing database schema changes with Prisma Migrate, ensuring safe team collaboration, version control integration, and coordinated deployments across all environments.
+
+## Prerequisites
+
+Before implementing these standards, ensure:
+- Prisma 5.0+ with PostgreSQL configured (following db-schema-standards.mdc)
+- Git repository configured (following git-standards.mdc)
+- Development and staging database environments available
+- Team members understand Git branching workflow
+- CI/CD pipeline configured for database deployments
+- Windows PowerShell for command execution
+
+## Core Principle
+
+**ALWAYS create descriptive, reviewable migrations that maintain database integrity across all environments while enabling safe team collaboration through version-controlled schema changes.**
+
+## Migration Workflow Standards
+
+### Step 1: Branch Creation for Schema Changes
+```powershell
+# Create feature branch for schema changes (following git-standards.mdc)
+git checkout main
+git pull origin main
+git checkout -b feature/TICKET-123-add-user-profile-model
+
+# Verify clean starting point
+git status
+```
+
+**Expected result**: New feature branch created for isolated schema development.
+
+### Step 2: Schema Development and Migration Creation
+```powershell
+# Make schema changes in prisma/schema.prisma
+# Example: Add new model or modify existing fields
+
+# Create migration with descriptive name
+npx prisma migrate dev --name add-user-profile-model
+
+# Verify migration files created
+Get-ChildItem -Path "prisma\migrations" -Recurse | Select-Object Name, LastWriteTime
+```
+
+**Expected result**: Migration files created with descriptive names and proper SQL generated.
+
+### Step 3: Migration Review and Testing
+```powershell
+# Validate migration syntax and schema
+npx prisma validate
+npx prisma generate
+
+# Test migration rollback capability (on development database)
+npx prisma migrate reset --force
+npx prisma migrate dev
+
+# Verify database state matches schema
+npx prisma db pull --print | Out-File -FilePath "temp-schema-check.prisma"
+```
+
+**Expected result**: Migration validated, tested, and database state verified.
+
+## Migration Naming Conventions
+
+### Descriptive Migration Names
+```powershell
+# ✅ Correct migration naming patterns
+
+# Feature additions
+npx prisma migrate dev --name add-user-profile-model
+npx prisma migrate dev --name add-post-categories-relationship
+npx prisma migrate dev --name add-user-email-verification
+
+# Field modifications
+npx prisma migrate dev --name update-user-email-length-constraint
+npx prisma migrate dev --name add-post-published-at-index
+npx prisma migrate dev --name make-user-name-required
+
+# Performance improvements
+npx prisma migrate dev --name add-composite-index-user-status-created
+npx prisma migrate dev --name optimize-post-search-indexes
+
+# Data migrations
+npx prisma migrate dev --name migrate-user-status-enum-values
+npx prisma migrate dev --name backfill-post-slug-from-title
+
+# Bug fixes
+npx prisma migrate dev --name fix-user-profile-foreign-key-constraint
+npx prisma migrate dev --name correct-order-total-decimal-precision
+
+# ❌ Incorrect migration names (avoid these)
+npx prisma migrate dev --name migration1
+npx prisma migrate dev --name update
+npx prisma migrate dev --name changes
+npx prisma migrate dev --name fix
+```
+
+### Migration File Organization
+```powershell
+# Verify migration directory structure
+Get-ChildItem -Path "prisma\migrations" | Sort-Object Name
+
+# Expected structure:
+# prisma/migrations/
+# ├── 20240101120000_init/
+# │   └── migration.sql
+# ├── 20240115140000_add_user_profile_model/
+# │   └── migration.sql
+# └── 20240120160000_add_post_categories_relationship/
+#     └── migration.sql
+```
+
+## Team Collaboration Workflow
+
+### Development Environment Setup
+```powershell
+# Initial team member setup
+git clone <repository-url>
+Set-Location "project-directory"
+
+# Install dependencies
+npm install
+
+# Apply existing migrations to local database
+npx prisma migrate dev
+
+# Generate Prisma Client
+npx prisma generate
+```
+
+**Expected result**: Local development environment synchronized with current schema.
+
+### Pulling Latest Migration Changes
+```powershell
+# Pull latest changes from main branch
+git checkout main
+git pull origin main
+
+# Apply any new migrations
+npx prisma migrate dev
+
+# Regenerate client for new schema changes
+npx prisma generate
+
+# Verify database schema is current
+npx prisma validate
+```
+
+**Expected result**: Local database updated with team's latest schema changes.
+
+### Handling Migration Conflicts
+```powershell
+# When migration conflicts occur during team development
+
+# Reset local development database
+npx prisma migrate reset --force
+
+# Pull latest changes and reapply
+git pull origin main
+npx prisma migrate dev
+
+# If conflicts persist, resolve manually:
+# 1. Review conflicting migration files
+# 2. Coordinate with team members
+# 3. Create resolution migration if needed
+npx prisma migrate dev --name resolve-migration-conflicts
+```
+
+**Expected result**: Migration conflicts resolved with coordinated team approach.
+
+## Production Migration Strategy
+
+### Staging Environment Validation
+```powershell
+# Deploy to staging environment first
+# Backup staging database before migration
+pg_dump -h staging-host -U username -d staging_db > staging_backup.sql
+
+# Apply migrations to staging
+npx prisma migrate dev --name <migration-name>
+
+# Validate staging deployment
+npx prisma validate
+npx prisma generate
+
+# Run integration tests on staging
+npm run test:integration
+```
+
+**Expected result**: Staging environment successfully updated and validated.
+
+### Production Deployment Process
+```powershell
+# Production migration deployment (run in production environment)
+
+# 1. Backup production database
+pg_dump -h prod-host -U username -d prod_db > prod_backup_$(Get-Date -Format "yyyyMMdd_HHmmss").sql
+
+# 2. Apply migrations with production command
+npx prisma migrate deploy
+
+# 3. Verify deployment
+npx prisma db pull --print
+
+# 4. Generate client for production
+npx prisma generate
+```
+
+**Expected result**: Production database safely updated with new schema.
+
+## Migration Safety Standards
+
+### Pre-Migration Checklist
+```powershell
+# Verify migration safety before applying
+function Test-MigrationSafety {
+    param($MigrationPath)
+    
+    Write-Output "Checking migration safety for: $MigrationPath"
+    
+    # Check for destructive operations
+    $migrationContent = Get-Content "$MigrationPath\migration.sql"
+    
+    $destructivePatterns = @(
+        "DROP TABLE",
+        "DROP COLUMN", 
+        "ALTER COLUMN.*DROP",
+        "TRUNCATE"
+    )
+    
+    foreach ($pattern in $destructivePatterns) {
+        if ($migrationContent -match $pattern) {
+            Write-Warning "Potentially destructive operation found: $pattern"
+            Write-Output "Review required before production deployment"
+        }
+    }
+}
+
+# Usage
+Test-MigrationSafety "prisma\migrations\20240120160000_add_user_profile"
+```
+
+### Data Migration Patterns
+```sql
+-- ✅ Correct data migration approach
+-- Example: Adding non-nullable field with default value
+
+-- Step 1: Add field as nullable
+ALTER TABLE "users" ADD COLUMN "status" TEXT;
+
+-- Step 2: Backfill existing data
+UPDATE "users" SET "status" = 'ACTIVE' WHERE "status" IS NULL;
+
+-- Step 3: Make field non-nullable (in separate migration)
+ALTER TABLE "users" ALTER COLUMN "status" SET NOT NULL;
+
+-- ❌ Incorrect approach (can cause data loss)
+-- Adding non-nullable field without default or backfill
+-- ALTER TABLE "users" ADD COLUMN "status" TEXT NOT NULL;
+```
+
+## Environment-Specific Configurations
+
+### Development Environment
+```powershell
+# Development-specific migration settings
+# Use .env.local for development database
+$env:DATABASE_URL = "postgresql://dev_user:dev_pass@localhost:5432/myapp_dev"
+
+# Allow reset and experimental changes
+npx prisma migrate reset --force  # OK in development
+npx prisma db push                # OK for prototyping in development
+```
+
+### Production Environment
+```powershell
+# Production-specific migration settings
+# Use secure connection and proper credentials
+$env:DATABASE_URL = "postgresql://prod_user:secure_pass@prod-host:5432/myapp_prod"
+
+# Only use safe migration commands
+npx prisma migrate deploy         # Safe for production
+# NEVER use: npx prisma migrate reset in production
+# NEVER use: npx prisma db push in production
+```
+
+## Verification Steps
+
+### Step 1: Validate Migration Integrity
+```powershell
+# Check migration files for issues
+Get-ChildItem -Path "prisma\migrations" -Recurse -Filter "migration.sql" | ForEach-Object {
+    Write-Output "Checking: $($_.FullName)"
+    $content = Get-Content $_.FullName
+    if ($content -match "syntax error|invalid|error") {
+        Write-Warning "Potential issue in $($_.FullName)"
+    }
+}
+```
+
+**Expected result**: All migration files pass syntax validation.
+
+### Step 2: Test Migration Rollback Strategy
+```powershell
+# Test rollback capability on development database
+# Create database backup point
+pg_dump -h localhost -U dev_user -d myapp_dev > rollback_test_backup.sql
+
+# Apply new migration
+npx prisma migrate dev --name test-rollback-capability
+
+# Test rollback by restoring backup
+psql -h localhost -U dev_user -d myapp_dev < rollback_test_backup.sql
+
+# Verify rollback success
+npx prisma db pull --print
+```
+
+**Expected result**: Rollback strategy validated and working.
+
+### Step 3: Verify Team Synchronization
+```powershell
+# Check that all team members can apply migrations
+git pull origin main
+npx prisma migrate dev
+
+# Verify schema matches expected state
+npx prisma validate
+npx prisma generate
+
+# Run tests to ensure application compatibility
+npm run test
+```
+
+**Expected result**: All team members synchronized with latest schema.
+
+## Troubleshooting Common Issues
+
+### Problem: Migration History Conflicts
+**Symptoms**: 
+- Migration apply fails with history conflicts
+- Team members have different migration states
+
+**Solution**: 
+```powershell
+# Resolve migration history conflicts
+# 1. Coordinate with team to determine correct state
+# 2. Reset development database if necessary
+npx prisma migrate reset --force
+
+# 3. Pull latest migrations and reapply
+git pull origin main
+npx prisma migrate dev
+
+# 4. If conflicts persist, use migrate resolve
+npx prisma migrate resolve --applied <migration-id>
+```
+
+### Problem: Failed Migration in Production
+**Symptoms**: 
+- Migration fails partway through deployment
+- Database in inconsistent state
+
+**Solution**: 
+```powershell
+# Recovery process for failed production migration
+# 1. Immediately assess database state
+npx prisma db pull --print > current_schema_state.prisma
+
+# 2. Restore from backup if necessary
+psql -h prod-host -U username -d prod_db < prod_backup_latest.sql
+
+# 3. Mark migration as resolved if partially applied
+npx prisma migrate resolve --applied <failed-migration-id>
+
+# 4. Create fix-up migration for any remaining issues
+npx prisma migrate dev --name fix-failed-production-migration
+```
+
+### Problem: Schema Drift Between Environments
+**Symptoms**: 
+- Production schema differs from migration history
+- Prisma migrate complains about schema drift
+
+**Solution**: 
+```powershell
+# Detect and resolve schema drift
+# 1. Compare schemas
+npx prisma db pull --print > actual_schema.prisma
+
+# 2. Generate diff migration to resolve drift
+npx prisma migrate diff --from-empty --to-schema-datamodel actual_schema.prisma --script
+
+# 3. Create baseline migration if needed
+npx prisma migrate dev --name resolve-schema-drift
+```
+
+## Success Criteria
+
+The migration standards are implemented when:
+- [x] **All migrations have descriptive names** following naming conventions
+- [x] **Migration workflow integrates with Git** standards and team collaboration
+- [x] **Production deployments follow safe procedures** with backup and validation
+- [x] **Team members can synchronize** database changes without conflicts
+- [x] **Rollback strategy is tested** and documented for emergency scenarios
+- [x] **Environment-specific configurations** are properly managed
+
+## Integration with Existing Rules
+
+This rule integrates with:
+- **Git Standards**: Migration workflow follows established Git branching patterns
+- **Security Standards**: Database credentials and environment variable management
+- **Testing Standards**: Migration testing and validation procedures
+- **Code Quality Standards**: Migration file organization and documentation
+
+---
+
+**Note**: This rule ensures safe, coordinated database schema evolution across all environments while maintaining team productivity and system reliability.
+

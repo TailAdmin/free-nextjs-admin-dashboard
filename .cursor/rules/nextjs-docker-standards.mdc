@@ -1,0 +1,559 @@
+---
+description: Used when working with docker containers in a NextJS project
+globs: 
+alwaysApply: false
+---
+# Next.js Docker Standards
+
+Best practices for containerizing Next.js applications with modern dependencies like Prisma ORM, Tailwind CSS v4, and other CSS frameworks requiring native binary compilation.
+
+## Prerequisites
+
+- Docker 20.0+ and Docker Compose 2.0+
+- Next.js 15+ application with App Router
+- Understanding of multi-stage Docker builds
+- Modern dependencies that may require native compilation (Tailwind CSS v4, Prisma, etc.)
+
+## Core Principle
+
+**Use proven Docker patterns that handle Next.js and modern JavaScript ecosystem dependencies correctly, prioritizing compatibility and build reliability over image size optimization.**
+
+## Base Image Selection
+
+### Use Debian-based Images for Modern Dependencies
+
+```dockerfile
+# ✅ CORRECT: Use Debian-based for Next.js with native dependencies
+FROM node:20-slim AS base
+
+# ❌ AVOID: Alpine for Next.js apps with native dependencies
+# FROM node:20-alpine AS base
+```
+
+**Why Debian over Alpine for Next.js:**
+- Better compatibility with native binaries (LightningCSS, sharp, etc.)
+- glibc vs musl compatibility issues resolved
+- More predictable builds with modern CSS frameworks (Tailwind CSS v4)
+- Better support for Prisma native binary dependencies
+
+### Required Build Dependencies
+
+```dockerfile
+# Install build dependencies for native compilation
+FROM base AS deps
+RUN apt-get update && apt-get install -y --no-install-recommends \
+    python3 \
+    make \
+    g++ \
+    && rm -rf /var/lib/apt/lists/*
+```
+
+## Next.js Dependency Installation Strategy
+
+### Install All Dependencies for Build Process
+
+```dockerfile
+# ✅ CORRECT: Install all dependencies (including dev)
+COPY package.json package-lock.json* ./
+COPY prisma ./prisma  # Copy schema before npm install
+RUN npm ci  # Includes devDependencies needed for build
+
+# ❌ INCORRECT: Production only misses build dependencies
+# RUN npm ci --only=production
+```
+
+**Rationale for Next.js:**
+- Modern CSS frameworks (Tailwind CSS v4) are often in devDependencies
+- Next.js build tools and plugins are required during Docker build process
+- TypeScript and build optimization tools are in devDependencies
+- Runtime optimization happens in final image layer
+
+## File Copying Order Best Practices
+
+### Critical: Copy Schema Files Before npm install
+
+```dockerfile
+# ✅ CORRECT ORDER for Next.js with Prisma
+COPY package.json package-lock.json* ./
+COPY prisma ./prisma  # Required for postinstall scripts
+RUN npm ci
+
+# ❌ INCORRECT ORDER - Causes postinstall failures
+# COPY package.json package-lock.json* ./
+# RUN npm ci  # Fails if postinstall needs schema files
+# COPY prisma ./prisma
+```
+
+### Complete Next.js Multi-Stage Build Pattern
+
+```dockerfile
+# Use the official Node.js 20 image (Debian-based for compatibility)
+FROM node:20-slim AS base
+
+# Install dependencies only when needed
+FROM base AS deps
+RUN apt-get update && apt-get install -y --no-install-recommends \
+    python3 \
+    make \
+    g++ \
+    openssl \
+    && rm -rf /var/lib/apt/lists/*
+WORKDIR /app
+
+# Copy package files and required schemas BEFORE npm install
+COPY package.json package-lock.json* ./
+COPY prisma ./prisma
+
+# Install all dependencies (including dev dependencies needed for build)
+RUN npm ci
+
+# Build stage
+FROM base AS builder
+WORKDIR /app
+RUN apt-get update && apt-get install -y --no-install-recommends \
+    python3 \
+    make \
+    g++ \
+    openssl \
+    && rm -rf /var/lib/apt/lists/*
+
+COPY --from=deps /app/node_modules ./node_modules
+COPY . .
+
+# Generate database client if needed
+RUN npx prisma generate
+
+# Build the Next.js application
+RUN npm run build
+
+# Production image
+FROM base AS runner
+WORKDIR /app
+
+ENV NODE_ENV=production
+
+# Install OpenSSL for Prisma runtime detection
+RUN apt-get update && apt-get install -y --no-install-recommends \
+    openssl \
+    && rm -rf /var/lib/apt/lists/*
+
+RUN groupadd --system --gid 1001 nodejs
+RUN useradd --system --uid 1001 nextjs
+
+# Copy built Next.js application
+COPY --from=builder /app/public ./public
+COPY --from=builder --chown=nextjs:nodejs /app/.next/standalone ./
+COPY --from=builder --chown=nextjs:nodejs /app/.next/static ./.next/static
+
+# Copy database schema and generated client
+COPY --from=builder /app/prisma ./prisma
+COPY --from=builder /app/generated ./generated
+
+USER nextjs
+
+EXPOSE 3000
+
+ENV PORT=3000
+ENV HOSTNAME="0.0.0.0"
+
+CMD ["node", "server.js"]
+```
+
+## Next.js Specific Configuration
+
+### Required next.config.ts Settings for Docker
+
+```typescript
+import type { NextConfig } from "next";
+
+const nextConfig: NextConfig = {
+  // CRITICAL: Enable standalone output for Docker
+  output: 'standalone',
+
+  // External packages for server components
+  serverExternalPackages: ['@prisma/client'],
+
+  // Security headers for production
+  async headers() {
+    return [
+      {
+        source: '/(.*)',
+        headers: [
+          { key: 'X-Frame-Options', value: 'DENY' },
+          { key: 'X-Content-Type-Options', value: 'nosniff' },
+          { key: 'Referrer-Policy', value: 'origin-when-cross-origin' },
+          { key: 'X-XSS-Protection', value: '1; mode=block' },
+        ],
+      },
+    ];
+  },
+};
+
+export default nextConfig;
+```
+
+**Why `output: 'standalone'` is Critical:**
+- Creates a self-contained server.js file for Docker
+- Includes all necessary dependencies in the build output
+- Reduces the production image size significantly
+- Enables proper Next.js runtime in containers
+
+## Prisma Integration with Next.js
+
+### Schema and Client Generation
+
+```dockerfile
+# Copy schema before npm install (for postinstall scripts)
+COPY prisma ./prisma
+
+# Generate client after copying all files
+RUN npx prisma generate
+
+# Copy generated client to runtime image
+COPY --from=builder /app/generated ./generated
+```
+
+### CRITICAL: Prisma Binary Targets for Docker Compatibility
+
+**Reference Rule:** `db-client-standards.mdc` Step 2.5
+
+Configure multiple binary targets to prevent Prisma engine mismatches in Docker:
+
+```prisma
+generator client {
+  provider = "prisma-client-js"
+  output   = "../generated/prisma"
+  // CRITICAL: Multiple binary targets prevent Docker deployment crashes
+  binaryTargets = ["native", "debian-openssl-1.1.x", "debian-openssl-3.0.x", "linux-musl", "linux-musl-openssl-3.0.x"]
+}
+```
+
+**Common Error Without Binary Targets:**
+```
+Error [PrismaClientInitializationError]: Prisma Client could not locate the Query Engine for runtime "debian-openssl-1.1.x".
+This happened because Prisma Client was generated for "debian-openssl-3.0.x", but the actual deployment required "debian-openssl-1.1.x".
+```
+
+**Why This Happens:**
+- Development environment uses different OpenSSL version than Docker
+- Node.js Docker images often use different OpenSSL than local development
+- Missing binary targets cause runtime crashes in production
+
+### Custom Output Path Handling
+
+If using custom Prisma output for Next.js:
+
+```prisma
+generator client {
+  provider = "prisma-client-js"
+  output   = "../generated/prisma"
+  binaryTargets = ["native", "debian-openssl-1.1.x", "debian-openssl-3.0.x", "linux-musl", "linux-musl-openssl-3.0.x"]
+}
+```
+
+Ensure both `prisma` and `generated` directories are copied to runtime image.
+
+## Next.js Docker Compose Configuration
+
+```yaml
+services:
+  app:
+    build: .
+    ports:
+      - "3000:3000"
+    environment:
+      - NODE_ENV=production
+      - DATABASE_URL=postgresql://user:password@db:5432/dbname
+    depends_on:
+      - db
+      - redis
+
+  db:
+    image: postgres:15-alpine
+    environment:
+      POSTGRES_USER: user
+      POSTGRES_PASSWORD: password
+      POSTGRES_DB: dbname
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+      - ./scripts/init-db.sql:/docker-entrypoint-initdb.d/init.sql
+    ports:
+      - "5432:5432"
+
+  redis:
+    image: redis:7-alpine
+    ports:
+      - "6379:6379"
+    volumes:
+      - redis_data:/data
+
+volumes:
+  postgres_data:
+  redis_data:
+```
+
+## Troubleshooting Common Next.js Docker Issues
+
+### Problem: Tailwind CSS v4 "Cannot find module" during build
+
+**Symptoms:**
+- Build fails with missing LightningCSS module errors
+- Errors related to native binaries in CSS frameworks
+
+**Solution:**
+```dockerfile
+# Ensure Debian-based image and build tools
+FROM node:20-slim AS base  # Not Alpine
+
+# Install build dependencies
+RUN apt-get update && apt-get install -y --no-install-recommends \
+    python3 make g++ && rm -rf /var/lib/apt/lists/*
+
+# Use full npm ci (includes devDependencies with Tailwind)
+RUN npm ci
+```
+
+### Problem: Next.js build fails with "Module not found" in production
+
+**Symptoms:**
+- Next.js build completes but runtime errors about missing modules
+- Server.js fails to start in container
+
+**Solution:**
+```typescript
+// next.config.ts - Add to serverExternalPackages
+const nextConfig: NextConfig = {
+  output: 'standalone',
+  serverExternalPackages: ['@prisma/client', 'bcryptjs', 'jsonwebtoken'],
+};
+```
+
+### Problem: Prisma postinstall script failures in Next.js
+
+**Symptoms:**
+- "Schema not found" during npm install
+- Prisma generate fails in Docker build
+
+**Solution:**
+```dockerfile
+# Copy schema BEFORE npm install
+COPY package.json package-lock.json* ./
+COPY prisma ./prisma  # Critical: Before npm ci
+RUN npm ci
+```
+
+### Problem: Prisma binary target mismatch in Docker
+
+**Symptoms:**
+- `PrismaClientInitializationError` during container startup
+- "Query Engine for runtime not found" errors
+- Application works in development but crashes in Docker
+
+**Solution:**
+```prisma
+generator client {
+  provider = "prisma-client-js"
+  // CRITICAL: Add multiple binary targets for Docker compatibility
+  binaryTargets = ["native", "debian-openssl-1.1.x", "debian-openssl-3.0.x", "linux-musl", "linux-musl-openssl-3.0.x"]
+}
+```
+
+**Complete Fix Process:**
+```powershell
+# Update schema with binary targets
+npx prisma generate
+docker-compose down
+docker-compose build --no-cache
+docker-compose up -d
+```
+
+### Problem: Prisma OpenSSL detection warning in Docker
+
+**Symptoms:**
+- `prisma:warn Prisma failed to detect the libssl/openssl version to use`
+- "Defaulting to openssl-1.1.x" warning messages
+- "Please manually install OpenSSL via apt-get" error message
+
+**Root Cause:**
+- Docker base images (node:20-slim) don't include OpenSSL by default
+- Prisma requires OpenSSL for runtime operation and version detection
+
+**Solution:**
+Install OpenSSL in all Docker stages where Prisma is used:
+
+```dockerfile
+# Add openssl to all stages
+FROM base AS deps
+RUN apt-get update && apt-get install -y --no-install-recommends \
+    python3 \
+    make \
+    g++ \
+    openssl \
+    && rm -rf /var/lib/apt/lists/*
+
+# Also in builder stage
+FROM base AS builder
+RUN apt-get update && apt-get install -y --no-install-recommends \
+    python3 \
+    make \
+    g++ \
+    openssl \
+    && rm -rf /var/lib/apt/lists/*
+
+# CRITICAL: Also in runtime stage
+FROM base AS runner
+# Install OpenSSL for Prisma runtime detection
+RUN apt-get update && apt-get install -y --no-install-recommends \
+    openssl \
+    && rm -rf /var/lib/apt/lists/*
+```
+
+**Expected Result:** No more Prisma OpenSSL warnings and proper version detection.
+
+## Pre-Docker Validation Protocol
+
+**CRITICAL: Always validate locally before Docker build to prevent wasted time and resources.**
+
+```powershell
+# 1. Run ESLint validation
+npm run lint
+
+# 2. Run TypeScript type checking  
+npx tsc --noEmit
+
+# 3. Run Next.js build to catch environment/build issues
+npm run build
+
+# 4. Only then proceed with Docker build
+docker-compose build
+```
+
+**Why This Matters:**
+- Docker builds are slow and resource-intensive
+- Environment validation issues appear during Docker build phase
+- Local validation catches 90% of Docker build failures
+- Saves significant development time
+
+## Environment Validation in Docker Context
+
+### Problem: Zod Validation During Build vs Runtime
+
+**Common Error Pattern:**
+```
+Error [ZodError]: [
+  {
+    "code": "invalid_type", 
+    "expected": "string",
+    "received": "undefined",
+    "path": ["DATABASE_URL"],
+    "message": "Required"
+  }
+]
+```
+
+**Root Cause:** Environment validation running during Next.js static generation in Docker build.
+
+**Solution Pattern:**
+```typescript
+// Build-time detection function
+const isBuildTime = () => {
+  if (process.env.NEXT_PHASE === 'phase-production-build') return true;
+  if (process.env.npm_lifecycle_event === 'build') return true;
+  if (process.env.NODE_ENV === 'production' && !process.env.DATABASE_URL) return true;
+  return false;
+};
+
+// Environment parsing with build-time safety
+function parseServerEnv() {
+  if (isBuildTime()) {
+    console.warn('⚠️  Environment validation skipped during build');
+    return {
+      // Provide placeholder values that pass validation
+      DATABASE_URL: process.env.DATABASE_URL || 'postgresql://placeholder',
+      NEXTAUTH_SECRET: process.env.NEXTAUTH_SECRET || 'placeholder-secret-key-minimum-32-chars',
+      // ... other required fields
+    };
+  }
+  
+  return envSchema.parse(process.env);
+}
+
+// Runtime validation with build-time awareness
+export function validateRuntimeEnv() {
+  if (typeof window !== 'undefined') return; // Skip on client-side
+  if (isBuildTime()) {
+    console.warn('⚠️  Runtime environment validation skipped during build');
+    return;
+  }
+  
+  try {
+    envSchema.parse(process.env);
+    console.log('✅ Environment validation passed');
+  } catch (error) {
+    console.error('❌ Environment validation failed:', error);
+    if (process.env.NODE_ENV === 'production') {
+      throw new Error('Invalid environment configuration in production');
+    }
+  }
+}
+```
+
+### Docker Compose Environment Separation
+
+**Problem:** Development overrides conflicting with production builds.
+
+**Solution:** Use explicit compose file selection:
+
+```powershell
+# Development (with overrides)
+docker-compose -f docker-compose.yml -f docker-compose.override.yml up -d
+
+# Production (base only)
+docker-compose -f docker-compose.yml up -d
+
+# Production with production overrides
+docker-compose -f docker-compose.yml -f docker-compose.prod.yml up -d
+```
+
+## Validation Steps
+
+After implementing Next.js Docker configuration:
+
+```powershell
+# 1. Pre-Docker validation
+npm run lint
+npx tsc --noEmit  
+npm run build
+
+# 2. Build successfully
+docker-compose build
+
+# 3. Start all services
+docker-compose -f docker-compose.yml up -d
+
+# 4. Verify Next.js app is running
+docker-compose ps
+
+# 5. Check Next.js application accessibility
+# App should be available at http://localhost:3000
+
+# 6. Verify Next.js API routes work
+# Test API endpoints like http://localhost:3000/api/health
+```
+
+## Success Criteria
+
+Next.js Docker implementation is complete when:
+- [x] Docker build completes without errors on first attempt
+- [x] Next.js application starts successfully in Docker Compose
+- [x] Application is accessible on port 3000
+- [x] API routes respond correctly
+- [x] Database connections work from Next.js app
+- [x] Static assets load properly
+- [x] No native dependency compilation errors
+- [x] Next.js standalone mode functions correctly
+
+---
+
+**Note**: This rule ensures Next.js applications deploy reliably in Docker containers with modern dependencies and prevents common containerization issues specific to the Next.js ecosystem.
+

@@ -1,0 +1,432 @@
+---
+description: Used when designign a database and schema guidance is required
+globs: 
+alwaysApply: false
+---
+# Database Schema Standards (Prisma)
+
+Comprehensive standards for designing and maintaining Prisma schemas with PostgreSQL, ensuring scalable, maintainable, and type-safe data models that integrate seamlessly with NextJS applications.
+
+## Prerequisites
+
+Before implementing these standards, ensure:
+- PostgreSQL 14+ database server installed and configured
+- NextJS 15+ with TypeScript configured
+- Prisma 5.0+ installed in the project
+- Zod for runtime validation
+- Understanding of relational database design principles
+- Windows PowerShell for command execution
+
+## Core Principle
+
+**ALWAYS design database schemas with domain-driven model names, explicit relationships, proper indexes, and type-safe field definitions that maintain data integrity and optimize performance.**
+
+## Installation and Setup
+
+### Step 1: Install Prisma Dependencies
+```powershell
+# Core Prisma packages
+npm install prisma @prisma/client
+
+# Development dependencies for schema validation
+npm install --save-dev @types/node
+
+# Runtime validation with Zod (integrates with existing security standards)
+npm install zod
+```
+
+**Expected result**: Prisma packages installed and ready for schema configuration.
+
+### Step 2: Initialize Prisma in Project
+```powershell
+# Initialize Prisma with PostgreSQL
+npx prisma init --datasource-provider postgresql
+
+# Verify prisma directory structure
+Get-ChildItem -Path "prisma" -Recurse | Select-Object Name, Mode
+```
+
+**Expected result**: `prisma/` directory created with `schema.prisma` file and `.env` updated with `DATABASE_URL`.
+
+### Step 3: Configure Environment Variables
+```powershell
+# Create .env.local for local development (following security standards)
+if (-not (Test-Path ".env.local")) {
+    New-Item -Path ".env.local" -ItemType File
+}
+
+# Add database configuration (replace with your actual values)
+Add-Content -Path ".env.local" -Value @"
+# Database connection for local development
+DATABASE_URL="postgresql://username:password@localhost:5432/mydb"
+
+# Test database for running tests
+DATABASE_TEST_URL="postgresql://username:password@localhost:5432/mydb_test"
+"@
+```
+
+**Expected result**: Environment variables configured for database connections.
+
+## Schema Design Standards
+
+### Model Naming Conventions
+```prisma
+// ✅ Correct - Use PascalCase for model names
+model User {
+  id        String   @id @default(cuid())
+  email     String   @unique
+  name      String?
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  
+  // Relationships
+  posts     Post[]
+  profile   Profile?
+  
+  @@map("users") // Map to snake_case table name
+}
+
+model BlogPost {
+  id          String   @id @default(cuid())
+  title       String   @db.VarChar(255)
+  slug        String   @unique @db.VarChar(255)
+  content     String?  @db.Text
+  published   Boolean  @default(false)
+  publishedAt DateTime?
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+  
+  // Foreign key relationships
+  authorId    String
+  author      User     @relation(fields: [authorId], references: [id], onDelete: Cascade)
+  
+  // Many-to-many relationships
+  categories  Category[]
+  tags        Tag[]
+  
+  @@map("blog_posts")
+  @@index([authorId])
+  @@index([slug])
+  @@index([published, publishedAt])
+}
+
+// ❌ Incorrect - Avoid lowercase, abbreviations, or unclear names
+model usr {
+  id Int @id @default(autoincrement())
+  em String @unique
+  // Missing proper field definitions and relationships
+}
+```
+
+### Field Type Standards
+```prisma
+model Product {
+  // ✅ Correct field type usage
+  id          String     @id @default(cuid())         // Use cuid() for distributed systems
+  sku         String     @unique @db.VarChar(50)      // Explicit length for constrained fields
+  name        String     @db.VarChar(255)             // Standard varchar for names
+  description String?    @db.Text                     // Text for long content
+  price       Decimal    @db.Decimal(10, 2)           // Decimal for currency with precision
+  quantity    Int        @default(0)                  // Integer for counts
+  isActive    Boolean    @default(true)               // Boolean with meaningful defaults
+  metadata    Json?                                   // JSON for flexible data
+  createdAt   DateTime   @default(now())              // Timestamps with defaults
+  updatedAt   DateTime   @updatedAt                   // Auto-updating timestamps
+  
+  // Enums for constrained choices
+  status      ProductStatus @default(DRAFT)
+  
+  @@map("products")
+  @@index([sku])
+  @@index([isActive, status])
+}
+
+enum ProductStatus {
+  DRAFT
+  PUBLISHED
+  ARCHIVED
+}
+
+// ❌ Incorrect field types
+model BadProduct {
+  id       Int     @id @default(autoincrement())      // Avoid autoincrement for distributed systems
+  name     String                                     // Missing length constraints
+  price    Float                                      // Avoid Float for currency
+  metadata String                                     // Don't store JSON as String
+}
+```
+
+### Relationship Standards
+```prisma
+// ✅ Correct relationship definitions
+model User {
+  id       String    @id @default(cuid())
+  email    String    @unique
+  
+  // One-to-many relationships
+  posts    Post[]
+  orders   Order[]
+  
+  // One-to-one relationships
+  profile  Profile?
+  
+  @@map("users")
+}
+
+model Post {
+  id       String   @id @default(cuid())
+  title    String
+  content  String?
+  
+  // Explicit foreign key with proper referential actions
+  authorId String
+  author   User     @relation(fields: [authorId], references: [id], onDelete: Cascade)
+  
+  @@map("posts")
+  @@index([authorId])
+}
+
+model Profile {
+  id     String @id @default(cuid())
+  bio    String?
+  avatar String?
+  
+  // One-to-one with explicit foreign key
+  userId String @unique
+  user   User   @relation(fields: [userId], references: [id], onDelete: Cascade)
+  
+  @@map("profiles")
+}
+
+// Many-to-many relationships
+model Post {
+  // ... other fields
+  categories Category[]
+}
+
+model Category {
+  id    String @id @default(cuid())
+  name  String @unique
+  posts Post[]
+  
+  @@map("categories")
+}
+
+// ❌ Incorrect relationship definitions
+model BadUser {
+  id    Int    @id @default(autoincrement())
+  posts Post[] @relation("UserPosts") // Unnecessary explicit relation name
+}
+
+model BadPost {
+  id       Int @id @default(autoincrement())
+  authorId Int
+  // Missing explicit @relation definition
+  author   User?
+}
+```
+
+## Index and Performance Standards
+
+### Index Strategy
+```prisma
+model User {
+  id        String   @id @default(cuid())
+  email     String   @unique              // Automatic unique index
+  username  String   @unique
+  firstName String?
+  lastName  String?
+  status    UserStatus @default(ACTIVE)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  
+  posts     Post[]
+  
+  // ✅ Correct index definitions
+  @@index([status])                      // Single column index for filtering
+  @@index([createdAt])                   // Index for sorting/date queries
+  @@index([firstName, lastName])         // Composite index for name searches
+  @@index([status, createdAt])           // Composite index for complex queries
+  @@map("users")
+}
+
+model Post {
+  id          String    @id @default(cuid())
+  title       String    @db.VarChar(255)
+  slug        String    @unique
+  content     String?   @db.Text
+  published   Boolean   @default(false)
+  publishedAt DateTime?
+  viewCount   Int       @default(0)
+  authorId    String
+  categoryId  String?
+  
+  author      User      @relation(fields: [authorId], references: [id])
+  category    Category? @relation(fields: [categoryId], references: [id])
+  
+  // ✅ Strategic index placement
+  @@index([authorId])                    // Foreign key index
+  @@index([categoryId])                  // Foreign key index
+  @@index([published, publishedAt])      // Query optimization for published posts
+  @@index([slug])                        // URL lookup optimization
+  @@index([viewCount desc])              // Popular posts queries
+  @@map("posts")
+}
+
+// ❌ Incorrect indexing
+model BadPost {
+  id      String @id @default(cuid())
+  title   String
+  content String
+  
+  // Missing indexes on foreign keys and query fields
+  authorId String
+  author   User @relation(fields: [authorId], references: [id])
+}
+```
+
+### Constraint Standards
+```prisma
+model User {
+  id       String @id @default(cuid())
+  email    String @unique @db.VarChar(320)  // RFC compliant email length
+  username String @unique @db.VarChar(50)
+  
+  // ✅ Proper constraints
+  @@unique([email])                         // Explicit unique constraint
+  @@map("users")
+}
+
+model Order {
+  id           String      @id @default(cuid())
+  orderNumber  String      @unique @db.VarChar(20)
+  total        Decimal     @db.Decimal(10, 2)
+  status       OrderStatus @default(PENDING)
+  customerId   String
+  
+  customer     User        @relation(fields: [customerId], references: [id])
+  
+  // ✅ Business logic constraints
+  @@unique([orderNumber])                   // Unique business identifier
+  @@index([customerId, status])             // Customer order queries
+  @@map("orders")
+}
+
+enum OrderStatus {
+  PENDING
+  CONFIRMED
+  SHIPPED
+  DELIVERED
+  CANCELLED
+}
+```
+
+## Verification Steps
+
+### Step 1: Validate Schema Syntax
+```powershell
+# Check schema for syntax errors
+npx prisma validate
+
+# Format schema file
+npx prisma format
+```
+
+**Expected result**: Schema validation passes without errors and file is properly formatted.
+
+### Step 2: Generate Prisma Client
+```powershell
+# Generate TypeScript client from schema
+npx prisma generate
+
+# Verify generated client types
+Test-Path "node_modules\.prisma\client\index.d.ts"
+```
+
+**Expected result**: Prisma Client generated successfully with TypeScript definitions.
+
+### Step 3: Review Schema Quality
+```powershell
+# Check for common schema issues
+npx prisma db pull --print
+
+# Analyze schema structure
+Get-Content "prisma\schema.prisma" | Select-String -Pattern "@@index|@@unique|@relation"
+```
+
+**Expected result**: Schema follows indexing and relationship standards.
+
+## Troubleshooting Common Issues
+
+### Problem: Schema Validation Errors
+**Symptoms**: 
+- `npx prisma validate` fails with syntax errors
+- Missing field definitions or relationship errors
+
+**Solution**: 
+```powershell
+# Check for common syntax issues
+npx prisma validate --schema=prisma/schema.prisma
+
+# Use Prisma format to fix formatting issues
+npx prisma format
+
+# Verify field types and relationship syntax
+Get-Content "prisma\schema.prisma" | Select-String -Pattern "model|@relation|@id"
+```
+
+### Problem: Missing Indexes Performance Issues
+**Symptoms**: 
+- Slow database queries
+- Missing foreign key indexes
+
+**Solution**: 
+```powershell
+# Add missing indexes to schema
+# Review query patterns and add appropriate indexes
+# Example: Add index for foreign key fields
+# @@index([foreignKeyField])
+
+# Regenerate client after schema changes
+npx prisma generate
+```
+
+### Problem: Relationship Definition Errors
+**Symptoms**: 
+- Prisma Client generation fails
+- Relationship queries not working
+
+**Solution**: 
+```powershell
+# Verify relationship syntax follows Prisma conventions
+# Check for:
+# - Proper @relation syntax
+# - Foreign key field definitions
+# - Matching field types between related models
+
+npx prisma validate
+npx prisma format
+```
+
+## Success Criteria
+
+The schema design standards are implemented when:
+- [x] **All models use PascalCase naming** with proper @@map directives
+- [x] **Field types are explicitly defined** with appropriate database constraints
+- [x] **Relationships include proper foreign keys** and referential actions
+- [x] **Strategic indexes are placed** on query fields and foreign keys
+- [x] **Schema validation passes** without errors
+- [x] **Prisma Client generates** with full TypeScript support
+
+## Integration with Existing Rules
+
+This rule integrates with:
+- **Code Quality Standards**: Schema follows TypeScript naming conventions
+- **Security Standards**: Field validation and constraint patterns
+- **NextJS Structure Standards**: Schema organization within project structure
+- **TypeScript Standards**: Generated types follow project TypeScript patterns
+
+---
+
+**Note**: This rule ensures database schemas are designed for scalability, maintainability, and performance while maintaining full type safety throughout the application.
+

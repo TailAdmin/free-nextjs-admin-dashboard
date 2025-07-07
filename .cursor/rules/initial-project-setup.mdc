@@ -1,0 +1,2658 @@
+---
+description: Use when a new modern web app project is requested.
+globs: 
+alwaysApply: false
+---
+---
+description: Creates initial Next.js 15 project with TypeScript, Tailwind CSS, ESLint, automated quality enforcement, and Docker using current best practices
+alwaysApply: false
+---
+
+# Initial Project Setup Rule
+
+Creates a modern Next.js 15 web application with TypeScript, Tailwind CSS v4, enhanced ESLint/Prettier standards, automated pre-commit quality enforcement, and Docker configuration using a reliable temp directory method that preserves existing workspace files.
+
+## Prerequisites
+
+**Required Software:**
+- Node.js LTS (20.x+ or 22.x+)
+- npm (9.x+ or 10.x+)
+- Docker Desktop (for containerization)
+
+**Verification:**
+```powershell
+node --version   # Should be 20.x+ or 22.x+
+npm --version    # Should be 9.x+ or 10.x+
+```
+
+## Core Context Rules
+
+**CRITICAL: These rules apply to ALL steps below.**
+
+### Directory Context Verification
+Before ANY command, run these verification steps:
+```powershell
+Get-Location           # Confirm current directory
+Test-Path package.json # Must return True after project creation
+```
+
+### PowerShell Syntax Only
+**Reference Rule:** `windows-development-commands.mdc`
+- ✅ Use PowerShell commands and syntax
+- ❌ Never use bash syntax (`&&`, `||`, `cat`, `grep`)
+- ✅ Use `;` for command chaining if needed
+
+### Working Directory Principle
+**Reference Rule:** `git-standards.mdc` (for repository structure)
+- All project files go in your CURRENT directory (no subdirectories created)
+- Your existing files (.cursor/, docs/) are preserved
+- Docker files go in the same directory as package.json
+
+## Step 1: Project Creation
+
+Navigate to your target directory and create the project using the temp directory method:
+
+### Step 1a: Create Next.js Project
+```powershell
+# Create project in temporary directory
+npx create-next-app@latest temp-project --typescript --tailwind --eslint --app --src-dir --import-alias "@/*" --yes
+```
+
+### Step 1b: Wait for NPM Installation
+**CRITICAL: Always wait 30 seconds for NPM installation to complete.**
+
+```powershell
+# Wait for npm installation to complete
+Start-Sleep -Seconds 30
+
+# Verify installation completed
+Test-Path temp-project/package.json
+Test-Path temp-project/node_modules
+```
+
+### Step 1c: Copy Files to Current Directory with Structure Enforcement
+```powershell
+# CRITICAL: Copy files selectively to enforce src/app/ structure per nextjs-structure-standards.mdc
+Copy-Item temp-project/package*.json . -Force
+Copy-Item temp-project/*.config.* . -Force
+Copy-Item temp-project/*.json . -Force
+Copy-Item temp-project/.* . -Force -ErrorAction SilentlyContinue
+Copy-Item temp-project/src . -Recurse -Force
+Copy-Item temp-project/public . -Recurse -Force
+Copy-Item temp-project/node_modules . -Recurse -Force
+
+# CRITICAL: Remove any conflicting root app/ directory (enforces src/app/ standard)
+if (Test-Path "temp-project/app") {
+    Write-Output "⚠️  Removing conflicting root app/ directory to enforce src/app/ structure"
+    Remove-Item temp-project/app -Recurse -Force
+}
+
+# Verify compliance with nextjs-structure-standards.mdc
+if (-not (Test-Path "src/app")) {
+    Write-Error "❌ CRITICAL: src/app/ directory missing - violates nextjs-structure-standards.mdc"
+    exit 1
+}
+
+if (Test-Path "app") {
+    Write-Error "❌ CRITICAL: Root app/ directory exists - violates nextjs-structure-standards.mdc" 
+    Write-Output "Expected structure: src/app/ (not root app/)"
+    exit 1
+}
+
+Write-Output "✅ Structure verification: src/app/ exists, no conflicting root app/"
+
+# Clean up
+Remove-Item temp-project -Recurse -Force
+```
+
+**Expected Result:** Your current directory contains package.json, src/, public/, and all Next.js files with ENFORCED src/app/ structure compliance.
+
+## Step 2: Project Standards Compliance
+
+Configure the generated project to follow established engineering standards and best practices. This step ensures compliance with multiple specialized rules that define quality, architecture, and structure requirements.
+
+**Reference Rules:** `bp-engineering-best-practices.mdc`, `nextjs-structure-standards.mdc`, `bp-security-standards.mdc`
+
+**Core Integration Areas:**
+- Software engineering principles and architecture patterns
+- NextJS structure and performance standards  
+- Security foundations and quality automation
+- Comprehensive testing strategy and database integration
+
+### Step 2a: Project Configuration & Performance
+**Reference Rules:** `typescript-nextjs-standards.mdc`, `nextjs-performance-standards.mdc`
+
+Configure project for optimal TypeScript, performance, and Docker compatibility:
+
+```powershell
+# Update project name from "temp-project" to appropriate name
+# Configure TypeScript following typescript-nextjs-standards.mdc requirements
+# Ensure strict TypeScript configuration and path aliases are properly set
+
+# CRITICAL: Configure Next.js for Docker builds
+# Edit next.config.ts to enable standalone output (REQUIRED for Docker)
+```
+
+**REQUIRED Next.js Configuration for Docker**:
+Edit `next.config.ts` to include:
+```typescript
+const nextConfig: NextConfig = {
+  output: 'standalone', // CRITICAL: Required for Docker builds
+};
+```
+
+**Guidance Principles:**
+- Project name should reflect actual application purpose
+- TypeScript target and path aliases must follow established standards
+- Configuration should enable strict type checking and optimal imports
+- **Docker builds REQUIRE `output: 'standalone'` configuration**
+- Performance optimization patterns integrated from project start
+- Image optimization, font loading, and bundle analysis preparation
+- Core Web Vitals considerations in configuration choices
+
+### Step 2b: Directory Structure Foundation and Validation
+**Reference Rules:** `nextjs-structure-standards.mdc`
+
+Establish and VALIDATE required directory structure per NextJS structure standards:
+
+```powershell
+# CRITICAL: Verify compliance with nextjs-structure-standards.mdc BEFORE proceeding
+Write-Output "🔍 Validating NextJS structure standards compliance..."
+
+# Verify required src/app/ structure exists
+$requiredPaths = @(
+    "src/app",
+    "src/app/layout.tsx", 
+    "src/app/page.tsx",
+    "src/app/globals.css"
+)
+
+foreach ($path in $requiredPaths) {
+    if (-not (Test-Path $path)) {
+        Write-Error "❌ MISSING REQUIRED: $path - violates nextjs-structure-standards.mdc"
+        Write-Output "Expected NextJS 15 App Router structure with src/app/ directory"
+        exit 1
+    } else {
+        Write-Output "✅ Found: $path"
+    }
+}
+
+# CRITICAL: Ensure NO conflicting root app/ directory exists
+if (Test-Path "app") {
+    Write-Error "❌ CRITICAL VIOLATION: Root app/ directory found"
+    Write-Output "nextjs-structure-standards.mdc requires src/app/ structure"
+    Write-Output "Root app/ directory creates routing conflicts and violates our standards"
+    exit 1
+}
+
+Write-Output "✅ NextJS structure standards validation PASSED"
+
+# Create additional directory structure following nextjs-structure-standards.mdc
+New-Item -ItemType Directory -Path "src/app/_components" -Force
+New-Item -ItemType Directory -Path "src/app/_components/ui" -Force
+New-Item -ItemType Directory -Path "src/lib" -Force
+New-Item -ItemType Directory -Path "src/lib/utils" -Force
+
+Write-Output "✅ Directory structure foundation established per standards"
+```
+
+**CRITICAL Enforcement Principles:**
+- **MANDATORY src/app/ structure** - Root app/ directory is FORBIDDEN
+- **Structure validation** prevents routing conflicts and dual directory issues
+- **Early termination** if structure violations are detected
+- **Explicit compliance** with nextjs-structure-standards.mdc before proceeding
+
+**Guidance Principles:**
+- Follow App Router conventions for optimal performance
+- Separate concerns through proper folder organization
+- Enable scalable component and utility management
+- **Enforce structural standards** to prevent API routing conflicts
+
+### Step 2c: Environment and Security Setup
+**Reference Rules:** `config-environment-variables.mdc`, `bp-security-standards.mdc`
+
+Configure comprehensive environment variable management with type safety and validation:
+
+```powershell
+# Follow config-environment-variables.mdc for complete environment setup
+# Create .env.example and .env.local files
+# Set up type-safe environment configuration with Zod validation
+# Implement environment variable TypeScript typing
+# Establish secure client/server variable separation
+```
+
+**Guidance Principles:**
+- All environment variables must be validated with Zod schemas for runtime safety
+- TypeScript typing provides development-time autocomplete and error checking
+- Client-side variables require NEXT_PUBLIC_ prefix for security
+- Environment files should be properly organized (.env.example, .env.local hierarchy)
+- Sensitive data must never be exposed to client-side code
+
+**Critical Implementation:** Follow the complete `config-environment-variables.mdc` rule to establish:
+- Type-safe environment configuration in `src/lib/config/env.ts`
+- Environment variable TypeScript declarations in `src/env.d.ts`
+- Proper `.env.example` template for team collaboration
+- Zod validation schemas for runtime environment checking
+- Security-compliant client/server variable separation
+
+### Step 2d: App Router Best Practices
+**Reference Rules:** `nextjs-structure-standards.mdc`
+
+Implement essential App Router files for optimal user experience:
+
+```powershell
+# Create loading, error, and not-found pages per App Router conventions
+# Ensure proper error boundaries and loading states
+# Follow NextJS recommended patterns for user experience
+```
+
+**Guidance Principles:**
+- Provide consistent loading and error experiences
+- Follow NextJS App Router file conventions
+- Ensure proper error handling throughout application
+
+**Expected Result:** Project structure and configuration comply with established engineering standards and are ready for feature development.
+
+## Step 2e: UI Standards and Tailwind Configuration
+
+Establish production-ready design system and component foundation using Tailwind CSS v4 following comprehensive UI standards. This step configures the Tailwind v4 CSS-first approach installed by create-next-app into a scalable design system with reusable components and consistent styling patterns.
+
+### Step 2e.1: Verify Tailwind v4 Installation
+**Reference Rule:** `ui-tailwind-css-standards.mdc`
+
+Verify create-next-app installed Tailwind v4 with PostCSS integration:
+
+```powershell
+# Verify Tailwind v4 installation and PostCSS setup
+Get-Content package.json | Select-String "tailwindcss.*4"
+# Expected output: Shows tailwindcss: ^4
+
+Get-Content postcss.config.mjs | Select-String "@tailwindcss/postcss"
+# Expected output: Shows "@tailwindcss/postcss" plugin
+
+# Verify no traditional config exists yet (create-next-app doesn't create one for v4)
+Test-Path "tailwind.config.ts"
+# Expected output: False (v4 uses CSS-first configuration)
+```
+
+**CRITICAL: Tailwind v4 Detection**
+- If create-next-app installed v4: Use CSS-first configuration (no traditional config file)
+- If create-next-app installed v3: Follow traditional config file approach
+- v4 uses `@import "tailwindcss"` and `@theme` directive in CSS files
+- v3 uses `@tailwind base/components/utilities` and separate JavaScript config
+
+**Guidance Principles:**
+- v4 eliminates the need for traditional JavaScript configuration files
+- All customization happens directly in CSS using `@theme` directive
+- PostCSS plugin handles compilation and optimization automatically
+- CSS-first approach provides better performance and simpler maintenance
+
+### Step 2e.2: Tailwind v4 CSS Configuration with Design System
+**Reference Rule:** `ui-tailwind-css-standards.mdc`
+
+Configure globals.css with Tailwind v4 syntax and design system using CSS-first approach:
+
+```powershell
+# Verify existing globals.css from create-next-app (likely has v3 syntax)
+Test-Path "src/app/globals.css"
+# Expected output: True
+
+# Replace with Tailwind v4 CSS-first configuration
+@"
+@import "tailwindcss";
+
+@theme {
+  /* Primary color palette */
+  --color-primary-50: #eff6ff;
+  --color-primary-100: #dbeafe;
+  --color-primary-200: #bfdbfe;
+  --color-primary-300: #93c5fd;
+  --color-primary-400: #60a5fa;
+  --color-primary-500: #3b82f6;
+  --color-primary-600: #2563eb;
+  --color-primary-700: #1d4ed8;
+  --color-primary-800: #1e40af;
+  --color-primary-900: #1e3a8a;
+  --color-primary-950: #172554;
+
+  /* Secondary color palette */
+  --color-secondary-50: #f9fafb;
+  --color-secondary-100: #f3f4f6;
+  --color-secondary-200: #e5e7eb;
+  --color-secondary-300: #d1d5db;
+  --color-secondary-400: #9ca3af;
+  --color-secondary-500: #6b7280;
+  --color-secondary-600: #4b5563;
+  --color-secondary-700: #374151;
+  --color-secondary-800: #1f2937;
+  --color-secondary-900: #111827;
+  --color-secondary-950: #030712;
+
+  /* Custom spacing */
+  --spacing-18: 4.5rem;
+  --spacing-88: 22rem;
+
+  /* Font families */
+  --font-family-sans: Inter, system-ui, sans-serif;
+
+  /* Animations */
+  --animate-fade-in: fadeIn 0.5s ease-in-out;
+  --animate-slide-up: slideUp 0.3s ease-out;
+}
+
+@keyframes fadeIn {
+  0% { opacity: 0; }
+  100% { opacity: 1; }
+}
+
+@keyframes slideUp {
+  0% { transform: translateY(10px); opacity: 0; }
+  100% { transform: translateY(0); opacity: 1; }
+}
+
+/* Custom base layer - foundational styles */
+@layer base {
+  html {
+    @apply scroll-smooth;
+  }
+
+  body {
+    @apply bg-white text-gray-900 antialiased;
+  }
+
+  /* Focus styles for accessibility */
+  *:focus-visible {
+    @apply outline-none ring-2 ring-primary-500 ring-offset-2;
+  }
+}
+
+/* Custom component layer - reusable component patterns */
+@layer components {
+  /* Button foundation classes */
+  .btn {
+    @apply inline-flex items-center justify-center rounded-md text-sm font-medium transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary-500 disabled:pointer-events-none disabled:opacity-50;
+  }
+
+  .btn-primary {
+    @apply bg-primary-600 text-white hover:bg-primary-700 focus-visible:ring-primary-600;
+  }
+
+  .btn-secondary {
+    @apply bg-secondary-200 text-secondary-900 hover:bg-secondary-300 focus-visible:ring-secondary-600;
+  }
+
+  .btn-outline {
+    @apply border border-gray-300 bg-white text-gray-700 hover:bg-gray-50 focus-visible:ring-gray-600;
+  }
+
+  /* Card foundation classes */
+  .card {
+    @apply bg-white border border-gray-200 rounded-lg shadow-sm;
+  }
+
+  .card-hover {
+    @apply hover:shadow-md transition-shadow duration-200;
+  }
+
+  /* Input foundation classes */
+  .input {
+    @apply flex h-10 w-full rounded-md border border-gray-300 bg-white px-3 py-2 text-sm ring-offset-white placeholder:text-gray-500 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary-500 focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50;
+  }
+}
+"@ | Out-File -FilePath "src/app/globals.css" -Encoding utf8
+# Expected output: Tailwind v4 CSS-first configuration with design system created
+```
+
+**CRITICAL v4 Syntax Changes:**
+- Replace `@tailwind base/components/utilities` with `@import "tailwindcss"`
+- Use `@theme` directive for design tokens instead of JavaScript config
+- Color variables use `--color-` prefix for automatic utility generation
+- Spacing variables use `--spacing-` prefix for automatic utility classes
+- Animation definitions remain in CSS using standard `@keyframes`
+- Fix invalid ring references: use `ring-primary-500` not `ring-ring`
+
+**Guidance Principles:**
+- CSS-first configuration keeps all styling logic in one place
+- `@theme` directive automatically generates utility classes
+- Base and component layers work the same as v3
+- Design tokens are now CSS custom properties accessible everywhere
+
+### Step 2e.3: UI Component Foundation Structure
+**Reference Rule:** `ui-tailwind-css-standards.mdc`
+
+Create organized component structure with foundational UI components:
+
+```powershell
+# Create UI component directory structure
+New-Item -ItemType Directory -Path "src/components/ui" -Force
+# Expected output: Directory created
+
+# Create foundational Button component
+@"
+import { forwardRef } from 'react'
+import { cn } from '@/lib/utils'
+
+export interface ButtonProps extends React.ButtonHTMLAttributes<HTMLButtonElement> {
+  variant?: 'primary' | 'secondary' | 'outline' | 'ghost'
+  size?: 'sm' | 'md' | 'lg'
+}
+
+const Button = forwardRef<HTMLButtonElement, ButtonProps>(
+  ({ className, variant = 'primary', size = 'md', ...props }, ref) => {
+    const baseClasses = 'btn'
+
+    const variantClasses = {
+      primary: 'btn-primary',
+      secondary: 'btn-secondary',
+      outline: 'btn-outline',
+      ghost: 'text-gray-700 hover:bg-gray-100 focus-visible:ring-gray-600',
+    }
+
+    const sizeClasses = {
+      sm: 'h-9 px-3 text-sm',
+      md: 'h-10 px-4 text-sm',
+      lg: 'h-11 px-6 text-base',
+    }
+
+    return (
+      <button
+        className={cn(
+          baseClasses,
+          variantClasses[variant],
+          sizeClasses[size],
+          className
+        )}
+        ref={ref}
+        {...props}
+      />
+    )
+  }
+)
+Button.displayName = 'Button'
+
+export { Button }
+"@ | Out-File -FilePath "src/components/ui/Button.tsx" -Encoding utf8
+# Expected output: Button component created
+
+# Create foundational Card component
+@"
+import { forwardRef } from 'react'
+import { cn } from '@/lib/utils'
+
+export interface CardProps extends React.HTMLAttributes<HTMLDivElement> {
+  hover?: boolean
+}
+
+const Card = forwardRef<HTMLDivElement, CardProps>(
+  ({ className, hover = false, ...props }, ref) => {
+    return (
+      <div
+        ref={ref}
+        className={cn(
+          'card',
+          hover && 'card-hover',
+          className
+        )}
+        {...props}
+      />
+    )
+  }
+)
+Card.displayName = 'Card'
+
+const CardHeader = forwardRef<HTMLDivElement, React.HTMLAttributes<HTMLDivElement>>(
+  ({ className, ...props }, ref) => (
+    <div ref={ref} className={cn('flex flex-col space-y-1.5 p-6', className)} {...props} />
+  )
+)
+CardHeader.displayName = 'CardHeader'
+
+const CardTitle = forwardRef<HTMLParagraphElement, React.HTMLAttributes<HTMLHeadingElement>>(
+  ({ className, ...props }, ref) => (
+    <h3 ref={ref} className={cn('text-lg font-semibold leading-none tracking-tight', className)} {...props} />
+  )
+)
+CardTitle.displayName = 'CardTitle'
+
+const CardContent = forwardRef<HTMLDivElement, React.HTMLAttributes<HTMLDivElement>>(
+  ({ className, ...props }, ref) => (
+    <div ref={ref} className={cn('p-6 pt-0', className)} {...props} />
+  )
+)
+CardContent.displayName = 'CardContent'
+
+export { Card, CardHeader, CardTitle, CardContent }
+"@ | Out-File -FilePath "src/components/ui/Card.tsx" -Encoding utf8
+# Expected output: Card component created
+
+# Create utility function for class name merging
+New-Item -ItemType Directory -Path "src/lib" -Force
+@"
+import { type ClassValue, clsx } from 'clsx'
+import { twMerge } from 'tailwind-merge'
+
+export function cn(...inputs: ClassValue[]) {
+  return twMerge(clsx(inputs))
+}
+"@ | Out-File -FilePath "src/lib/utils.ts" -Encoding utf8
+# Expected output: Utility functions created
+
+# Install required utility dependencies
+npm install clsx tailwind-merge
+# Expected output: Utility dependencies installed
+```
+
+**Guidance Principles:**
+- Consistent component API with forwardRef for accessibility
+- Variant-based design system for predictable styling
+- Class name utility function for style composition
+- Semantic component structure following Tailwind patterns
+
+### Step 2e.4: Component Index and Examples
+**Reference Rule:** `ui-tailwind-css-standards.mdc`
+
+Create component index and example usage patterns:
+
+```powershell
+# Create component index for easy imports
+@"
+export { Button, type ButtonProps } from './Button'
+export { Card, CardHeader, CardTitle, CardContent, type CardProps } from './Card'
+"@ | Out-File -FilePath "src/components/ui/index.ts" -Encoding utf8
+# Expected output: Component index created
+
+# Update main page with component examples for validation
+@"
+import { Button } from '@/components/ui/Button'
+import { Card, CardHeader, CardTitle, CardContent } from '@/components/ui/Card'
+
+export default function Home() {
+  return (
+    <main className="min-h-screen bg-gray-50 py-12">
+      <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8">
+        <div className="text-center mb-12">
+          <h1 className="text-4xl font-bold text-gray-900 mb-4">
+            Welcome to Your Modern Web App
+          </h1>
+          <p className="text-lg text-gray-600">
+            Built with Next.js, TypeScript, Tailwind CSS, and modern best practices
+          </p>
+        </div>
+
+        {/* Design System Examples */}
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 mb-12">
+          <Card hover>
+            <CardHeader>
+              <CardTitle>Authentication Ready</CardTitle>
+            </CardHeader>
+            <CardContent>
+              <p className="text-gray-600 mb-4">
+                NextAuth.js integration with database-backed user management.
+              </p>
+              <Button variant="primary" size="sm">
+                Get Started
+              </Button>
+            </CardContent>
+          </Card>
+
+          <Card hover>
+            <CardHeader>
+              <CardTitle>Database Integration</CardTitle>
+            </CardHeader>
+            <CardContent>
+              <p className="text-gray-600 mb-4">
+                PostgreSQL with Prisma ORM for type-safe database operations.
+              </p>
+              <Button variant="secondary" size="sm">
+                Learn More
+              </Button>
+            </CardContent>
+          </Card>
+
+          <Card hover>
+            <CardHeader>
+              <CardTitle>Design System</CardTitle>
+            </CardHeader>
+            <CardContent>
+              <p className="text-gray-600 mb-4">
+                Tailwind CSS with component library and design tokens.
+              </p>
+              <Button variant="outline" size="sm">
+                Explore
+              </Button>
+            </CardContent>
+          </Card>
+        </div>
+
+        {/* Component Examples */}
+        <div className="bg-white rounded-lg p-8 shadow-sm">
+          <h2 className="text-2xl font-semibold text-gray-900 mb-6">
+            Component Examples
+          </h2>
+
+          <div className="space-y-6">
+            <div>
+              <h3 className="text-lg font-medium text-gray-900 mb-3">Buttons</h3>
+              <div className="flex flex-wrap gap-3">
+                <Button variant="primary">Primary</Button>
+                <Button variant="secondary">Secondary</Button>
+                <Button variant="outline">Outline</Button>
+                <Button variant="ghost">Ghost</Button>
+              </div>
+            </div>
+
+            <div>
+              <h3 className="text-lg font-medium text-gray-900 mb-3">Button Sizes</h3>
+              <div className="flex flex-wrap items-center gap-3">
+                <Button size="sm">Small</Button>
+                <Button size="md">Medium</Button>
+                <Button size="lg">Large</Button>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </main>
+  )
+}
+"@ | Out-File -FilePath "src/app/page.tsx" -Encoding utf8
+# Expected output: Main page updated with design system examples
+```
+
+**Guidance Principles:**
+- Centralized component exports for easy consumption
+- Real-world examples demonstrate design system usage
+- Responsive layout patterns showcase mobile-first approach
+- Component showcase validates design system functionality
+
+**Expected Result:** Production-ready design system with reusable components, consistent styling patterns, and comprehensive UI foundation ready for application development.
+
+## Step 2f: Code Quality & Formatting Standards
+
+Establish comprehensive code quality and formatting standards using ESLint for linting and Prettier for code formatting. This step enhances the basic ESLint setup from create-next-app with production-ready standards, maintainability patterns, and team collaboration tools.
+
+**Reference Rules:** `dev-eslint-prettier-standards.mdc`, `bp-code-quality-standards.mdc`
+
+### Step 2f.1: Enhanced ESLint and Prettier Dependencies
+
+Install comprehensive linting and formatting dependencies:
+
+```powershell
+# Install ESLint, Prettier, and related packages
+npm install --save-dev prettier eslint-config-prettier eslint-plugin-prettier @typescript-eslint/eslint-plugin @typescript-eslint/parser eslint-plugin-react eslint-plugin-react-hooks eslint-plugin-jsx-a11y
+# Expected output: Dependencies installed successfully
+```
+
+**Guidance Principles:**
+- Build upon the existing ESLint installation from create-next-app
+- Integrate Prettier for consistent code formatting
+- Add React and accessibility linting rules for comprehensive quality checking
+- Establish TypeScript-specific linting patterns
+- Implement code quality metrics and maintainability standards
+- Enforce consistent naming conventions and architectural patterns
+- Enable automated quality gates to prevent technical debt accumulation
+
+### Step 2f.2: ESLint Configuration Enhancement
+
+Create enhanced `.eslintrc.json` configuration:
+
+```powershell
+# Create comprehensive ESLint configuration
+@"
+{
+  \"extends\": [
+    \"next/core-web-vitals\",
+    \"@typescript-eslint/recommended\",
+    \"plugin:react/recommended\",
+    \"plugin:react-hooks/recommended\",
+    \"plugin:jsx-a11y/recommended\",
+    \"prettier\"
+  ],
+  \"parser\": \"@typescript-eslint/parser\",
+  \"parserOptions\": {
+    \"ecmaVersion\": \"latest\",
+    \"sourceType\": \"module\",
+    \"ecmaFeatures\": {
+      \"jsx\": true
+    }
+  },
+  \"plugins\": [
+    \"@typescript-eslint\",
+    \"react\",
+    \"react-hooks\",
+    \"jsx-a11y\",
+    \"prettier\"
+  ],
+  \"rules\": {
+    \"prettier/prettier\": \"error\",
+    \"@typescript-eslint/no-unused-vars\": \"error\",
+    \"@typescript-eslint/no-explicit-any\": \"warn\",
+    \"react/react-in-jsx-scope\": \"off\",
+    \"react/prop-types\": \"off\",
+    \"@typescript-eslint/explicit-function-return-type\": \"off\",
+    \"@typescript-eslint/explicit-module-boundary-types\": \"off\",
+    \"react-hooks/rules-of-hooks\": \"error\",
+    \"react-hooks/exhaustive-deps\": \"warn\",
+    \"jsx-a11y/anchor-is-valid\": \"off\"
+  },
+  \"settings\": {
+    \"react\": {
+      \"version\": \"detect\"
+    }
+  }
+}
+"@ | Out-File -FilePath ".eslintrc.json" -Encoding utf8
+# Expected output: Enhanced ESLint configuration created
+```
+
+### Step 2f.3: Prettier Configuration
+
+Create Prettier configuration for consistent formatting:
+
+```powershell
+# Create Prettier configuration
+@"
+{
+  \"semi\": true,
+  \"singleQuote\": true,
+  \"tabWidth\": 2,
+  \"trailingComma\": \"es5\",
+  \"printWidth\": 80,
+  \"useTabs\": false,
+  \"bracketSpacing\": true,
+  \"bracketSameLine\": false,
+  \"arrowParens\": \"avoid\"
+}
+"@ | Out-File -FilePath ".prettierrc.json" -Encoding utf8
+# Expected output: Prettier configuration created
+
+# Create Prettier ignore file
+@"
+# Dependencies
+node_modules
+.pnp
+.pnp.js
+
+# Production builds
+.next/
+out/
+build/
+dist/
+
+# Environment files
+.env
+.env.local
+.env.development.local
+.env.test.local
+.env.production.local
+
+# Logs
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+
+# Package manager files
+package-lock.json
+yarn.lock
+pnpm-lock.yaml
+
+# Generated files
+*.tsbuildinfo
+.vercel
+"@ | Out-File -FilePath ".prettierignore" -Encoding utf8
+# Expected output: Prettier ignore file created
+```
+
+### Step 2f.4: VS Code Integration
+
+Configure VS Code for automated formatting and linting:
+
+```powershell
+# Create VS Code settings for editor integration
+if (-not (Test-Path ".vscode")) { New-Item -ItemType Directory -Path ".vscode" }
+@"
+{
+  \"editor.formatOnSave\": true,
+  \"editor.defaultFormatter\": \"esbenp.prettier-vscode\",
+  \"editor.codeActionsOnSave\": {
+    \"source.fixAll.eslint\": \"explicit\"
+  },
+  \"eslint.validate\": [
+    \"javascript\",
+    \"typescript\",
+    \"javascriptreact\",
+    \"typescriptreact\"
+  ]
+}
+"@ | Out-File -FilePath ".vscode/settings.json" -Encoding utf8
+# Expected output: VS Code settings created
+```
+
+### Step 2f.5: Enhanced NPM Scripts
+
+Update package.json with comprehensive quality check scripts:
+
+```powershell
+# Read current package.json and add enhanced scripts
+$packageJson = Get-Content "package.json" | ConvertFrom-Json
+
+# Add enhanced linting and formatting scripts
+$newScripts = @{
+  "lint" = "next lint"
+  "lint:fix" = "next lint --fix"
+  "format" = "prettier --write ."
+  "format:check" = "prettier --check ."
+  "quality:check" = "npm run lint && npm run format:check"
+}
+
+# Update scripts section
+foreach ($script in $newScripts.GetEnumerator()) {
+  $packageJson.scripts | Add-Member -MemberType NoteProperty -Name $script.Key -Value $script.Value -Force
+}
+
+# Write back to package.json
+$packageJson | ConvertTo-Json -Depth 10 | Out-File "package.json" -Encoding utf8
+# Expected output: Package.json updated with quality scripts
+```
+
+**Expected Result:** Comprehensive ESLint and Prettier configuration with VS Code integration and quality check scripts for consistent code formatting and quality standards.
+
+## Step 2h: Testing Infrastructure Setup
+
+Establish comprehensive testing strategy with Vitest, React Testing Library, and database testing patterns. This step creates a complete testing foundation that integrates with the quality automation and database layer.
+
+**Reference Rules:** `bp-testing-standards.mdc`, `db-testing-standards.mdc`
+
+### Step 2h.1: Core Testing Dependencies
+
+Install testing framework and utilities:
+
+```powershell
+# Install core testing dependencies
+npm install --save-dev vitest @vitest/ui jsdom @testing-library/react @testing-library/jest-dom @testing-library/user-event
+
+# Install additional testing utilities
+npm install --save-dev @vitejs/plugin-react happy-dom
+# Expected output: Testing dependencies installed successfully
+```
+
+**Guidance Principles:**
+- Vitest provides fast, modern testing framework with Vite integration
+- React Testing Library enables component testing with best practices
+- jsdom/happy-dom provide browser environment simulation
+- Testing utilities support comprehensive test scenarios
+
+### Step 2h.2: Test Configuration
+
+Create `vitest.config.ts` with React and database testing support:
+
+```powershell
+# Create Vitest configuration
+@"
+import { defineConfig } from 'vitest/config'
+import react from '@vitejs/plugin-react'
+import path from 'path'
+
+export default defineConfig({
+  plugins: [react()],
+  test: {
+    environment: 'jsdom',
+    setupFiles: ['./src/test-utils/setup.ts'],
+    globals: true,
+    css: true,
+  },
+  resolve: {
+    alias: {
+      '@': path.resolve(__dirname, './src'),
+    },
+  },
+})
+"@ | Out-File -FilePath "vitest.config.ts" -Encoding utf8
+# Expected output: Vitest configuration created
+```
+
+### Step 2h.3: Test Structure and Utilities
+
+Create testing directory structure and utilities:
+
+```powershell
+# Create testing directory structure
+New-Item -ItemType Directory -Path "src/__tests__" -Force
+New-Item -ItemType Directory -Path "src/test-utils" -Force
+
+# Create test setup file
+@"
+import '@testing-library/jest-dom'
+import { beforeAll, afterAll, afterEach } from 'vitest'
+import { cleanup } from '@testing-library/react'
+
+// Setup and cleanup for each test
+afterEach(() => {
+  cleanup()
+})
+
+// Global test configuration
+beforeAll(() => {
+  // Mock environment variables for testing
+  process.env.NODE_ENV = 'test'
+  process.env.DATABASE_URL = 'postgresql://test:test@localhost:5432/test_db'
+})
+
+afterAll(() => {
+  // Cleanup after all tests
+})
+"@ | Out-File -FilePath "src/test-utils/setup.ts" -Encoding utf8
+
+# Create custom render utility for React Testing Library
+@"
+import { render, RenderOptions } from '@testing-library/react'
+import { ReactElement } from 'react'
+
+// Custom render function with providers
+const customRender = (
+  ui: ReactElement,
+  options?: Omit<RenderOptions, 'wrapper'>
+) => render(ui, { ...options })
+
+export * from '@testing-library/react'
+export { customRender as render }
+"@ | Out-File -FilePath "src/test-utils/render.tsx" -Encoding utf8
+
+# Create database testing utilities
+@"
+import { PrismaClient } from '@prisma/client'
+
+const prisma = new PrismaClient({
+  datasources: {
+    db: {
+      url: process.env.DATABASE_URL,
+    },
+  },
+})
+
+export async function cleanDatabase() {
+  // Clean test database between tests
+  const tablenames = await prisma.$queryRaw<
+    Array<{ tablename: string }>
+  >\`SELECT tablename FROM pg_tables WHERE schemaname='public'\`
+
+  const tables = tablenames
+    .map(({ tablename }) => tablename)
+    .filter((name) => name !== '_prisma_migrations')
+    .map((name) => \`"\${name}"\`)
+    .join(', ')
+
+  try {
+    await prisma.$executeRawUnsafe(\`TRUNCATE TABLE \${tables} CASCADE;\`)
+  } catch (error) {
+    console.log({ error })
+  }
+}
+
+export async function createTestUser() {
+  return await prisma.user.create({
+    data: {
+      email: 'test@example.com',
+      name: 'Test User',
+      password: 'hashedpassword',
+    },
+  })
+}
+
+export { prisma as testPrisma }
+"@ | Out-File -FilePath "src/test-utils/database.ts" -Encoding utf8
+# Expected output: Test utilities created
+```
+
+### Step 2h.4: Sample Tests
+
+Create example tests to validate setup:
+
+```powershell
+# Create component test example
+@"
+import { render, screen } from '@/test-utils/render'
+import { describe, it, expect } from 'vitest'
+import { Button } from '@/components/ui/Button'
+
+describe('Button Component', () => {
+  it('renders correctly', () => {
+    render(<Button>Test Button</Button>)
+    expect(screen.getByRole('button')).toBeInTheDocument()
+    expect(screen.getByText('Test Button')).toBeInTheDocument()
+  })
+
+  it('handles click events', async () => {
+    const handleClick = vi.fn()
+    render(<Button onClick={handleClick}>Click me</Button>)
+    
+    const button = screen.getByRole('button')
+    await userEvent.click(button)
+    
+    expect(handleClick).toHaveBeenCalledOnce()
+  })
+})
+"@ | Out-File -FilePath "src/__tests__/Button.test.tsx" -Encoding utf8
+
+# Create API route test example
+@"
+import { describe, it, expect, beforeEach, afterEach } from 'vitest'
+import { cleanDatabase, createTestUser, testPrisma } from '@/test-utils/database'
+
+describe('/api/health', () => {
+  beforeEach(async () => {
+    await cleanDatabase()
+  })
+
+  afterEach(async () => {
+    await cleanDatabase()
+  })
+
+  it('returns healthy status', async () => {
+    const response = await fetch('http://localhost:3000/api/health')
+    const data = await response.json()
+    
+    expect(response.status).toBe(200)
+    expect(data.status).toBe('healthy')
+  })
+})
+"@ | Out-File -FilePath "src/__tests__/api/health.test.ts" -Encoding utf8
+# Expected output: Sample tests created
+```
+
+### Step 2h.5: Testing Scripts Integration
+
+Update package.json with comprehensive testing scripts:
+
+```powershell
+# Read current package.json and add testing scripts
+$packageJson = Get-Content "package.json" | ConvertFrom-Json
+
+# Add testing scripts
+$testingScripts = @{
+  "test" = "vitest"
+  "test:ui" = "vitest --ui"
+  "test:run" = "vitest run"
+  "test:coverage" = "vitest run --coverage"
+  "test:watch" = "vitest --watch"
+  "test:changed" = "vitest related --run"
+}
+
+# Update scripts section
+foreach ($script in $testingScripts.GetEnumerator()) {
+  $packageJson.scripts | Add-Member -MemberType NoteProperty -Name $script.Key -Value $script.Value -Force
+}
+
+# Write back to package.json
+$packageJson | ConvertTo-Json -Depth 10 | Out-File "package.json" -Encoding utf8
+# Expected output: Package.json updated with testing scripts
+```
+
+**Expected Result:** Complete testing infrastructure with Vitest, React Testing Library, database testing utilities, and sample tests ready for test-driven development.
+
+## Step 2g: Pre-commit Quality Automation
+
+Establish automated pre-commit hooks using Husky to enforce code quality, linting, formatting, and testing standards before code enters the repository. This step automates the quality checks established in Steps 2f and 2h.
+
+**Reference Rules:** `dev-husky-precommit-hooks.mdc`, `bp-testing-standards.mdc`
+
+### Step 2g.1: Husky and lint-staged Installation
+
+Install pre-commit automation dependencies:
+
+```powershell
+# Install Husky and lint-staged for pre-commit automation
+npm install --save-dev husky lint-staged tsc-files
+# Expected output: Pre-commit dependencies installed successfully
+```
+
+**Guidance Principles:**
+- Husky provides Git hook management for automated quality checks
+- lint-staged runs tools only on staged files for efficiency
+- tsc-files enables fast TypeScript checking of only changed files
+- Testing integration ensures only working code can be committed
+- Automation prevents quality issues from entering the repository
+
+### Step 2g.2: Husky Initialization
+
+Initialize Husky and configure pre-commit hooks:
+
+```powershell
+# Initialize Husky
+npx husky init
+# Expected output: Husky initialized, .husky directory created
+
+# Configure pre-commit hook (Husky v9+ format)
+@"
+npx lint-staged
+"@ | Out-File -FilePath ".husky/pre-commit" -Encoding utf8
+# Expected output: Pre-commit hook configured with v9+ format (no deprecated lines)
+```
+
+### Step 2g.3: lint-staged Configuration
+
+Configure lint-staged for efficient pre-commit processing:
+
+```powershell
+# Read current package.json and add lint-staged configuration
+$packageJson = Get-Content "package.json" | ConvertFrom-Json
+
+# Add lint-staged configuration with Windows-compatible binary paths
+$lintStagedConfig = @{
+  "*.{js,jsx,ts,tsx}" = @(
+    "node_modules\.bin\eslint --fix --max-warnings=0",
+    "node_modules\.bin\prettier --write",
+    "npm run test:changed"
+  )
+  "*.{json,md,css,scss}" = @(
+    "node_modules\.bin\prettier --write"
+  )
+  "*.{ts,tsx}" = @(
+    "node_modules\.bin\tsc-files --noEmit"
+  )
+}
+
+# Add to package.json
+$packageJson | Add-Member -MemberType NoteProperty -Name "lint-staged" -Value $lintStagedConfig -Force
+
+# Add quality check scripts for manual execution
+$qualityScripts = @{
+  "pre-commit:manual" = "lint-staged"
+  "quality:all" = "npm run lint:check && npm run format:check && npm run type-check"
+  "type-check" = "tsc --noEmit"
+}
+
+foreach ($script in $qualityScripts.GetEnumerator()) {
+  $packageJson.scripts | Add-Member -MemberType NoteProperty -Name $script.Key -Value $script.Value -Force
+}
+
+# Write back to package.json
+$packageJson | ConvertTo-Json -Depth 10 | Out-File "package.json" -Encoding utf8
+# Expected output: lint-staged configuration and quality scripts added
+```
+
+### Step 2g.4: Pre-commit Validation Test
+
+Test the pre-commit setup manually before proceeding:
+
+```powershell
+# Test pre-commit hook manually (without committing)
+npm run pre-commit:manual
+# Expected output: Runs linting and formatting on staged files
+
+# Test complete quality check pipeline
+npm run quality:all
+# Expected output: Runs all quality checks successfully
+```
+
+**Expected Result:** Automated pre-commit hooks that enforce code quality, formatting, and type checking before any code can be committed to the repository, ensuring consistent quality standards across all team members.
+
+## Step 2.6: Database Layer Integration with Authentication
+
+Configure the database layer with PostgreSQL, Prisma ORM, Redis caching, and NextAuth.js authentication following comprehensive database and security standards. This step integrates authentication as the foundational database functionality with comprehensive error handling and logging.
+
+### Step 2.6a: Database and Authentication Dependencies Installation
+**Reference Rules:** `db-client-standards.mdc`, `db-schema-standards.mdc`, `auth-nextauth-simple.mdc`, `logging-standards.mdc`
+
+Install database, ORM, and authentication dependencies:
+
+```powershell
+# Install core database dependencies (including Zod for environment validation from Step 2c)
+npm install prisma @prisma/client zod redis ioredis
+
+# Install NextAuth.js authentication dependencies
+npm install next-auth@beta @auth/prisma-adapter bcryptjs
+
+# Install development dependencies for security and testing
+npm install -D @types/bcryptjs @types/jest ts-jest tsx
+```
+
+**Note:** Zod is installed here for both environment variable validation (from Step 2c) and database input validation, providing consistent validation patterns across the application.
+
+**Guidance Principles:**
+- Prisma provides type-safe database access
+- NextAuth.js provides secure authentication with database adapter
+- Zod enables runtime validation following security standards
+- Redis supports caching for performance optimization and session storage
+- bcryptjs provides secure password hashing
+- Testing dependencies prepare for comprehensive database and auth testing
+- Comprehensive error handling and logging for production monitoring
+- Structured logging patterns for database operations and auth events
+
+### Step 2.6b: Database Directory Structure
+**Reference Rule:** `db-client-standards.mdc`
+
+Create database layer directory structure:
+
+```powershell
+# Create database layer directories
+New-Item -ItemType Directory -Path "src/lib/database" -Force
+New-Item -ItemType Directory -Path "src/lib/repositories" -Force
+New-Item -ItemType Directory -Path "src/lib/services" -Force
+New-Item -ItemType Directory -Path "src/lib/validators" -Force
+```
+
+**Guidance Principles:**
+- Database client management in dedicated directory
+- Repository pattern for data access abstraction (including auth User operations)
+- Service layer for business logic separation
+- Validation schemas for input safety and auth security
+
+### Step 2.6c: Prisma Schema Setup with Authentication Tables
+**Reference Rules:** `db-schema-standards.mdc`, `db-migration-standards.mdc`, `auth-nextauth-simple.mdc`
+
+Initialize Prisma and configure schema with NextAuth.js authentication tables:
+
+```powershell
+# Initialize Prisma (removes existing prisma directory if present)
+if (Test-Path "prisma") { Remove-Item -Path "prisma" -Recurse -Force }
+npx prisma init
+
+# Configure Prisma schema with authentication tables
+@"
+// This is your Prisma schema file.
+generator client {
+  provider      = "prisma-client-js"
+  // CRITICAL: Multiple binary targets prevent Docker deployment crashes
+  // See db-client-standards.mdc Step 2.5 for complete Docker compatibility guidance
+  binaryTargets = ["native", "debian-openssl-1.1.x", "debian-openssl-3.0.x", "linux-musl", "linux-musl-openssl-3.0.x"]
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+// NextAuth.js Required Tables
+model Account {
+  id                String  @id @default(cuid())
+  userId            String
+  type              String
+  provider          String
+  providerAccountId String
+  refresh_token     String? @db.Text
+  access_token      String? @db.Text
+  expires_at        Int?
+  token_type        String?
+  scope             String?
+  id_token          String? @db.Text
+  session_state     String?
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([provider, providerAccountId])
+  @@map("accounts")
+}
+
+model Session {
+  id           String   @id @default(cuid())
+  sessionToken String   @unique
+  userId       String
+  expires      DateTime
+  user         User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@map("sessions")
+}
+
+model User {
+  id            String    @id @default(cuid())
+  name          String?
+  email         String    @unique
+  emailVerified DateTime?
+  image         String?
+  password      String?   // For email/password authentication
+  accounts      Account[]
+  sessions      Session[]
+  createdAt     DateTime  @default(now())
+  updatedAt     DateTime  @updatedAt
+
+  @@map("users")
+}
+
+model VerificationToken {
+  identifier String
+  token      String   @unique
+  expires    DateTime
+
+  @@unique([identifier, token])
+  @@map("verification_tokens")
+}
+"@ | Out-File -FilePath "prisma/schema.prisma" -Encoding utf8
+
+# Generate Prisma client to verify setup
+npx prisma generate
+```
+
+**Guidance Principles:**
+- Use Prisma CLI for proper initialization
+- PostgreSQL as primary database following schema standards
+- NextAuth.js authentication tables as foundation (no mock Post tables)
+- Client generation ensures TypeScript integration
+- Table mapping follows PostgreSQL naming conventions
+- **CRITICAL: Binary targets configured for Docker compatibility** - Prevents Prisma engine mismatch in containers
+
+### Step 2.6d: Database Layer Implementation with Authentication
+**Reference Rules:** `db-client-standards.mdc`, `db-security-standards.mdc`, `auth-nextauth-simple.mdc`
+
+Implement core database infrastructure with authentication support:
+
+```powershell
+# Create database client singleton
+@"
+import { PrismaClient } from '@prisma/client'
+
+const globalForPrisma = globalThis as unknown as {
+  prisma: PrismaClient | undefined
+}
+
+export const prisma = globalForPrisma.prisma ?? new PrismaClient()
+
+if (process.env.NODE_ENV !== 'production') globalForPrisma.prisma = prisma
+"@ | Out-File -FilePath "src/lib/database/prisma.ts" -Encoding utf8
+
+# Create database connection utilities
+@"
+import { prisma } from './prisma'
+
+export async function connectToDatabase() {
+  try {
+    await prisma.$connect()
+    console.log('✅ Database connected successfully')
+    return true
+  } catch (error) {
+    console.error('❌ Database connection failed:', error)
+    return false
+  }
+}
+
+export async function disconnectFromDatabase() {
+  await prisma.$disconnect()
+}
+"@ | Out-File -FilePath "src/lib/database/connection.ts" -Encoding utf8
+
+# Create base repository pattern
+@"
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+type PrismaModel = any;
+
+export abstract class BaseRepository<T, CreateInput, UpdateInput, WhereInput, WhereUniqueInput> {
+  protected abstract model: PrismaModel;
+
+  async findMany(where?: WhereInput): Promise<T[]> {
+    return this.model.findMany({ where });
+  }
+
+  async findUnique(where: WhereUniqueInput): Promise<T | null> {
+    return this.model.findUnique({ where });
+  }
+
+  async create(data: CreateInput): Promise<T> {
+    return this.model.create({ data });
+  }
+
+  async update(where: WhereUniqueInput, data: UpdateInput): Promise<T> {
+    return this.model.update({ where, data });
+  }
+
+  async delete(where: WhereUniqueInput): Promise<T> {
+    return this.model.delete({ where });
+  }
+
+  async count(where?: WhereInput): Promise<number> {
+    return this.model.count({ where });
+  }
+}
+"@ | Out-File -FilePath "src/lib/repositories/base.repository.ts" -Encoding utf8
+
+# Create User repository with authentication support
+@"
+import { User, Prisma } from '@prisma/client'
+import { prisma } from '@/lib/database/prisma'
+import { BaseRepository } from './base.repository'
+import bcrypt from 'bcryptjs'
+
+type UserCreateInput = Prisma.UserCreateInput
+type UserUpdateInput = Prisma.UserUpdateInput
+type UserWhereInput = Prisma.UserWhereInput
+type UserWhereUniqueInput = Prisma.UserWhereUniqueInput
+
+export class UserRepository extends BaseRepository<User, UserCreateInput, UserUpdateInput, UserWhereInput, UserWhereUniqueInput> {
+  protected model = prisma.user
+
+  async findByEmail(email: string): Promise<User | null> {
+    return this.model.findUnique({
+      where: { email }
+    })
+  }
+
+  async createWithPassword(data: { name?: string; email: string; password: string }): Promise<User> {
+    const hashedPassword = await bcrypt.hash(data.password, 12)
+
+    return this.model.create({
+      data: {
+        ...data,
+        password: hashedPassword,
+      }
+    })
+  }
+
+  async validatePassword(user: User, password: string): Promise<boolean> {
+    if (!user.password) return false
+    return bcrypt.compare(password, user.password)
+  }
+
+  async updatePassword(userId: string, newPassword: string): Promise<User> {
+    const hashedPassword = await bcrypt.hash(newPassword, 12)
+
+    return this.model.update({
+      where: { id: userId },
+      data: { password: hashedPassword }
+    })
+  }
+}
+
+export const userRepository = new UserRepository()
+"@ | Out-File -FilePath "src/lib/repositories/user.repository.ts" -Encoding utf8
+
+# Create authentication configuration
+@"
+import NextAuth from "next-auth"
+import { PrismaAdapter } from "@auth/prisma-adapter"
+import CredentialsProvider from "next-auth/providers/credentials"
+import { prisma } from "@/lib/database/prisma"
+import { userRepository } from "@/lib/repositories/user.repository"
+
+export const { handlers, auth, signIn, signOut } = NextAuth({
+  adapter: PrismaAdapter(prisma),
+  providers: [
+    CredentialsProvider({
+      name: "credentials",
+      credentials: {
+        email: { label: "Email", type: "email" },
+        password: { label: "Password", type: "password" }
+      },
+      async authorize(credentials) {
+        if (!credentials?.email || !credentials?.password) {
+          return null
+        }
+
+        const user = await userRepository.findByEmail(credentials.email as string)
+        if (!user) {
+          return null
+        }
+
+        const isValid = await userRepository.validatePassword(user, credentials.password as string)
+        if (!isValid) {
+          return null
+        }
+
+        return {
+          id: user.id,
+          email: user.email,
+          name: user.name,
+          image: user.image,
+        }
+      }
+    }),
+  ],
+  session: {
+    strategy: "jwt",
+  },
+  callbacks: {
+    async jwt({ token, user }) {
+      if (user) {
+        token.id = user.id
+      }
+      return token
+    },
+    async session({ session, token }) {
+      if (token) {
+        session.user.id = token.id as string
+      }
+      return session
+    },
+  },
+  pages: {
+    signIn: "/auth/signin",
+    error: "/auth/error",
+  },
+})
+"@ | Out-File -FilePath "src/lib/auth.ts" -Encoding utf8
+
+# Create authentication API routes
+New-Item -ItemType Directory -Path "src/app/api/auth/[...nextauth]" -Force
+@"
+import { handlers } from "@/lib/auth"
+
+export const { GET, POST } = handlers
+"@ | Out-File -FilePath "src/app/api/auth/[...nextauth]/route.ts" -Encoding utf8
+
+# Create user registration API endpoint
+New-Item -ItemType Directory -Path "src/app/api/auth/register" -Force
+@"
+import { NextRequest, NextResponse } from "next/server"
+import { userRepository } from "@/lib/repositories/user.repository"
+
+export async function POST(request: NextRequest) {
+  try {
+    const { name, email, password } = await request.json()
+
+    if (!name || !email || !password) {
+      return NextResponse.json(
+        { error: "Missing required fields" },
+        { status: 400 }
+      )
+    }
+
+    const existingUser = await userRepository.findByEmail(email)
+    if (existingUser) {
+      return NextResponse.json(
+        { error: "User already exists" },
+        { status: 400 }
+      )
+    }
+
+    const user = await userRepository.createWithPassword({
+      name,
+      email,
+      password,
+    })
+
+    return NextResponse.json({
+      user: {
+        id: user.id,
+        name: user.name,
+        email: user.email,
+      },
+    })
+  } catch (error) {
+    console.error('Registration error:', error)
+    return NextResponse.json(
+      { error: "Internal server error" },
+      { status: 500 }
+    )
+  }
+}
+"@ | Out-File -FilePath "src/app/api/auth/register/route.ts" -Encoding utf8
+
+# Create health check API with database connectivity test
+New-Item -ItemType Directory -Path "src/app/api/health" -Force
+@"
+import { NextResponse } from "next/server"
+import { connectToDatabase } from "@/lib/database/connection"
+
+export async function GET() {
+  try {
+    const isConnected = await connectToDatabase()
+
+    if (isConnected) {
+      return NextResponse.json({
+        status: "healthy",
+        database: "connected",
+        timestamp: new Date().toISOString()
+      })
+    } else {
+      return NextResponse.json({
+        status: "unhealthy",
+        database: "disconnected",
+        timestamp: new Date().toISOString()
+      }, { status: 503 })
+    }
+  } catch (error) {
+    return NextResponse.json({
+      status: "error",
+      database: "error",
+      timestamp: new Date().toISOString()
+    }, { status: 500 })
+  }
+}
+"@ | Out-File -FilePath "src/app/api/health/route.ts" -Encoding utf8
+```
+
+**Guidance Principles:**
+- Singleton client pattern prevents connection issues
+- Repository pattern provides consistent data access with auth-specific methods
+- Type-safe operations through Prisma integration
+- Security through validated inputs, password hashing, and environment management
+- NextAuth.js integration provides production-ready authentication
+- Health check endpoints enable reliable database connectivity testing
+
+### Step 2.6e: Database Schema Migration and Authentication Setup
+**Reference Rule:** `db-migration-standards.mdc`, `auth-nextauth-simple.mdc`
+
+Create initial schema migration and authentication seeding using the configured environment system:
+
+```powershell
+# Update environment configuration with database and authentication values
+# Add the following values to your .env.local file (created in Step 2c):
+
+# Database Configuration
+# DATABASE_URL="postgresql://app_user:secure_password@localhost:5432/modern_web_app?schema=public"
+# REDIS_URL="redis://localhost:6379"
+
+# NextAuth.js Configuration
+# AUTH_SECRET=your-super-secret-key-change-this-in-production-make-it-very-long
+# AUTH_URL=http://localhost:3000
+
+# Update src/lib/config/env.ts to include these variables in the schema validation
+# Ensure these variables are added to the Zod schema from Step 2c environment setup
+
+# Create and apply initial migration with auth tables
+npx prisma migrate dev --name "init-auth-tables"
+
+# Create database seed script with initial admin user
+@"
+import { PrismaClient } from '@prisma/client'
+import bcrypt from 'bcryptjs'
+
+const prisma = new PrismaClient()
+
+async function main() {
+  console.log('🌱 Seeding database with initial data...')
+
+  // Create initial admin user
+  const adminPassword = await bcrypt.hash('admin123', 12)
+
+  const adminUser = await prisma.user.upsert({
+    where: { email: 'admin@example.com' },
+    update: {},
+    create: {
+      email: 'admin@example.com',
+      name: 'Admin User',
+      password: adminPassword,
+    },
+  })
+
+  console.log('✅ Created admin user:', { id: adminUser.id, email: adminUser.email })
+
+  // Create test user
+  const testPassword = await bcrypt.hash('test123', 12)
+
+  const testUser = await prisma.user.upsert({
+    where: { email: 'test@example.com' },
+    update: {},
+    create: {
+      email: 'test@example.com',
+      name: 'Test User',
+      password: testPassword,
+    },
+  })
+
+  console.log('✅ Created test user:', { id: testUser.id, email: testUser.email })
+
+  console.log('🎉 Database seeding completed!')
+}
+
+main()
+  .catch((e) => {
+    console.error('❌ Seeding failed:', e)
+    process.exit(1)
+  })
+  .finally(async () => {
+    await prisma.$disconnect()
+  })
+"@ | Out-File -FilePath "prisma/seed.ts" -Encoding utf8
+
+# Update package.json to include seed script
+$packageJson = Get-Content "package.json" | ConvertFrom-Json
+if (-not $packageJson.prisma) {
+    $packageJson | Add-Member -NotePropertyName "prisma" -NotePropertyValue @{
+        seed = "tsx prisma/seed.ts"
+    }
+}
+$packageJson | ConvertTo-Json -Depth 10 | Out-File "package.json" -Encoding utf8
+
+# Run database seeding
+npx prisma db seed
+```
+
+**Guidance Principles:**
+- Migration-driven schema management with authentication tables as foundation
+- Version control integration for team collaboration
+- Authentication-focused seed data with admin and test users
+- Secure password hashing in seed data
+- Environment variables properly configured for development and production
+
+**Expected Result:** Complete database layer with PostgreSQL schema, Prisma client, repository patterns, and initial data ready for application development.
+
+## Step 2.8: Early Validation & Fix
+
+**CRITICAL: Run validation checks BEFORE Docker setup to catch and fix issues early.**
+
+This step prevents lint errors, TypeScript issues, and build configuration problems from being discovered during Docker builds, saving significant development time.
+
+### Step 2.8a: ESLint Validation
+Run ESLint to catch coding standard violations early:
+
+```powershell
+npm run lint
+```
+
+**Common Issues & Fixes:**
+- **Unused variables**: Add `// eslint-disable-next-line @typescript-eslint/no-unused-vars` or use the variable in error logging
+- **Missing dependencies**: Add missing imports at the top of files
+- **Incorrect syntax**: Follow ESLint suggestions for consistent code style
+
+**Example Fix for Unused Error Variable:**
+```typescript
+// Before (causes ESLint error)
+} catch (error) {
+  return NextResponse.json({ status: "error" }, { status: 500 })
+}
+
+// After (fixed)
+} catch (error) {
+  console.error("Health check failed:", error)
+  return NextResponse.json({ status: "error" }, { status: 500 })
+}
+```
+
+### Step 2.8b: TypeScript Compilation Check
+Verify TypeScript compilation without emitting files:
+
+```powershell
+npx tsc --noEmit
+```
+
+**Common Issues & Fixes:**
+- **Type errors**: Add proper type annotations or import missing types
+- **Import path issues**: Verify `@/` path aliases are configured correctly in tsconfig.json
+- **Missing declarations**: Add type declarations for environment variables or external libraries
+
+### Step 2.8c: Build Configuration Validation
+Test the complete build process to catch Tailwind CSS and configuration issues:
+
+```powershell
+npm run build
+```
+
+**Common Issues & Fixes:**
+- **Tailwind CSS errors**: Follow color configuration requirements in `ui-tailwind-css-standards.mdc`
+- **Next.js configuration**: Verify `output: 'standalone'` is set for Docker builds
+- **Prisma compatibility**: Ensure binary targets are configured per `db-client-standards.mdc`
+- **Asset import issues**: Check public/ folder structure and import paths
+
+### Step 2.8d: Environment Configuration Validation
+Verify the environment setup from Step 2c is working correctly:
+
+```powershell
+# Test environment variable validation (will fail if config is incorrect)
+node -e "require('./src/lib/config/env.ts')"
+
+# Verify TypeScript environment typing
+# Open VS Code and type 'process.env.' - should show autocomplete with typed variables
+```
+
+**Common Environment Issues & Fixes:**
+- **Missing variables**: Add required variables to `.env.local`
+- **Zod validation errors**: Check variable format requirements in `src/lib/config/env.ts`
+- **TypeScript errors**: Ensure `src/env.d.ts` includes all variables used in the application
+
+### Step 2.8e: Fix All Issues Before Proceeding
+**DO NOT proceed to Docker setup until ALL validation checks pass without errors or warnings.**
+
+If any validation step fails:
+1. **Fix the immediate issue** using the guidance above
+2. **Re-run the validation step** that failed
+3. **Run all validation steps** again to ensure no new issues were introduced
+4. **Only proceed to Docker setup** when validation is clean
+
+**Validation Success Criteria:**
+- ✅ `npm run lint` shows "No ESLint warnings or errors"
+- ✅ `npx tsc --noEmit` completes without TypeScript errors
+- ✅ `npm run build` completes successfully with only informational output
+- ✅ Environment validation passes without errors
+- ✅ TypeScript provides autocomplete for environment variables
+
+**Expected Result:** All code quality, type safety, build configuration, and environment management issues resolved before Docker containerization begins.
+
+## Step 2.9: Feature Enhancement Guidance
+
+**Foundation Complete**: With core standards, quality automation, database integration, and validation complete, you now have access to specialized guidance for common application features.
+
+This optional step provides references to feature-specific architectural guidance that builds upon your established foundation.
+
+### Dashboard Interfaces
+**Reference Rule:** `dashboard-ui-patterns.mdc`
+
+**When to apply:** Projects requiring data visualization, admin interfaces, metrics displays, or analytics dashboards
+
+**Foundation satisfied:** ✅ UI component library, responsive design system, TypeScript configuration, database layer
+
+**Key Guidance Areas:**
+- Layout architecture patterns (sidebar vs. top navigation decision criteria)
+- Component composition strategies for extending existing UI library
+- Data visualization technology selection (Recharts, D3, Chart.js)
+- Responsive design considerations for dashboard interfaces
+- Performance patterns for data loading and real-time updates
+
+**Integration Approach:**
+```powershell
+# Verify prerequisites for dashboard patterns
+Test-Path "src/app/_components/ui" -or Test-Path "src/components/ui"
+Get-Content "tailwind.config.ts" | Select-String "primary:"
+
+# Reference the rule when ready to implement dashboard functionality
+# dashboard-ui-patterns.mdc provides architectural guidance, not implementation steps
+```
+
+### Future Enhancement Guidance
+**Extensible Pattern**: Additional feature-specific rules can be referenced here as the rule system grows:
+- Authentication integration patterns (beyond basic setup)
+- E-commerce interface patterns
+- Blog/CMS interface patterns
+- Real-time communication patterns
+- Multi-tenant application patterns
+
+**Guidance Principle**: These rules provide architectural direction and decision criteria rather than step-by-step implementations, maintaining flexibility for project-specific requirements.
+
+**Expected Result:** Clear pathway from foundation setup to feature-specific architectural guidance, enabling informed decisions about application enhancement directions.
+
+## Step 3: Docker Setup
+**Reference Rule:** `nextjs-docker-standards.mdc`
+
+Create multi-container Docker configuration supporting PostgreSQL, Redis, and Next.js application with proven compatibility patterns for modern dependencies.
+
+**CRITICAL: Follow nextjs-docker-standards.mdc for reliable builds with modern dependencies like Tailwind CSS v4 and Prisma.**
+
+### Dockerfile - Production-Ready Multi-Stage Build
+```dockerfile
+# Use the official Node.js 20 image (Debian-based for compatibility)
+FROM node:20-slim AS base
+
+# Install dependencies only when needed
+FROM base AS deps
+RUN apt-get update && apt-get install -y --no-install-recommends \
+    python3 \
+    make \
+    g++ \
+    openssl \
+    && rm -rf /var/lib/apt/lists/*
+WORKDIR /app
+
+# CRITICAL: Copy schema BEFORE npm install for postinstall scripts
+COPY package.json package-lock.json* ./
+COPY prisma ./prisma
+
+# Install ALL dependencies (including dev dependencies needed for build)
+RUN npm ci
+
+# Build stage
+FROM base AS builder
+WORKDIR /app
+RUN apt-get update && apt-get install -y --no-install-recommends \
+    python3 \
+    make \
+    g++ \
+    openssl \
+    && rm -rf /var/lib/apt/lists/*
+
+COPY --from=deps /app/node_modules ./node_modules
+COPY . .
+
+# Generate Prisma client
+RUN npx prisma generate
+
+# Build the application
+RUN npm run build
+
+# Production image
+FROM base AS runner
+WORKDIR /app
+
+ENV NODE_ENV=production
+
+# Install OpenSSL for Prisma runtime detection
+RUN apt-get update && apt-get install -y --no-install-recommends \
+    openssl \
+    && rm -rf /var/lib/apt/lists/*
+
+RUN groupadd --system --gid 1001 nodejs
+RUN useradd --system --uid 1001 nextjs
+
+# Copy built application
+COPY --from=builder /app/public ./public
+COPY --from=builder --chown=nextjs:nodejs /app/.next/standalone ./
+COPY --from=builder --chown=nextjs:nodejs /app/.next/static ./.next/static
+
+# Copy database schema and generated client
+COPY --from=builder /app/prisma ./prisma
+COPY --from=builder /app/generated ./generated
+
+USER nextjs
+
+EXPOSE 3000
+
+ENV PORT=3000
+ENV HOSTNAME="0.0.0.0"
+
+CMD ["node", "server.js"]
+```
+
+### docker-compose.yml - Modern Service Configuration
+```yaml
+services:
+  # Next.js Application
+  app:
+    build: .
+    ports:
+      - "3000:3000"
+    environment:
+      - NODE_ENV=production
+      - DATABASE_URL=postgresql://app_user:secure_password@db:5432/modern_web_app?schema=public
+      - REDIS_URL=redis://redis:6379
+      - AUTH_SECRET=your-super-secure-jwt-secret-change-this-in-production-make-it-very-long
+      - AUTH_URL=http://localhost:3000
+    depends_on:
+      - db
+      - redis
+    networks:
+      - app-network
+
+  # PostgreSQL Database
+  db:
+    image: postgres:15-alpine
+    environment:
+      POSTGRES_DB: modern_web_app
+      POSTGRES_USER: app_user
+      POSTGRES_PASSWORD: secure_password
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+      - ./scripts/init-db.sql:/docker-entrypoint-initdb.d/init.sql
+    ports:
+      - "5432:5432"
+    networks:
+      - app-network
+
+  # Redis Cache
+  redis:
+    image: redis:7-alpine
+    ports:
+      - "6379:6379"
+    volumes:
+      - redis_data:/data
+    networks:
+      - app-network
+
+volumes:
+  postgres_data:
+  redis_data:
+
+networks:
+  app-network:
+    driver: bridge
+```
+
+**Key Docker Improvements:**
+- ✅ **Debian-based image** for native dependency compatibility
+- ✅ **Multi-stage build** for optimized production images
+- ✅ **Correct dependency installation** including dev dependencies for build
+- ✅ **Proper file copying order** (Prisma schema before npm install)
+- ✅ **OpenSSL installation** for Prisma runtime detection and security
+- ✅ **Standard port 3000** following Next.js conventions
+
+### .dockerignore
+```
+node_modules
+.next
+.git
+README.md
+Dockerfile
+docker-compose.yml
+.dockerignore
+```
+
+## Step 4: Makefile Creation
+**Reference Rules:** `windows-development-commands.mdc`, `db-migration-standards.mdc`
+
+Create a Windows-compatible Makefile with database operations and validation workflows:
+
+**Important:** On Windows, echo commands in Makefiles do NOT require double quotes around strings. Use `@echo Available commands:` instead of `@echo "Available commands:"` for proper Windows compatibility.
+
+**Validation Integration:** Include early validation commands (from Step 2.8) in Makefile for easy execution during development.
+
+```makefile
+# Windows-compatible Makefile for modern web app with database
+
+.PHONY: help install dev build start lint clean docker-build docker-up docker-down docker-logs db-generate db-migrate db-reset db-seed db-studio test-db dev-setup docker-db-up docker-full-up
+
+# LOCAL DEVELOPMENT
+install:
+	@echo Installing dependencies...
+	npm ci
+
+dev:
+	@echo Starting development server...
+	npm run dev
+
+build:
+	@echo Building production bundle...
+	npm run build
+
+start:
+	@echo Starting production server...
+	npm start
+
+lint:
+	@echo Running linter...
+	npm run lint
+
+# DATABASE OPERATIONS
+db-generate:
+	@echo Generating Prisma client...
+	npx prisma generate
+
+db-migrate:
+	@echo Running database migrations...
+	npx prisma migrate dev
+
+db-reset:
+	@echo Resetting database...
+	npx prisma migrate reset --force
+
+db-seed:
+	@echo Seeding database...
+	npx prisma db seed
+
+db-studio:
+	@echo Opening Prisma Studio...
+	npx prisma studio
+
+# TESTING WITH DATABASE
+test-db:
+	@echo Running database tests...
+	npm run test:db
+
+test-all:
+	@echo Running all tests...
+	npm run test
+
+# DEVELOPMENT WITH DATABASE
+dev-setup:
+	@echo Setting up development environment...
+	npm ci
+	npx prisma generate
+	npx prisma migrate dev
+	npx prisma db seed
+
+# DOCKER WITH DATABASE
+docker-db-up:
+	@echo Starting database containers...
+	docker-compose up postgres redis -d
+
+docker-full-up:
+	@echo Starting all containers with database...
+	docker-compose up --build -d
+
+docker-build:
+	@echo Building Docker container...
+	docker-compose build
+
+docker-up:
+	@echo Starting Docker container...
+	docker-compose up -d
+
+docker-down:
+	@echo Stopping Docker container...
+	docker-compose down
+
+docker-logs:
+	@echo Viewing Docker logs...
+	docker-compose logs app
+
+# UTILITIES
+clean:
+	@echo Cleaning project...
+	@if exist node_modules rmdir /s /q node_modules
+	@if exist .next rmdir /s /q .next
+	@powershell -Command "Get-Process node -ErrorAction SilentlyContinue | Stop-Process -Force"
+
+# HELP
+help:
+	@echo.
+	@echo LOCAL DEVELOPMENT
+	@echo   install      - Install dependencies
+	@echo   dev         - Start development server
+	@echo   build       - Build production bundle
+	@echo   start       - Start production server
+	@echo   lint        - Run linter
+	@echo.
+	@echo DATABASE OPERATIONS
+	@echo   db-generate  - Generate Prisma client
+	@echo   db-migrate   - Run database migrations
+	@echo   db-reset     - Reset database
+	@echo   db-seed      - Seed database
+	@echo   db-studio    - Open Prisma Studio
+	@echo.
+	@echo TESTING WITH DATABASE
+	@echo   test-db      - Run database tests
+	@echo   test-all     - Run all tests
+	@echo.
+	@echo DEVELOPMENT WITH DATABASE
+	@echo   dev-setup    - Setup dev environment
+	@echo.
+	@echo DOCKER WITH DATABASE
+	@echo   docker-db-up   - Start database containers
+	@echo   docker-full-up - Start all containers
+	@echo   docker-build   - Build Docker container
+	@echo   docker-up      - Start Docker container
+	@echo   docker-down    - Stop Docker container
+	@echo   docker-logs    - View Docker logs
+	@echo.
+	@echo UTILITIES
+	@echo   clean       - Remove build files and kill Node processes
+	@echo   help        - Show this help message
+```
+
+## Step 5: Validation
+
+**CRITICAL: Docker-Only Validation**
+⚠️ **DO NOT use `npm dev` or local development server for validation**
+✅ **ONLY test against Docker containers as specified below**
+
+All validation MUST be performed against the Docker-deployed application, not local development. This ensures the complete stack (including database connections, environment configuration, and production build) works correctly.
+
+### Database Services Startup
+```powershell
+# Start database services first
+docker-compose up postgres redis -d
+
+# Wait for services to be ready
+Start-Sleep -Seconds 10
+
+# Verify database services are healthy
+docker-compose ps | Select-String "healthy"
+```
+
+### Database Layer Validation
+```powershell
+# Verify database layer structure with authentication
+Test-Path "prisma\schema.prisma"
+Test-Path "src\lib\database"
+Test-Path "src\lib\repositories"
+Test-Path "src\lib\services"
+Test-Path "src\lib\validators"
+Test-Path "src\lib\auth.ts"
+
+# Verify authentication API routes exist
+Test-Path "src\app\api\auth\[...nextauth]\route.ts"
+Test-Path "src\app\api\auth\register\route.ts"
+Test-Path "src\app\api\health\route.ts"
+
+# Verify Prisma migration completed with auth tables
+Test-Path "prisma\migrations"
+
+# Check authentication seed data exists (admin and test users)
+npx prisma db seed
+```
+
+### Testing Infrastructure Validation
+```powershell
+# Verify testing infrastructure structure
+Test-Path "vitest.config.ts"
+Test-Path "src\__tests__"
+Test-Path "src\test-utils"
+Test-Path "src\test-utils\setup.ts"
+Test-Path "src\test-utils\render.tsx"
+Test-Path "src\test-utils\database.ts"
+
+# Verify sample tests exist
+Test-Path "src\__tests__\Button.test.tsx"
+Test-Path "src\__tests__\api\health.test.ts"
+
+# Verify testing scripts in package.json
+Get-Content package.json | Select-String '"test"'
+Get-Content package.json | Select-String '"test:ui"'
+
+# Run test suite to verify setup
+npm run test -- --run --reporter=verbose
+
+# Verify test coverage works
+npm run test:coverage -- --run
+```
+
+### Build and Test Full Stack
+```powershell
+# Verify directory context
+Get-Location
+Test-Path package.json
+
+# Build and start all containers
+docker-compose up --build -d
+
+# Wait for full startup
+Start-Sleep -Seconds 15
+
+# Validate main application response (check actual container port with docker-compose ps)
+docker-compose ps | Select-String "app"  # Check actual port mapping
+Invoke-WebRequest http://localhost:3000 -UseBasicParsing | Select-String "Next.js"
+```
+
+**Note**: Verify the actual port by checking `docker-compose ps` output. The application may run on port 3000 or the configured port in docker-compose.yml.
+
+### Health Check Validation
+```powershell
+# Test overall health and database connectivity (adjust port based on container mapping)
+Invoke-WebRequest http://localhost:3000/api/health -UseBasicParsing | Select-String "healthy"
+
+# Test authentication endpoints functionality
+# Test user registration (creates new user in database)
+$registerPayload = @{
+    name = "Test Integration User"
+    email = "integration-test@example.com"
+    password = "testpassword123"
+} | ConvertTo-Json
+
+$registerResponse = Invoke-WebRequest -Uri http://localhost:3000/api/auth/register -Method POST -ContentType "application/json" -Body $registerPayload -UseBasicParsing
+$registerResponse.StatusCode
+# Expected output: 200 (successful registration)
+
+# Test NextAuth.js endpoints are accessible
+Invoke-WebRequest http://localhost:3000/api/auth/providers -UseBasicParsing | Select-String "credentials"
+# Expected output: Shows available auth providers
+
+# Verify authentication system integration with database
+# This tests: repository pattern, password hashing, database writes, NextAuth.js configuration
+echo "✅ Authentication system integrated with database successfully"
+```
+
+### UI Design System Validation
+```powershell
+# Verify Tailwind v4 CSS-first configuration and design system
+Test-Path "src/app/globals.css"
+Get-Content src/app/globals.css | Select-String "@import.*tailwindcss"
+Get-Content src/app/globals.css | Select-String "@theme"
+Get-Content src/app/globals.css | Select-String "--color-primary"
+# Expected output: Shows v4 CSS-first configuration with design tokens
+
+# Verify enhanced global CSS with design system layers
+Test-Path "src\app\globals.css"
+Get-Content src\app\globals.css | Select-String "@layer base"
+Get-Content src\app\globals.css | Select-String "@layer components"
+# Expected output: Shows custom Tailwind layers
+
+# Verify UI component structure
+Test-Path "src\components\ui"
+Test-Path "src\components\ui\Button.tsx"
+Test-Path "src\components\ui\Card.tsx"
+Test-Path "src\components\ui\index.ts"
+Test-Path "src\lib\utils.ts"
+
+# Verify utility dependencies for design system
+Get-Content package.json | Select-String "(clsx|tailwind-merge)"
+# Expected output: Shows required utility dependencies
+
+# Test design system components render correctly in Docker
+Invoke-WebRequest http://localhost:3000 -UseBasicParsing | Select-String "Welcome to Your Modern Web App"
+Invoke-WebRequest http://localhost:3000 -UseBasicParsing | Select-String "Authentication Ready"
+Invoke-WebRequest http://localhost:3000 -UseBasicParsing | Select-String "Design System"
+# Expected output: Shows design system showcase content
+
+# Verify Tailwind CSS compilation in production build
+Invoke-WebRequest http://localhost:3000 -UseBasicParsing | Select-String "bg-gray-50"
+# Expected output: Confirms Tailwind utilities are compiled and working
+
+# Test responsive design elements
+Invoke-WebRequest http://localhost:3000 -UseBasicParsing | Select-String "grid-cols-1 md:grid-cols-2 lg:grid-cols-3"
+# Expected output: Shows responsive grid classes are present
+
+echo "✅ UI Design System with Tailwind CSS validated successfully"
+```
+
+### Verify Project Structure and Standards Compliance
+```powershell
+Get-ChildItem -Force
+# Should show: src/, public/, prisma/, package.json, tsconfig.json, postcss.config.mjs, eslint.config.mjs, Dockerfile, docker-compose.yml, .dockerignore, Makefile
+
+# CRITICAL: Final validation of nextjs-structure-standards.mdc compliance
+Write-Output "🔍 Final NextJS structure standards validation..."
+
+# Verify REQUIRED src/app/ structure
+if (-not (Test-Path "src/app")) {
+    Write-Error "❌ FINAL VALIDATION FAILED: src/app/ directory missing"
+    Write-Output "nextjs-structure-standards.mdc requires src/app/ structure"
+    exit 1
+}
+
+# Verify NO conflicting root app/ directory
+if (Test-Path "app") {
+    Write-Error "❌ FINAL VALIDATION FAILED: Forbidden root app/ directory exists"
+    Write-Output "This violates nextjs-structure-standards.mdc and causes routing conflicts"
+    Write-Output "Expected: ONLY src/app/ structure"
+    exit 1
+}
+
+# Verify API routes are in correct location
+if (Test-Path "src/app/api") {
+    Write-Output "✅ API routes correctly located in src/app/api/"
+} else {
+    Write-Warning "⚠️  No API routes found in src/app/api/ - this is expected for new projects"
+}
+
+Write-Output "✅ FINAL VALIDATION PASSED: NextJS structure standards compliance confirmed"
+```
+
+### Verify Standards Compliance
+```powershell
+# Check project naming and TypeScript configuration
+Get-Content package.json | Select-String '"name"'
+Get-Content tsconfig.json | Select-String '"paths"'
+
+# Verify Tailwind v4 installation (not traditional config file)
+Get-Content package.json | Select-String "tailwindcss.*4"
+Get-Content postcss.config.mjs | Select-String "@tailwindcss/postcss"
+
+# Verify required directory structure exists
+Test-Path "src\lib"
+Test-Path "src\app\_components"
+Test-Path "src\app\api"
+
+# Check environment and App Router files
+Test-Path ".env"
+Test-Path "src\env.d.ts"
+Test-Path "src\app\loading.tsx"
+Test-Path "src\app\error.tsx"
+Test-Path "src\app\not-found.tsx"
+
+# Verify database layer implementation with authentication
+Test-Path "src\lib\database\prisma.ts"
+Test-Path "src\lib\database\connection.ts"
+Test-Path "src\lib\repositories\base.repository.ts"
+Test-Path "src\lib\repositories\user.repository.ts"
+Test-Path "src\lib\auth.ts"
+```
+
+### Check Dependencies
+```powershell
+Get-Content package.json | Select-String "(next|typescript|tailwind|eslint)"
+# Should show Next.js 15+, TypeScript 5+, Tailwind CSS 4+, ESLint 9+
+
+Get-Content package.json | Select-String "(prisma|zod|redis)"
+# Should show Prisma 6+, Zod 3+, Redis 5+
+
+Get-Content package.json | Select-String "(next-auth|bcryptjs|@auth/prisma-adapter)"
+# Should show NextAuth.js beta, bcryptjs, Prisma adapter for authentication
+```
+
+## Success Criteria
+
+Setup is complete when all these are verified:
+- [x] **Next.js 15+ project created** successfully with proper foundation
+- [x] **Engineering best practices integrated** per architecture standards:
+  - Software engineering principles and architecture patterns (`bp-engineering-best-practices.mdc`)
+  - Performance optimization built into NextJS configuration (`nextjs-performance-standards.mdc`)
+  - Comprehensive logging and error handling patterns (`logging-standards.mdc`)
+- [x] **Standards compliance achieved** per referenced specialized rules:
+  - Project properly named and configured (`typescript-nextjs-standards.mdc`)
+  - Directory structure follows App Router conventions (`nextjs-structure-standards.mdc`)
+  - Environment and security foundations established (`bp-security-standards.mdc`)
+  - App Router best practice files created (`nextjs-structure-standards.mdc`)
+- [x] **Code quality and automation standards established** per quality rules:
+  - Enhanced ESLint and Prettier configuration (`dev-eslint-prettier-standards.mdc`)
+  - Code quality metrics and maintainability standards (`bp-code-quality-standards.mdc`)
+  - VS Code integration with automated formatting and linting
+  - Pre-commit hooks enforcing quality standards (`dev-husky-precommit-hooks.mdc`)
+  - Automated quality checks preventing bad code from entering repository
+- [x] **Testing infrastructure complete** per testing standards:
+  - Vitest configured with React Testing Library (`bp-testing-standards.mdc`)
+  - Database testing utilities and patterns (`db-testing-standards.mdc`)
+  - Test coverage reporting and quality gates established
+  - Component and integration testing examples created
+  - Testing integrated into pre-commit hooks and CI/CD pipeline
+- [x] **Database layer integration complete** per database standards:
+  - Schema design following PostgreSQL best practices (`db-schema-standards.mdc`)
+  - Prisma client singleton and repository patterns (`db-client-standards.mdc`)
+  - Migration system with version control integration (`db-migration-standards.mdc`)
+  - Security foundations with validation (`db-security-standards.mdc`)
+  - Testing infrastructure preparation (`db-testing-standards.mdc`)
+  - Performance optimization setup (`db-performance-standards.mdc`)
+- [x] **Authentication integration complete** per auth standards:
+  - NextAuth.js configured with database adapter (`auth-nextauth-simple.mdc`)
+  - User authentication tables as foundation (Account, Session, User, VerificationToken)
+  - Password hashing and validation implemented
+  - Repository pattern extended with auth-specific methods
+- [x] **UI standards and design system complete** per UI standards:
+  - Tailwind CSS enhanced with production-ready configuration (`ui-tailwind-css-standards.mdc`)
+  - Design system with custom color palettes and spacing scale
+  - Component foundation with Button, Card, and utility functions
+  - Global CSS with proper Tailwind layers and accessibility features
+  - Component showcase demonstrating responsive design patterns
+- [x] **TypeScript configuration** working with path aliases and strict typing
+- [x] **Tailwind CSS v4** configured via postcss.config.mjs
+- [x] **ESLint** set up with Next.js rules
+- [x] **Multi-container Docker setup** with PostgreSQL, Redis, and Next.js
+- [x] **Database connectivity** verified through auth endpoints
+- [x] **Repository patterns** functional with User authentication operations
+- [x] **API endpoints** responding with authentication integration
+- [x] **HTTP validation** returns Next.js content
+- [x] **Windows-compatible Makefile** created with database operations
+- [x] **All files** in current directory, existing files preserved
+
+## Troubleshooting
+
+### Docker Build Failures
+**Problem:** Docker build fails with "RUN npm run build" error or missing standalone files
+**Symptoms:**
+- Error: `/app/.next/standalone: not found`
+- Docker build exits with code 1 during npm run build
+- ESLint errors preventing build completion
+
+**Solution:** Fix Next.js configuration and ESLint issues:
+```powershell
+# 1. Ensure Next.js is configured for Docker builds
+# Edit next.config.ts to include:
+# const nextConfig: NextConfig = { output: 'standalone' };
+
+# 2. Fix common ESLint issues in generated files
+# For unused parameters in error boundaries:
+# Add: // eslint-disable-next-line @typescript-eslint/no-unused-vars
+# Before the function definition
+
+# 3. Rebuild containers after fixes
+docker-compose down
+docker-compose build --no-cache
+docker-compose up -d
+```
+
+### ESLint Unused Parameter Errors
+**Problem:** ESLint fails on required-but-unused parameters in React components
+**Symptoms:**
+- `'error' is defined but never used` in global-error.tsx
+- `'_error' is defined but never used` when using underscore prefix
+- Build fails during linting phase
+
+**Solution:** Use proper ESLint suppression patterns:
+```typescript
+// ✅ Correct approach for React error boundaries
+// eslint-disable-next-line @typescript-eslint/no-unused-vars
+export default function GlobalError({ error, reset }: GlobalErrorProps) {
+  // Component logic that doesn't use error parameter
+}
+
+// ✅ Correct approach for base classes with any types
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+type PrismaModel = any;
+
+export abstract class BaseRepository<T, CreateInput, UpdateInput, WhereInput, WhereUniqueInput> {
+  protected abstract model: PrismaModel;
+  // Class implementation
+}
+```
+
+### Directory Context Loss
+**Problem:** Commands fail with "Could not read package.json"
+**Solution:** Always verify context before commands:
+```powershell
+Get-Location
+Test-Path package.json
+```
+
+### Copy Operation Issues
+**Problem:** Missing files after copy from temp-project
+**Solution:** Use enhanced copy process:
+```powershell
+Get-ChildItem temp-project -Force | ForEach-Object { Copy-Item $_.FullName . -Recurse -Force }
+```
+
+### Docker Port Conflicts
+**Problem:** Port 3000 already in use
+**Solution:** Find and stop conflicting process:
+```powershell
+netstat -ano | findstr :3000
+Stop-Process -Id <PID> -Force
+```
+
+### PowerShell Syntax Errors
+**Problem:** Bash syntax fails in PowerShell
+**Solution:** Use PowerShell-specific commands and avoid `&&` chaining
+
+### Standards Compliance Issues
+**Problem:** Directory structure or configuration doesn't match referenced rules
+**Solution:** Verify each referenced rule requirement individually:
+```powershell
+# Review specific rule requirements
+Get-Content .cursor\rules\typescript-nextjs-standards.mdc
+Get-Content .cursor\rules\nextjs-structure-standards.mdc
+
+# Verify current state matches expected standards
+Test-Path "src\lib\utils"
+Get-Content "tsconfig.json" | Select-String "paths"
+```
+
+### Database Connection Issues
+**Problem:** Database migration or connectivity fails
+**Symptoms:**
+- "Can't reach database server" error messages
+- Prisma client generation failures
+- Health check endpoints returning disconnected status
+
+**Solution:** Verify database services and configuration:
+```powershell
+# Check if database containers are running
+docker-compose ps | Select-String "postgres\|redis"
+
+# Restart database services if needed
+docker-compose restart postgres redis
+
+# Wait for services to be healthy
+Start-Sleep -Seconds 10
+
+# Verify environment variables
+Get-Content .env | Select-String "DATABASE_URL"
+
+# Test direct database connection
+npx prisma db seed
+```
+
+### Migration and Schema Issues
+**Problem:** Prisma migrations fail or schema doesn't match expected structure
+**Symptoms:**
+- Migration rollback errors
+- Schema drift warnings
+- Table creation failures
+
+**Solution:** Reset and rebuild database schema:
+```powershell
+# Reset database and migrations
+npx prisma migrate reset --force
+
+# Generate fresh client
+npx prisma generate
+
+# Create new migration
+npx prisma migrate dev --name init
+
+# Verify schema state
+npx prisma db seed
+```
+
+### Container Health Check Failures
+**Problem:** Docker health checks failing for database services
+**Symptoms:**
+- Services marked as unhealthy in docker-compose ps
+- Application container failing to start due to dependency issues
+
+**Solution:** Diagnose and fix container health:
+```powershell
+# Check container logs for errors
+docker-compose logs postgres
+docker-compose logs redis
+
+# Restart unhealthy services
+docker-compose restart postgres redis
+
+# Verify port availability
+netstat -ano | findstr ":5432\|:6379"
+
+# Rebuild containers if needed
+docker-compose down
+docker-compose up --build -d
+```
+
+## Key Success Factors
+
+1. **Temp Directory Method** - Avoids conflicts with existing files
+2. **Standards Compliance Integration** - References specialized rules for requirements
+3. **Quality Automation First** - ESLint, Prettier, and Husky prevent issues before Docker builds
+4. **Directory Context Verification** - Prevents wrong directory execution
+5. **PowerShell Syntax Only** - Ensures Windows compatibility
+6. **Port 3000 Strategy** - Uses standard Next.js development port
+7. **Complete Copy Process** - Ensures all files transferred
+8. **Container-Based Validation** - Reliable testing environment
+9. **Pre-commit Quality Gates** - Automated quality enforcement prevents bad code commits
+10. **Guidance-Based Approach** - Provides principles while maintaining flexibility
+
+
+
+
+
+
+
+
+---
+
+**Note:** This rule creates a complete modern web application stack with automated quality enforcement and full database integration in your current directory while preserving existing workspace files, ensuring Windows compatibility throughout the process, and **enforcing strict compliance with nextjs-structure-standards.mdc** to prevent routing conflicts and structural violations through integration with specialized rules (`typescript-nextjs-standards.mdc`, `nextjs-structure-standards.mdc`, `bp-security-standards.mdc`, `dev-eslint-prettier-standards.mdc`, `dev-husky-precommit-hooks.mdc`, `db-schema-standards.mdc`, `db-client-standards.mdc`, `db-migration-standards.mdc`, `db-security-standards.mdc`, `db-testing-standards.mdc`, `db-performance-standards.mdc`).
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+

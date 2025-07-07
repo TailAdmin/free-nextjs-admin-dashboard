@@ -1,0 +1,161 @@
+---
+description: 
+globs: 
+alwaysApply: true
+---
+# Windows Development Commands Rule
+
+This rule ensures that when working with Windows users, PowerShell commands are provided instead of bash/Linux commands for development tasks.
+
+## When to Apply This Rule
+
+Apply this rule when:
+- User mentions Windows, PowerShell, or Windows-specific paths
+- User's OS is detected as Windows (win32)
+- Working in a Windows development environment
+- User explicitly requests PowerShell syntax
+
+## Core Principle
+
+**Default to PowerShell syntax for Windows users instead of bash/Linux commands.**
+
+## Common Command Translations
+
+### File and Directory Operations
+| Task | ❌ Bash/Linux | ✅ PowerShell |
+|------|---------------|---------------|
+| List files (detailed) | `ls -la` | `Get-ChildItem -Force` |
+| List files (simple) | `ls` | `Get-ChildItem` or `ls` |
+| Check current directory | `pwd` | `Get-Location` or `pwd` |
+| Change directory | `cd <path>` | `Set-Location <path>` or `cd <path>` |
+| Display file content | `cat file.txt` | `Get-Content file.txt` |
+| Check if file exists | `ls package.json` | `Test-Path package.json` |
+
+### Text Processing & Search
+| Task | ❌ Bash/Linux | ✅ PowerShell |
+|------|---------------|---------------|
+| Search in file | `cat file.txt \| grep "pattern"` | `Get-Content file.txt \| Select-String "pattern"` |
+| Search with regex | `grep -E "pattern" file.txt` | `Select-String -Pattern "pattern" file.txt` |
+| Find string in file | `cat package.json \| grep next` | `Get-Content package.json \| Select-String next` |
+
+### Network & Process Operations
+| Task | ❌ Bash/Linux | ✅ PowerShell |
+|------|---------------|---------------|
+| Check listening ports | `netstat -an \| grep :3000` | `netstat -an \| findstr :3000` |
+| Find process | `ps aux \| grep node` | `Get-Process \| Where-Object {$_.Name -like "*node*"}` |
+
+## Development-Specific Examples
+
+### Next.js Project Verification
+```powershell
+# Check project structure
+Get-ChildItem -Force
+# Should show: src/, package.json, tsconfig.json, etc.
+
+# Verify dependencies in package.json
+Get-Content package.json | Select-String -Pattern "(next|typescript|tailwindcss|eslint)"
+
+# Check TypeScript configuration
+Get-Content tsconfig.json | Select-String -Pattern "baseUrl"
+
+# Verify development server is running
+netstat -an | findstr :3000
+```
+
+### Node.js & npm Commands
+```powershell
+# Check versions (same across platforms)
+node --version
+npm --version
+
+# Run development server (same across platforms)
+npm run dev
+npm install
+npm run build
+```
+
+## Makefile Commands on Windows
+
+### Echo Command Formatting
+| Context | ❌ Linux/Bash Style | ✅ Windows Style |
+|---------|---------------------|------------------|
+| Makefile echo | `@echo "Available commands:"` | `@echo Available commands:` |
+| Makefile echo with spacing | `@echo "  help      - Show help"` | `@echo   help      - Show help` |
+| Makefile echo blank line | `@echo ""` | `@echo.` |
+
+**Windows Makefile Echo Rules:**
+- **No double quotes needed** around echo strings in Makefiles
+- **Use `@echo.` for blank lines** instead of `@echo ""`
+- **Direct text output** works better in Windows Command Prompt and PowerShell
+- **Consistent spacing** without quote wrapping
+- **No ANSI color codes** - avoid `\033[96m`, `$(CYAN)`, etc. as they don't render in Windows terminals and show as literal text
+
+### ANSI Color Codes - Windows Incompatibility
+❌ **Avoid in Makefiles:**
+```makefile
+# This shows as literal text in Windows
+CYAN = \033[96m
+GREEN = \033[92m
+@echo $(CYAN)Building...$(NC)
+```
+
+✅ **Use plain text instead:**
+```makefile
+# Clean, readable in all terminals
+@echo Building...
+@echo Build completed!
+```
+
+### Cleanup Commands - Application-Scoped Best Practices
+
+❌ **Avoid aggressive system-wide cleanup:**
+```makefile
+# Too aggressive - affects ALL Docker resources
+docker-clean:
+	docker system prune -f
+	rm -rf *  # Dangerous on Windows
+```
+
+✅ **Use application-scoped cleanup:**
+```makefile
+# Safe, targeted cleanup
+docker-clean:
+	docker-compose down --volumes --remove-orphans
+	docker-compose rm -f
+
+clean:
+	@if exist .next rmdir /s /q .next
+	@if exist dist rmdir /s /q dist
+	@if exist node_modules\.cache rmdir /s /q node_modules\.cache
+```
+
+**Windows-Compatible Cleanup Rules:**
+- **Use `rmdir /s /q` instead of `rm -rf`** for directory removal
+- **Use `@if exist` checks** to avoid errors when directories don't exist
+- **Scope Docker cleanup** to application containers only, avoid `docker system prune -f`
+- **Use PowerShell commands** for complex file operations when needed
+
+**Note:** This applies specifically to Makefile echo commands. Shell scripts (.sh, .ps1) may still require quotes around echo strings depending on content and platform.
+
+## Implementation Guidelines
+
+1. **Always check user's OS context** before providing commands
+2. **Prioritize PowerShell** for file operations and text processing on Windows
+3. **Use cross-platform commands** when available (npm, node, git)
+4. **Include both options** when helpful: "PowerShell: `Get-ChildItem` or short form: `ls`"
+5. **Explain differences** when PowerShell behavior differs from bash
+6. **Format Makefile echo commands** without double quotes on Windows
+
+## Quick Reference for AI Assistant
+
+When user is on Windows:
+- ✅ Use `Get-ChildItem -Force` instead of `ls -la`
+- ✅ Use `Get-Content file | Select-String pattern` instead of `cat file | grep pattern`
+- ✅ Use `netstat -an | findstr :port` instead of `netstat -an | grep :port`
+- ✅ Use `Test-Path file.txt` instead of `ls file.txt` for existence checks
+- ✅ Keep npm/node/git commands the same (cross-platform)
+
+---
+
+**Note**: This rule ensures Windows users get native PowerShell commands that work in their environment, avoiding the frustration of trying bash commands that don't exist in PowerShell.
+

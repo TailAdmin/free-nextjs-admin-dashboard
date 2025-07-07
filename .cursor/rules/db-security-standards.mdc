@@ -1,0 +1,898 @@
+---
+description: Used when analysing databases and security guidance is required
+globs: 
+alwaysApply: false
+---
+# Database Security Standards
+
+Comprehensive security standards for database operations, extending existing security framework to ensure secure data access, prevent SQL injection, implement proper authorization, and protect sensitive data throughout the database layer.
+
+## Prerequisites
+
+Before implementing these standards, ensure:
+- Existing security framework configured (following bp-security-standards.mdc)
+- Database layer implemented (following db-client-standards.mdc)
+- Zod validation library configured
+- PostgreSQL database with security features enabled
+- Environment variable management configured
+- Understanding of database security principles
+- Windows PowerShell for command execution
+
+## Core Principle
+
+**ALWAYS implement defense-in-depth security for database operations through input validation, access control, encryption, audit logging, and secure connection management while maintaining usability and performance.**
+
+## Database Connection Security
+
+### Secure Connection Configuration
+```powershell
+# Create secure database configuration
+New-Item -Path "src\lib\database\security.ts" -ItemType File
+```
+
+```typescript
+// src/lib/database/security.ts
+import { PrismaClient } from '@prisma/client';
+
+// ✅ Correct secure Prisma Client configuration
+export function createSecurePrismaClient(): PrismaClient {
+  return new PrismaClient({
+    datasources: {
+      db: {
+        url: process.env.DATABASE_URL,
+      },
+    },
+    log: process.env.NODE_ENV === 'production' 
+      ? ['error'] // Only log errors in production
+      : ['query', 'error', 'warn'], // Full logging in development
+    errorFormat: 'minimal', // Don't expose internal details
+    // Security configuration
+    __internal: {
+      useUds: false, // Disable Unix domain sockets
+    },
+  });
+}
+
+// ✅ Correct connection validation
+export async function validateDatabaseConnection(): Promise<boolean> {
+  try {
+    const client = createSecurePrismaClient();
+    
+    // Test connection without exposing sensitive information
+    await client.$queryRaw`SELECT 1 as test`;
+    await client.$disconnect();
+    
+    return true;
+  } catch (error) {
+    // Log error without exposing sensitive details
+    console.error('Database connection validation failed');
+    return false;
+  }
+}
+
+// ❌ Incorrect - Exposing sensitive connection details
+// export function badCreateClient() {
+//   return new PrismaClient({
+//     log: ['query', 'info', 'warn', 'error'], // Too verbose for production
+//     errorFormat: 'pretty', // Exposes internal details
+//   });
+// }
+```
+
+### Environment Variable Security
+```powershell
+# Update environment configuration for security
+# Add to .env.local (for development)
+Add-Content -Path ".env.local" -Value @"
+
+# Database Security Configuration
+DATABASE_URL="postgresql://username:password@localhost:5432/mydb?sslmode=require"
+DATABASE_CONNECTION_LIMIT=10
+DATABASE_POOL_TIMEOUT=20000
+
+# Encryption keys (replace with actual secure keys)
+DATABASE_ENCRYPTION_KEY="your-32-character-encryption-key-here"
+AUTH_SECRET="your-secure-auth-secret-here"
+
+# Audit logging
+ENABLE_DATABASE_AUDIT_LOG=true
+AUDIT_LOG_LEVEL="info"
+"@
+```
+
+```typescript
+// src/lib/database/config.ts
+import { z } from 'zod';
+
+// ✅ Correct environment validation with security checks
+const databaseConfigSchema = z.object({
+  DATABASE_URL: z.string().url().refine(
+    (url) => url.includes('sslmode=require'),
+    'Database URL must require SSL connection'
+  ),
+  DATABASE_CONNECTION_LIMIT: z.string().transform((val) => parseInt(val, 10)).default('10'),
+  DATABASE_POOL_TIMEOUT: z.string().transform((val) => parseInt(val, 10)).default('20000'),
+  DATABASE_ENCRYPTION_KEY: z.string().min(32, 'Encryption key must be at least 32 characters'),
+  AUTH_SECRET: z.string().min(32, 'Auth secret must be at least 32 characters'),
+  ENABLE_DATABASE_AUDIT_LOG: z.string().transform((val) => val === 'true').default(false),
+});
+
+export const databaseConfig = databaseConfigSchema.parse(process.env);
+
+// ❌ Incorrect - No validation or security checks
+// export const badConfig = {
+//   databaseUrl: process.env.DATABASE_URL, // No validation
+//   encryptionKey: process.env.ENCRYPTION_KEY, // No length check
+// };
+```
+
+## Input Validation and Sanitization
+
+### Enhanced Zod Validators for Security
+```powershell
+# Create security-focused validators
+New-Item -Path "src\lib\validators\security.validators.ts" -ItemType File
+```
+
+```typescript
+// src/lib/validators/security.validators.ts
+import { z } from 'zod';
+
+// ✅ Correct security-first validation schemas
+export const secureStringSchema = z
+  .string()
+  .min(1, 'Field cannot be empty')
+  .max(1000, 'Field too long')
+  .refine(
+    (val) => !val.includes('<script'),
+    'Script tags not allowed'
+  )
+  .refine(
+    (val) => !/[<>'"&]/.test(val),
+    'HTML characters not allowed'
+  );
+
+export const secureEmailSchema = z
+  .string()
+  .email('Invalid email format')
+  .max(320, 'Email too long') // RFC 5321 limit
+  .toLowerCase()
+  .refine(
+    (email) => !email.includes('+'), // Optional: block plus addressing
+    'Plus addressing not allowed'
+  );
+
+export const securePasswordSchema = z
+  .string()
+  .min(12, 'Password must be at least 12 characters')
+  .max(128, 'Password too long')
+  .refine(
+    (password) => /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[@$!%*?&])[A-Za-z\d@$!%*?&]/.test(password),
+    'Password must contain uppercase, lowercase, number, and special character'
+  )
+  .refine(
+    (password) => !/\s/.test(password),
+    'Password cannot contain spaces'
+  );
+
+export const secureIdSchema = z
+  .string()
+  .cuid('Invalid ID format')
+  .refine(
+    (id) => id.length >= 25, // CUID minimum length
+    'ID too short'
+  );
+
+// ✅ Correct SQL injection prevention for search terms
+export const secureSearchSchema = z
+  .string()
+  .min(2, 'Search term too short')
+  .max(100, 'Search term too long')
+  .refine(
+    (term) => !/[';--/*]/.test(term),
+    'Invalid characters in search term'
+  )
+  .refine(
+    (term) => !/\b(SELECT|INSERT|UPDATE|DELETE|DROP|CREATE|ALTER)\b/i.test(term),
+    'SQL keywords not allowed'
+  );
+
+// ✅ Correct pagination validation with security limits
+export const securePaginationSchema = z.object({
+  page: z.number().int().min(1).max(1000), // Limit page depth
+  limit: z.number().int().min(1).max(100), // Limit page size
+  sortBy: z.enum(['createdAt', 'updatedAt', 'name']).default('createdAt'),
+  sortOrder: z.enum(['asc', 'desc']).default('desc'),
+});
+
+// ❌ Incorrect - No security validation
+// export const badSearchSchema = z.string(); // No length or content validation
+```
+
+### Secure Repository Input Validation
+```powershell
+# Update user repository with security validation
+# This extends the existing user.repository.ts
+```
+
+```typescript
+// src/lib/repositories/user.repository.secure.ts
+import { UserRepository } from './user.repository';
+import { 
+  secureEmailSchema, 
+  secureStringSchema, 
+  secureIdSchema,
+  secureSearchSchema 
+} from '@/lib/validators/security.validators';
+import type { User } from '@prisma/client';
+
+// ✅ Correct secure repository extending base repository
+export class SecureUserRepository extends UserRepository {
+  
+  // ✅ Correct input validation before database operations
+  async findByEmail(email: string): Promise<User | null> {
+    const validatedEmail = secureEmailSchema.parse(email);
+    return super.findByEmail(validatedEmail);
+  }
+
+  async searchUsers(searchTerm: string): Promise<User[]> {
+    const validatedTerm = secureSearchSchema.parse(searchTerm);
+    
+    // Additional security: escape special characters
+    const escapedTerm = validatedTerm.replace(/[%_\\]/g, '\\$&');
+    
+    return super.searchUsers(escapedTerm);
+  }
+
+  async findById(id: string): Promise<User | null> {
+    const validatedId = secureIdSchema.parse(id);
+    return super.findById(validatedId);
+  }
+
+  // ✅ Correct secure update with field sanitization
+  async updateUserSecure(id: string, data: any): Promise<User> {
+    const validatedId = secureIdSchema.parse(id);
+    
+    // Sanitize input data
+    const sanitizedData = {
+      ...data,
+      name: data.name ? secureStringSchema.parse(data.name) : undefined,
+      email: data.email ? secureEmailSchema.parse(data.email) : undefined,
+      // Remove any fields that shouldn't be updatable
+      id: undefined,
+      createdAt: undefined,
+      password: undefined, // Handle separately with proper hashing
+    };
+    
+    // Remove undefined fields
+    Object.keys(sanitizedData).forEach(key => 
+      sanitizedData[key] === undefined && delete sanitizedData[key]
+    );
+    
+    return super.update({ id: validatedId }, sanitizedData);
+  }
+
+  // ✅ Correct secure deletion with authorization check
+  async deleteUserSecure(id: string, requestingUserId: string): Promise<User> {
+    const validatedId = secureIdSchema.parse(id);
+    const validatedRequesterId = secureIdSchema.parse(requestingUserId);
+    
+    // Check if user can delete (business logic security)
+    const user = await this.findById(validatedId);
+    if (!user) {
+      throw new Error('User not found');
+    }
+    
+    // Only allow self-deletion or admin deletion (implement admin check)
+    if (validatedId !== validatedRequesterId) {
+      // Add admin check here
+      throw new Error('Unauthorized to delete this user');
+    }
+    
+    return super.delete({ id: validatedId });
+     }
+ }
+ ```
+
+## Verification Steps
+
+### Step 1: Validate Security Configuration
+```powershell
+# Check environment variables are properly configured
+$requiredVars = @('DATABASE_URL', 'DATABASE_ENCRYPTION_KEY', 'AUTH_SECRET')
+foreach ($var in $requiredVars) {
+    if (-not (Test-Path "Env:$var")) {
+        Write-Warning "❌ Missing required environment variable: $var"
+    } else {
+        $value = Get-Item "Env:$var" -ErrorAction SilentlyContinue
+        if ($value.Value.Length -lt 32) {
+            Write-Warning "❌ $var is too short (minimum 32 characters)"
+        } else {
+            Write-Output "✅ $var is properly configured"
+        }
+    }
+}
+
+# Verify SSL connection requirement
+$databaseUrl = $env:DATABASE_URL
+if ($databaseUrl -and $databaseUrl.Contains("sslmode=require")) {
+    Write-Output "✅ Database SSL connection enforced"
+} else {
+    Write-Warning "❌ Database URL should include sslmode=require"
+}
+```
+
+**Expected result**: All security environment variables properly configured with adequate lengths.
+
+### Step 2: Test Input Validation
+```powershell
+# Run validation tests
+npm run test -- --testPathPattern="security.validators.test"
+
+# Check that security schemas prevent malicious input
+npx tsx -e "
+import { secureSearchSchema } from './src/lib/validators/security.validators.js';
+try {
+  secureSearchSchema.parse('SELECT * FROM users');
+  console.log('❌ SQL injection attempt was not blocked');
+} catch (error) {
+  console.log('✅ SQL injection attempt was blocked');
+}
+"
+```
+
+**Expected result**: All validation tests pass and malicious input is properly blocked.
+
+### Step 3: Verify Access Control Implementation
+```powershell
+# Test row-level security policies
+psql -h localhost -U postgres -d myapp -c "
+  -- Test that RLS is enabled
+  SELECT schemaname, tablename, rowsecurity 
+  FROM pg_tables 
+  WHERE tablename IN ('users', 'posts') 
+  AND rowsecurity = true;
+"
+
+# Verify authorization service integration
+npm run test -- --testPathPattern="authorization.service.test"
+```
+
+**Expected result**: RLS policies are active and authorization tests pass.
+
+### Step 4: Test Audit Logging
+```powershell
+# Verify audit logging is working
+npm run test -- --testPathPattern="audit.service.test"
+
+# Check audit log table exists and is populated
+psql -h localhost -U postgres -d myapp -c "
+  SELECT COUNT(*) as audit_logs_count 
+  FROM audit_logs 
+  WHERE created_at > NOW() - INTERVAL '1 hour';
+"
+```
+
+**Expected result**: Audit logging captures database operations correctly.
+
+## Troubleshooting Common Issues
+
+### Problem: Encryption/Decryption Failures
+**Symptoms**: 
+- "Encryption failed" or "Decryption failed" errors
+- Invalid encrypted data format errors
+
+**Solution**: 
+```powershell
+# Check encryption key configuration
+$encKey = $env:DATABASE_ENCRYPTION_KEY
+if ($encKey.Length -ne 32) {
+    Write-Output "Encryption key must be exactly 32 characters"
+    # Generate new secure key
+    $newKey = [System.Convert]::ToBase64String([System.Security.Cryptography.RandomNumberGenerator]::GetBytes(32))
+    Write-Output "New encryption key: $newKey"
+}
+
+# Test encryption functionality
+npx tsx -e "
+import { FieldEncryption } from './src/lib/database/encryption.js';
+try {
+  const encrypted = FieldEncryption.encrypt('test data');
+  const decrypted = FieldEncryption.decrypt(encrypted);
+  console.log('✅ Encryption working:', decrypted === 'test data');
+} catch (error) {
+  console.log('❌ Encryption error:', error.message);
+}
+"
+```
+
+### Problem: Row-Level Security Not Working
+**Symptoms**: 
+- Users can see data they shouldn't access
+- RLS policies not being enforced
+
+**Solution**: 
+```powershell
+# Check RLS status
+psql -h localhost -U postgres -d myapp -c "
+  SELECT schemaname, tablename, rowsecurity, 
+         CASE WHEN rowsecurity THEN 'ENABLED' ELSE 'DISABLED' END as rls_status
+  FROM pg_tables 
+  WHERE schemaname = 'public';
+"
+
+# Verify database user has correct permissions
+psql -h localhost -U postgres -d myapp -c "
+  GRANT application_user TO your_app_user;
+"
+
+# Test RLS policy enforcement
+psql -h localhost -U your_app_user -d myapp -c "
+  SET app.current_user_id = 'test-user-id';
+  SELECT COUNT(*) FROM users; -- Should only return user's own data
+"
+```
+
+### Problem: Audit Logging Performance Issues
+**Symptoms**: 
+- Database operations are slow
+- Audit table growing too large
+
+**Solution**: 
+```powershell
+# Create indexes on audit table for better performance
+psql -h localhost -U postgres -d myapp -c "
+  CREATE INDEX CONCURRENTLY IF NOT EXISTS idx_audit_logs_timestamp 
+  ON audit_logs(timestamp);
+  
+  CREATE INDEX CONCURRENTLY IF NOT EXISTS idx_audit_logs_user_id 
+  ON audit_logs(user_id);
+  
+  CREATE INDEX CONCURRENTLY IF NOT EXISTS idx_audit_logs_table_record 
+  ON audit_logs(table_name, record_id);
+"
+
+# Set up audit log rotation
+psql -h localhost -U postgres -d myapp -c "
+  -- Delete audit logs older than 1 year
+  DELETE FROM audit_logs 
+  WHERE timestamp < NOW() - INTERVAL '1 year';
+"
+
+# Consider async audit logging for high-traffic applications
+# Update audit service to use background jobs or message queues
+```
+
+### Problem: Validation Schema Too Restrictive
+**Symptoms**: 
+- Valid user input being rejected
+- False positive security alerts
+
+**Solution**: 
+```powershell
+# Review and adjust validation schemas
+Get-Content "src\lib\validators\security.validators.ts" | Select-String -Pattern "refine"
+
+# Test edge cases with your validation schemas
+npx tsx -e "
+import { secureStringSchema } from './src/lib/validators/security.validators.js';
+const testCases = ['Valid Name', 'Name-WithHyphen', 'O\\'Brien'];
+testCases.forEach(test => {
+  try {
+    secureStringSchema.parse(test);
+    console.log('✅ Accepted:', test);
+  } catch (error) {
+    console.log('❌ Rejected:', test, error.message);
+  }
+});
+"
+
+# Adjust schemas based on legitimate use cases
+# Consider adding allowlist patterns for specific valid inputs
+```
+
+## Success Criteria
+
+The database security standards are implemented when:
+- [x] **SSL connections are enforced** for all database communications
+- [x] **Input validation** prevents SQL injection and XSS attacks
+- [x] **Row-Level Security** is enabled and properly configured
+- [x] **Authorization checks** are implemented for all data access
+- [x] **Sensitive data is encrypted** at rest using field-level encryption
+- [x] **Password hashing** uses bcrypt with appropriate salt rounds
+- [x] **Audit logging** captures all database operations
+- [x] **Rate limiting** prevents abuse of database operations
+- [x] **Environment variables** are properly validated and secured
+- [x] **Security schemas** validate all user input
+
+## Integration with Existing Rules
+
+This rule integrates with:
+- **Security Standards (bp-security-standards.mdc)**: Extends existing security framework
+- **Database Client Standards**: Adds security layer to repository and service patterns  
+- **Testing Standards**: Security validations are included in test coverage
+- **Code Quality Standards**: Security code follows TypeScript and ESLint standards
+
+---
+
+**Note**: This rule provides comprehensive database security while maintaining performance and usability, ensuring that security measures enhance rather than hinder the development experience.
+
+## Access Control and Authorization
+
+### Row-Level Security Implementation
+```sql
+-- PostgreSQL Row-Level Security policies
+-- Run these in your PostgreSQL database
+
+-- Enable RLS on users table
+ALTER TABLE users ENABLE ROW LEVEL SECURITY;
+
+-- Policy: Users can only see their own data
+CREATE POLICY user_self_access ON users
+  FOR ALL
+  TO application_user
+  USING (id = current_setting('app.current_user_id')::text);
+
+-- Policy: Admin users can see all data
+CREATE POLICY admin_access ON users
+  FOR ALL
+  TO application_user
+  USING (
+    EXISTS (
+      SELECT 1 FROM users 
+      WHERE id = current_setting('app.current_user_id')::text 
+      AND role = 'ADMIN'
+    )
+  );
+
+-- Enable RLS on posts table
+ALTER TABLE posts ENABLE ROW LEVEL SECURITY;
+
+-- Policy: Users can see published posts or their own posts
+CREATE POLICY post_access ON posts
+  FOR SELECT
+  TO application_user
+  USING (
+    published = true 
+    OR author_id = current_setting('app.current_user_id')::text
+  );
+
+-- Policy: Users can only modify their own posts
+CREATE POLICY post_modify ON posts
+  FOR INSERT, UPDATE, DELETE
+  TO application_user
+  USING (author_id = current_setting('app.current_user_id')::text);
+```
+
+### Authorization Service Integration
+```powershell
+# Create authorization service for database operations
+New-Item -Path "src\lib\services\authorization.service.ts" -ItemType File
+```
+
+```typescript
+// src/lib/services/authorization.service.ts
+import { prisma } from '@/lib/database/prisma';
+import { secureIdSchema } from '@/lib/validators/security.validators';
+
+export interface UserContext {
+  userId: string;
+  role: 'USER' | 'ADMIN' | 'MODERATOR';
+  permissions: string[];
+}
+
+// ✅ Correct authorization service
+export class AuthorizationService {
+  
+  // ✅ Correct permission checking
+  static hasPermission(user: UserContext, permission: string): boolean {
+    return user.permissions.includes(permission) || user.role === 'ADMIN';
+  }
+
+  // ✅ Correct resource ownership verification
+  static async canAccessUser(currentUser: UserContext, targetUserId: string): Promise<boolean> {
+    const validatedTargetId = secureIdSchema.parse(targetUserId);
+    
+    // Self-access always allowed
+    if (currentUser.userId === validatedTargetId) {
+      return true;
+    }
+    
+    // Admin access
+    if (currentUser.role === 'ADMIN') {
+      return true;
+    }
+    
+    // Check specific permissions
+    return this.hasPermission(currentUser, 'user:read');
+  }
+
+  // ✅ Correct post access verification
+  static async canAccessPost(currentUser: UserContext, postId: string): Promise<boolean> {
+    const validatedPostId = secureIdSchema.parse(postId);
+    
+    const post = await prisma.post.findUnique({
+      where: { id: validatedPostId },
+      select: { authorId: true, published: true },
+    });
+    
+    if (!post) {
+      return false;
+    }
+    
+    // Published posts are public
+    if (post.published) {
+      return true;
+    }
+    
+    // Author can access their own posts
+    if (post.authorId === currentUser.userId) {
+      return true;
+    }
+    
+    // Admin/moderator access
+    return currentUser.role === 'ADMIN' || currentUser.role === 'MODERATOR';
+  }
+
+  // ✅ Correct database context setting for RLS
+  static async setDatabaseContext(userId: string): Promise<void> {
+    const validatedUserId = secureIdSchema.parse(userId);
+    
+    await prisma.$executeRaw`
+      SELECT set_config('app.current_user_id', ${validatedUserId}, true)
+    `;
+  }
+}
+```
+
+## Data Encryption and Sensitive Data Handling
+
+### Field-Level Encryption
+```powershell
+# Create encryption utilities for sensitive data
+New-Item -Path "src\lib\database\encryption.ts" -ItemType File
+```
+
+```typescript
+// src/lib/database/encryption.ts
+import crypto from 'crypto';
+import { databaseConfig } from './config';
+
+const ALGORITHM = 'aes-256-gcm';
+const IV_LENGTH = 16;
+const TAG_LENGTH = 16;
+
+// ✅ Correct field-level encryption
+export class FieldEncryption {
+  private static readonly key = Buffer.from(databaseConfig.DATABASE_ENCRYPTION_KEY, 'utf8');
+
+  static encrypt(text: string): string {
+    try {
+      const iv = crypto.randomBytes(IV_LENGTH);
+      const cipher = crypto.createCipher(ALGORITHM, this.key);
+      cipher.setAAD(Buffer.from('database-field', 'utf8'));
+      
+      let encrypted = cipher.update(text, 'utf8', 'hex');
+      encrypted += cipher.final('hex');
+      
+      const tag = cipher.getAuthTag();
+      
+      // Combine IV + tag + encrypted data
+      return iv.toString('hex') + tag.toString('hex') + encrypted;
+    } catch (error) {
+      throw new Error('Encryption failed');
+    }
+  }
+
+  static decrypt(encryptedData: string): string {
+    try {
+      const iv = Buffer.from(encryptedData.slice(0, IV_LENGTH * 2), 'hex');
+      const tag = Buffer.from(encryptedData.slice(IV_LENGTH * 2, (IV_LENGTH + TAG_LENGTH) * 2), 'hex');
+      const encrypted = encryptedData.slice((IV_LENGTH + TAG_LENGTH) * 2);
+      
+      const decipher = crypto.createDecipher(ALGORITHM, this.key);
+      decipher.setAAD(Buffer.from('database-field', 'utf8'));
+      decipher.setAuthTag(tag);
+      
+      let decrypted = decipher.update(encrypted, 'hex', 'utf8');
+      decrypted += decipher.final('utf8');
+      
+      return decrypted;
+    } catch (error) {
+      throw new Error('Decryption failed');
+    }
+  }
+
+  // ✅ Correct hash function for non-reversible data
+  static hash(data: string): string {
+    return crypto
+      .createHash('sha256')
+      .update(data + this.key.toString('hex'))
+      .digest('hex');
+  }
+}
+
+// ✅ Correct password hashing with salt
+export class PasswordSecurity {
+  private static readonly SALT_ROUNDS = 12;
+
+  static async hashPassword(password: string): Promise<string> {
+    const bcrypt = await import('bcryptjs');
+    return bcrypt.hash(password, this.SALT_ROUNDS);
+  }
+
+  static async verifyPassword(password: string, hash: string): Promise<boolean> {
+    const bcrypt = await import('bcryptjs');
+    return bcrypt.compare(password, hash);
+  }
+}
+
+// ❌ Incorrect - Storing passwords in plain text
+// export class BadPasswordSecurity {
+//   static hashPassword(password: string): string {
+//     return password; // Never do this!
+//   }
+// }
+```
+
+### Secure Data Models
+```typescript
+// src/lib/models/secure-user.model.ts
+import { FieldEncryption } from '@/lib/database/encryption';
+import type { User } from '@prisma/client';
+
+// ✅ Correct secure user model with encryption
+export class SecureUserModel {
+  
+  // ✅ Correct data serialization with encryption
+  static serialize(user: User & { sensitiveData?: string }): any {
+    const { password, sensitiveData, ...publicData } = user;
+    
+    return {
+      ...publicData,
+      // Encrypt sensitive fields before storing
+      encryptedData: sensitiveData ? FieldEncryption.encrypt(sensitiveData) : null,
+      // Never include password in serialized data
+      password: undefined,
+    };
+  }
+
+  // ✅ Correct data deserialization with decryption
+  static deserialize(data: any): User & { sensitiveData?: string } {
+    const { encryptedData, ...userData } = data;
+    
+    return {
+      ...userData,
+      sensitiveData: encryptedData ? FieldEncryption.decrypt(encryptedData) : undefined,
+    };
+  }
+
+  // ✅ Correct PII data masking for logs
+  static maskForLogging(user: User): any {
+    return {
+      id: user.id,
+      email: user.email.replace(/(.{2}).*(@.*)/, '$1***$2'), // Mask email
+      name: user.name?.replace(/^(.).*/, '$1***'), // Mask name
+      createdAt: user.createdAt,
+      // Never log sensitive fields
+    };
+  }
+}
+```
+
+## Audit Logging
+
+### Database Audit Service
+```powershell
+# Create audit logging service
+New-Item -Path "src\lib\services\audit.service.ts" -ItemType File
+```
+
+```typescript
+// src/lib/services/audit.service.ts
+import { prisma } from '@/lib/database/prisma';
+import { databaseConfig } from '@/lib/database/config';
+
+export interface AuditLogEntry {
+  action: 'CREATE' | 'READ' | 'UPDATE' | 'DELETE';
+  tableName: string;
+  recordId: string;
+  userId?: string;
+  ipAddress?: string;
+  userAgent?: string;
+  changes?: Record<string, any>;
+  timestamp: Date;
+}
+
+// ✅ Correct audit logging service
+export class AuditService {
+  
+  // ✅ Correct audit log creation
+  static async logDatabaseOperation(entry: AuditLogEntry): Promise<void> {
+    if (!databaseConfig.ENABLE_DATABASE_AUDIT_LOG) {
+      return;
+    }
+
+    try {
+      // Store audit log in separate audit table
+      await prisma.auditLog.create({
+        data: {
+          action: entry.action,
+          tableName: entry.tableName,
+          recordId: entry.recordId,
+          userId: entry.userId,
+          ipAddress: entry.ipAddress,
+          userAgent: entry.userAgent,
+          changes: entry.changes ? JSON.stringify(entry.changes) : null,
+          timestamp: entry.timestamp,
+        },
+      });
+    } catch (error) {
+      // Don't let audit logging break the main operation
+      console.error('Audit logging failed:', error);
+    }
+  }
+
+  // ✅ Correct sensitive operation logging
+  static async logSensitiveOperation(
+    action: string,
+    userId: string,
+    details: Record<string, any>,
+    ipAddress?: string
+  ): Promise<void> {
+    await this.logDatabaseOperation({
+      action: 'UPDATE',
+      tableName: 'sensitive_operations',
+      recordId: crypto.randomUUID(),
+      userId,
+      ipAddress,
+      changes: {
+        operation: action,
+        ...details,
+        // Mask sensitive data in logs
+        sensitiveFields: Object.keys(details).filter(key => 
+          ['password', 'token', 'secret'].some(sensitive => 
+            key.toLowerCase().includes(sensitive)
+          )
+        ),
+      },
+      timestamp: new Date(),
+    });
+  }
+
+  // ✅ Correct audit log querying with access control
+  static async getAuditLogs(
+    userId: string,
+    userRole: string,
+    filters: {
+      tableName?: string;
+      recordId?: string;
+      startDate?: Date;
+      endDate?: Date;
+    }
+  ): Promise<any[]> {
+    // Only admins can view all audit logs
+    if (userRole !== 'ADMIN') {
+      // Regular users can only see their own audit logs
+      filters = { ...filters, userId };
+    }
+
+    return prisma.auditLog.findMany({
+      where: {
+        tableName: filters.tableName,
+        recordId: filters.recordId,
+        userId: filters.userId,
+        timestamp: {
+          gte: filters.startDate,
+          lte: filters.endDate,
+        },
+      },
+      orderBy: { timestamp: 'desc' },
+      take: 100, // Limit results
+    });
+  }
+}
+```
+
+
+

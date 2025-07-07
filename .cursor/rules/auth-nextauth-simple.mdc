@@ -1,0 +1,454 @@
+# NextAuth.js Authentication Standard
+
+**THE definitive authentication implementation for Next.js projects using NextAuth.js v4.24.x for production stability.**
+
+This is the ONLY authentication approach for this project. No alternatives, no version confusion, no options.
+
+## Prerequisites
+
+State all requirements upfront:
+- Next.js 15+ project with App Router
+- TypeScript configuration already set up
+- Environment variables management configured
+- Windows PowerShell or Command Prompt
+- Database configured (PostgreSQL with Prisma recommended)
+- Node.js 18+ for NextAuth.js v4 compatibility
+
+## Core Principle
+
+**ALWAYS use NextAuth.js v4.24.x for authentication. This is the production-ready, battle-tested standard with proven stability and seamless Next.js App Router integration.**
+
+## Implementation Standard
+
+### Required Installation
+
+```powershell
+# Install NextAuth.js v4 (REQUIRED version)
+npm install next-auth@^4.24.0
+# Expected outcome: NextAuth.js v4.24.x installed
+
+# Install Prisma adapter for v4 (REQUIRED)
+npm install @next-auth/prisma-adapter
+# Expected outcome: Prisma adapter for v4 installed
+
+# Install password hashing utilities (REQUIRED)
+npm install bcryptjs @types/bcryptjs
+# Expected outcome: Password utilities installed
+```
+
+### Step 1: Environment Configuration
+
+Add NextAuth.js environment variables:
+
+```powershell
+# Add to .env.local file
+@"
+# NextAuth.js Configuration
+NEXTAUTH_SECRET=your-super-secret-key-change-this-in-production-make-it-very-long-at-least-32-characters
+NEXTAUTH_URL=http://localhost:3000
+
+# Database URL (already configured)
+# DATABASE_URL=postgresql://user:password@localhost:5432/myapp
+
+# Social Providers (optional)
+GOOGLE_CLIENT_ID=your-google-client-id
+GOOGLE_CLIENT_SECRET=your-google-client-secret
+GITHUB_ID=your-github-client-id
+GITHUB_SECRET=your-github-client-secret
+"@ | Out-File -FilePath ".env.local" -Encoding utf8 -Append
+```
+
+### Step 2: Database Schema (Prisma)
+
+Add NextAuth.js tables to your Prisma schema:
+
+```typescript
+// Add to prisma/schema.prisma
+model Account {
+  id                String  @id @default(cuid())
+  userId            String
+  type              String
+  provider          String
+  providerAccountId String
+  refresh_token     String? @db.Text
+  access_token      String? @db.Text
+  expires_at        Int?
+  token_type        String?
+  scope             String?
+  id_token          String? @db.Text
+  session_state     String?
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([provider, providerAccountId])
+  @@map("accounts")
+}
+
+model Session {
+  id           String   @id @default(cuid())
+  sessionToken String   @unique
+  userId       String
+  expires      DateTime
+  user         User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@map("sessions")
+}
+
+model User {
+  id            String    @id @default(cuid())
+  name          String?
+  email         String    @unique
+  emailVerified DateTime?
+  image         String?
+  password      String?   // For credentials authentication
+  accounts      Account[]
+  sessions      Session[]
+  createdAt     DateTime  @default(now())
+  updatedAt     DateTime  @updatedAt
+
+  @@map("users")
+}
+
+model VerificationToken {
+  identifier String
+  token      String   @unique
+  expires    DateTime
+
+  @@unique([identifier, token])
+  @@map("verificationtokens")
+}
+```
+
+```powershell
+# Apply database migration
+npx prisma db push
+# Expected outcome: Database schema updated with NextAuth.js tables
+
+npx prisma generate
+# Expected outcome: Prisma client regenerated
+```
+
+### Step 3: NextAuth.js Configuration
+
+Create `src/lib/auth/config.ts`:
+
+```typescript
+import { PrismaAdapter } from '@next-auth/prisma-adapter';
+import CredentialsProvider from 'next-auth/providers/credentials';
+import GoogleProvider from 'next-auth/providers/google';
+import GitHubProvider from 'next-auth/providers/github';
+import { prisma } from '../database/prisma';
+import { env } from '../config/env';
+import { comparePassword } from '../utils/password';
+
+export const authOptions = {
+  adapter: PrismaAdapter(prisma),
+  providers: [
+    CredentialsProvider({
+      name: 'credentials',
+      credentials: {
+        email: { label: 'Email', type: 'email' },
+        password: { label: 'Password', type: 'password' }
+      },
+      async authorize(credentials) {
+        if (!credentials?.email || !credentials?.password) {
+          return null;
+        }
+
+        const user = await prisma.user.findUnique({
+          where: { email: credentials.email }
+        });
+
+        if (!user || !user.password) {
+          return null;
+        }
+
+        const isValidPassword = await comparePassword(credentials.password, user.password);
+
+        if (!isValidPassword) {
+          return null;
+        }
+
+        return {
+          id: user.id,
+          email: user.email,
+          name: user.name,
+          image: user.image,
+        };
+      }
+    }),
+
+    // Social providers (optional)
+    ...(env.GOOGLE_CLIENT_ID ? [
+      GoogleProvider({
+        clientId: env.GOOGLE_CLIENT_ID,
+        clientSecret: env.GOOGLE_CLIENT_SECRET,
+      })
+    ] : []),
+
+    ...(env.GITHUB_ID ? [
+      GitHubProvider({
+        clientId: env.GITHUB_ID,
+        clientSecret: env.GITHUB_SECRET,
+      })
+    ] : []),
+  ],
+  session: {
+    strategy: 'jwt' as const,
+    maxAge: 30 * 24 * 60 * 60, // 30 days
+  },
+  jwt: {
+    maxAge: 30 * 24 * 60 * 60, // 30 days
+  },
+  pages: {
+    signIn: '/signin',
+    error: '/signin',
+  },
+  callbacks: {
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    async jwt({ token, user }: { token: any; user: any }) {
+      if (user) {
+        token.id = user.id;
+      }
+      return token;
+    },
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    async session({ session, token }: { session: any; token: any }) {
+      if (token && session.user) {
+        session.user.id = token.id as string;
+      }
+      return session;
+    },
+  },
+  secret: env.NEXTAUTH_SECRET,
+  debug: env.NODE_ENV === 'development',
+};
+```
+
+### Step 4: API Route Handler
+
+Create `src/app/api/auth/[...nextauth]/route.ts`:
+
+```typescript
+import NextAuth from 'next-auth/next';
+import { authOptions } from '@/lib/auth/config';
+
+const handler = NextAuth(authOptions);
+
+export { handler as GET, handler as POST };
+```
+
+### Step 5: Authentication Utilities
+
+Create `src/lib/auth/utils.ts`:
+
+```typescript
+import { getServerSession } from 'next-auth/next';
+import { authOptions } from './config';
+import { redirect } from 'next/navigation';
+
+export async function getAuthSession() {
+  return await getServerSession(authOptions);
+}
+
+export async function requireAuth() {
+  const session = await getAuthSession();
+  
+  if (!session) {
+    redirect('/signin');
+  }
+  
+  return session;
+}
+
+export async function getCurrentUser() {
+  const session = await getAuthSession();
+  return session?.user ?? null;
+}
+```
+
+### Step 6: Client-Side Hooks
+
+Create `src/hooks/useAuth.ts`:
+
+```typescript
+import { useSession, signIn, signOut } from 'next-auth/react';
+import { useRouter } from 'next/navigation';
+
+export function useAuth() {
+  const { data: session, status } = useSession();
+  const router = useRouter();
+
+  const login = async (email: string, password: string) => {
+    const result = await signIn('credentials', {
+      email,
+      password,
+      redirect: false,
+    });
+
+    if (result?.error) {
+      throw new Error(result.error);
+    }
+
+    return result;
+  };
+
+  const logout = async () => {
+    await signOut({ redirect: false });
+    router.push('/signin');
+  };
+
+  return {
+    user: session?.user,
+    isAuthenticated: !!session,
+    isLoading: status === 'loading',
+    login,
+    logout,
+  };
+}
+```
+
+### Step 7: SessionProvider Setup
+
+Create `src/components/providers/SessionProvider.tsx`:
+
+```typescript
+'use client';
+
+import { SessionProvider as NextAuthSessionProvider } from 'next-auth/react';
+import { ReactNode } from 'react';
+
+interface SessionProviderProps {
+  children: ReactNode;
+}
+
+export function SessionProvider({ children }: SessionProviderProps) {
+  return (
+    <NextAuthSessionProvider>
+      {children}
+    </NextAuthSessionProvider>
+  );
+}
+```
+
+Update `src/app/layout.tsx`:
+
+```typescript
+import { SessionProvider } from '@/components/providers/SessionProvider';
+
+export default function RootLayout({
+  children,
+}: {
+  children: React.ReactNode;
+}) {
+  return (
+    <html lang="en">
+      <body>
+        <SessionProvider>
+          {children}
+        </SessionProvider>
+      </body>
+    </html>
+  );
+}
+```
+
+### Step 8: TypeScript Types
+
+Create `src/types/next-auth.d.ts`:
+
+```typescript
+declare module 'next-auth' {
+  interface Session {
+    user: {
+      id: string;
+      email: string;
+      name?: string | null;
+      image?: string | null;
+    };
+  }
+
+  interface User {
+    id: string;
+    email: string;
+    name?: string | null;
+    image?: string | null;
+  }
+}
+
+declare module 'next-auth/jwt' {
+  interface JWT {
+    id: string;
+  }
+}
+
+export {};
+```
+
+## Verification and Success
+
+How to confirm the authentication standard is working:
+
+```powershell
+# Verify installation
+npm list next-auth
+# Expected output: next-auth@4.24.x
+
+# Check authentication endpoint
+npm run dev
+# Navigate to: http://localhost:3000/api/auth/signin
+# Expected output: NextAuth.js sign-in page
+
+# Test TypeScript compilation
+npx tsc --noEmit
+# Expected output: No type errors
+
+# Test build
+npm run build
+# Expected output: Successful build with auth routes
+```
+
+**Success Indicators:**
+- [x] NextAuth.js v4.24.x installed
+- [x] Authentication endpoints working
+- [x] Database schema includes auth tables
+- [x] TypeScript compilation successful
+- [x] Session management functional
+- [x] Build process successful
+
+## Standard Usage Patterns
+
+### Server Component Authentication
+```typescript
+import { getServerSession } from 'next-auth/next';
+import { authOptions } from '@/lib/auth/config';
+
+export default async function ProtectedPage() {
+  const session = await getServerSession(authOptions);
+  
+  if (!session) {
+    redirect('/signin');
+  }
+  
+  return <div>Protected content</div>;
+}
+```
+
+### Client Component Authentication
+```typescript
+'use client';
+import { useSession } from 'next-auth/react';
+
+export function ClientComponent() {
+  const { data: session, status } = useSession();
+  
+  if (status === 'loading') return <div>Loading...</div>;
+  if (!session) return <div>Please sign in</div>;
+  
+  return <div>Hello {session.user.name}</div>;
+}
+```
+
+---
+
+**Note**: This is the ONLY authentication approach for this project. Follow this standard exactly with no variations or alternatives.

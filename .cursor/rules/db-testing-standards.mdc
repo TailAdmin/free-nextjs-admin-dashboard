@@ -1,0 +1,992 @@
+---
+description: Used when test databases and data
+globs: 
+alwaysApply: false
+---
+# Database Testing Standards
+
+Comprehensive standards for testing database operations, repositories, and services, integrating with existing Jest testing framework to ensure reliable data layer functionality and maintain 80% code coverage.
+
+## Prerequisites
+
+Before implementing these standards, ensure:
+- Existing testing framework configured (following bp-testing-standards.mdc)
+- Database layer implemented (following db-client-standards.mdc)
+- Jest and React Testing Library configured
+- PostgreSQL test database available
+- Docker for containerized testing (optional but recommended)
+- Understanding of testing pyramid principles
+- Windows PowerShell for command execution
+
+## Core Principle
+
+**ALWAYS test database operations through isolated unit tests for repositories and integration tests for services, ensuring data integrity and business logic correctness while maintaining fast test execution.**
+
+## Test Environment Setup
+
+### Step 1: Configure Test Database
+```powershell
+# Create test environment configuration
+if (-not (Test-Path ".env.test")) {
+    New-Item -Path ".env.test" -ItemType File
+}
+
+# Add test database configuration
+Add-Content -Path ".env.test" -Value @"
+# Test database configuration
+DATABASE_URL="postgresql://test_user:test_pass@localhost:5432/myapp_test"
+NODE_ENV="test"
+"@
+
+# Create test database setup script
+New-Item -Path "scripts\setup-test-db.ps1" -ItemType File -Force
+```
+
+```powershell
+# scripts/setup-test-db.ps1
+# Test database setup script
+
+# Create test database if it doesn't exist
+psql -h localhost -U postgres -c "CREATE DATABASE myapp_test;" 2>$null
+
+# Apply migrations to test database
+$env:DATABASE_URL = "postgresql://test_user:test_pass@localhost:5432/myapp_test"
+npx prisma migrate dev
+
+Write-Output "Test database setup complete"
+```
+
+**Expected result**: Test database configured and isolated from development data.
+
+### Step 2: Configure Jest for Database Testing
+```powershell
+# Update Jest configuration for database testing
+# Add to jest.config.js
+```
+
+```javascript
+// jest.config.js (addition to existing configuration)
+const nextJest = require('next/jest');
+
+const createJestConfig = nextJest({
+  dir: './',
+});
+
+const customJestConfig = {
+  setupFilesAfterEnv: [
+    '<rootDir>/jest.setup.js',
+    '<rootDir>/jest.setup.db.js', // Add database setup
+  ],
+  testEnvironment: 'jest-environment-jsdom',
+  moduleNameMapping: {
+    '^@/(.*)$': '<rootDir>/src/$1',
+  },
+  collectCoverageFrom: [
+    'src/**/*.{js,jsx,ts,tsx}',
+    '!src/**/*.d.ts',
+    '!src/**/*.stories.{js,jsx,ts,tsx}',
+    // Include database layer in coverage
+    'src/lib/repositories/**/*.ts',
+    'src/lib/services/**/*.ts',
+  ],
+  coverageThreshold: {
+    global: {
+      branches: 80,
+      functions: 80,
+      lines: 80,
+      statements: 80,
+    },
+  },
+  // Add test patterns for database tests
+  testMatch: [
+    '**/__tests__/**/*.(ts|js)',
+    '**/*.(test|spec).(ts|js)',
+    '**/tests/**/*.(ts|js)',
+  ],
+};
+
+module.exports = createJestConfig(customJestConfig);
+```
+
+### Step 3: Create Database Test Setup
+```powershell
+# Create database-specific Jest setup
+New-Item -Path "jest.setup.db.js" -ItemType File
+```
+
+```javascript
+// jest.setup.db.js
+import { PrismaClient } from '@prisma/client';
+
+const prisma = new PrismaClient({
+  datasourceUrl: process.env.DATABASE_URL,
+});
+
+// ✅ Correct test database setup
+beforeAll(async () => {
+  // Connect to test database
+  await prisma.$connect();
+});
+
+afterAll(async () => {
+  // Clean up and disconnect
+  await prisma.$disconnect();
+});
+
+// ✅ Correct test isolation - clean database between tests
+beforeEach(async () => {
+  // Clean all tables in correct order (respecting foreign keys)
+  await prisma.$transaction([
+    prisma.post.deleteMany(),
+    prisma.profile.deleteMany(), 
+    prisma.user.deleteMany(),
+  ]);
+});
+
+// Make prisma available globally for tests
+global.testPrisma = prisma;
+```
+
+## Repository Testing Patterns
+
+### Unit Testing Repository Methods
+```powershell
+# Create repository test directory
+New-Item -ItemType Directory -Path "src\lib\repositories\__tests__" -Force
+
+# Create user repository test file
+New-Item -Path "src\lib\repositories\__tests__\user.repository.test.ts" -ItemType File
+```
+
+```typescript
+// src/lib/repositories/__tests__/user.repository.test.ts
+import { UserRepository } from '../user.repository';
+import { createMockUser, createMockUserData } from '../../__mocks__/user.mock';
+
+describe('UserRepository', () => {
+  let userRepository: UserRepository;
+
+  beforeEach(() => {
+    userRepository = new UserRepository();
+  });
+
+  describe('create', () => {
+    it('should create a new user with valid data', async () => {
+      // ✅ Correct repository unit test
+      const userData = createMockUserData();
+      
+      const createdUser = await userRepository.create(userData);
+      
+      expect(createdUser).toMatchObject({
+        email: userData.email,
+        name: userData.name,
+      });
+      expect(createdUser.id).toBeDefined();
+      expect(createdUser.createdAt).toBeInstanceOf(Date);
+    });
+
+    it('should throw error for duplicate email', async () => {
+      // ✅ Correct error case testing
+      const userData = createMockUserData();
+      
+      await userRepository.create(userData);
+      
+      await expect(userRepository.create(userData)).rejects.toThrow();
+    });
+  });
+
+  describe('findByEmail', () => {
+    it('should find user by email', async () => {
+      // ✅ Correct query testing
+      const userData = createMockUserData();
+      const createdUser = await userRepository.create(userData);
+      
+      const foundUser = await userRepository.findByEmail(userData.email);
+      
+      expect(foundUser).toMatchObject({
+        id: createdUser.id,
+        email: userData.email,
+      });
+    });
+
+    it('should return null for non-existent email', async () => {
+      const foundUser = await userRepository.findByEmail('nonexistent@example.com');
+      
+      expect(foundUser).toBeNull();
+    });
+  });
+
+  describe('findWithPosts', () => {
+    it('should include posts when requested', async () => {
+      // ✅ Correct relationship testing
+      const userData = createMockUserData();
+      const user = await userRepository.create(userData);
+      
+      // Create a post for the user
+      await global.testPrisma.post.create({
+        data: {
+          title: 'Test Post',
+          content: 'Test content',
+          authorId: user.id,
+        },
+      });
+      
+      const userWithPosts = await userRepository.findWithPosts(user.id);
+      
+      expect(userWithPosts).not.toBeNull();
+      expect(userWithPosts?.posts).toHaveLength(1);
+      expect(userWithPosts?.posts[0].title).toBe('Test Post');
+    });
+  });
+
+  describe('searchUsers', () => {
+    it('should search users by name and email', async () => {
+      // ✅ Correct search functionality testing
+      const users = [
+        await userRepository.create(createMockUserData({ 
+          name: 'John Doe', 
+          email: 'john@example.com' 
+        })),
+        await userRepository.create(createMockUserData({ 
+          name: 'Jane Smith', 
+          email: 'jane@example.com' 
+        })),
+      ];
+      
+      const searchResults = await userRepository.searchUsers('john');
+      
+      expect(searchResults).toHaveLength(1);
+      expect(searchResults[0].name).toBe('John Doe');
+    });
+  });
+});
+
+// ❌ Incorrect - Testing without proper setup or assertions
+// describe('BadUserRepository', () => {
+//   it('should work', async () => {
+//     const user = await userRepository.create({});
+//     expect(user).toBeTruthy();
+//   });
+// });
+```
+
+### Mock Data Generation
+```powershell
+# Create mock data utilities
+New-Item -ItemType Directory -Path "src\lib\__mocks__" -Force
+New-Item -Path "src\lib\__mocks__\user.mock.ts" -ItemType File
+```
+
+```typescript
+// src/lib/__mocks__/user.mock.ts
+import { faker } from '@faker-js/faker';
+import type { User } from '@prisma/client';
+import type { UserCreateInput } from '@/lib/database/types';
+
+// ✅ Correct mock data generation
+export function createMockUserData(overrides?: Partial<UserCreateInput>): UserCreateInput {
+  return {
+    email: faker.internet.email(),
+    name: faker.person.fullName(),
+    password: faker.internet.password({ length: 12 }),
+    ...overrides,
+  };
+}
+
+export function createMockUser(overrides?: Partial<User>): User {
+  return {
+    id: faker.string.cuid(),
+    email: faker.internet.email(),
+    name: faker.person.fullName(),
+    isActive: true,
+    emailVerified: false,
+    createdAt: faker.date.past(),
+    updatedAt: faker.date.recent(),
+    deletedAt: null,
+    ...overrides,
+  };
+}
+
+export function createMockUsers(count: number): User[] {
+  return Array.from({ length: count }, () => createMockUser());
+}
+
+// ✅ Correct mock data for relationships
+export function createMockUserWithPosts(postCount: number = 2) {
+  const user = createMockUser();
+  const posts = Array.from({ length: postCount }, () => ({
+    id: faker.string.cuid(),
+    title: faker.lorem.sentence(),
+    content: faker.lorem.paragraphs(),
+    published: faker.datatype.boolean(),
+    authorId: user.id,
+    createdAt: faker.date.past(),
+    updatedAt: faker.date.recent(),
+  }));
+
+     return { ...user, posts };
+ }
+ ```
+
+## Service Layer Testing
+
+### Service Integration Testing
+```powershell
+# Create service test directory
+New-Item -ItemType Directory -Path "src\lib\services\__tests__" -Force
+New-Item -Path "src\lib\services\__tests__\user.service.test.ts" -ItemType File
+```
+
+```typescript
+// src/lib/services/__tests__/user.service.test.ts
+import { UserService } from '../user.service';
+import { createMockUserData } from '../../__mocks__/user.mock';
+
+describe('UserService', () => {
+  let userService: UserService;
+
+  beforeEach(() => {
+    userService = new UserService();
+  });
+
+  describe('createUser', () => {
+    it('should create user with valid data', async () => {
+      // ✅ Correct service integration test
+      const userData = createMockUserData();
+      
+      const createdUser = await userService.createUser(userData);
+      
+      expect(createdUser).toMatchObject({
+        email: userData.email,
+        name: userData.name,
+      });
+      expect(createdUser.id).toBeDefined();
+    });
+
+    it('should validate input data', async () => {
+      // ✅ Correct validation testing
+      const invalidData = {
+        email: 'invalid-email',
+        name: '',
+        password: '123', // Too short
+      };
+      
+      await expect(userService.createUser(invalidData)).rejects.toThrow();
+    });
+
+    it('should prevent duplicate email registration', async () => {
+      // ✅ Correct business logic testing
+      const userData = createMockUserData();
+      
+      await userService.createUser(userData);
+      
+      await expect(userService.createUser(userData)).rejects.toThrow(
+        'User with this email already exists'
+      );
+    });
+  });
+
+  describe('updateUser', () => {
+    it('should update user with valid data', async () => {
+      const userData = createMockUserData();
+      const user = await userService.createUser(userData);
+      
+      const updateData = { name: 'Updated Name' };
+      const updatedUser = await userService.updateUser(user.id, updateData);
+      
+      expect(updatedUser.name).toBe('Updated Name');
+      expect(updatedUser.updatedAt).not.toEqual(user.updatedAt);
+    });
+
+    it('should throw error for non-existent user', async () => {
+      const nonExistentId = 'non-existent-id';
+      
+      await expect(
+        userService.updateUser(nonExistentId, { name: 'New Name' })
+      ).rejects.toThrow('User not found');
+    });
+
+    it('should prevent email update for verified users', async () => {
+      // ✅ Correct complex business logic testing
+      const userData = createMockUserData();
+      const user = await userService.createUser(userData);
+      
+      // Manually verify user email for test
+      await global.testPrisma.user.update({
+        where: { id: user.id },
+        data: { emailVerified: true },
+      });
+      
+      await expect(
+        userService.updateUser(user.id, { email: 'new@example.com' })
+      ).rejects.toThrow('Cannot update email for verified users');
+    });
+  });
+
+  describe('deactivateUser', () => {
+    it('should deactivate active user', async () => {
+      const userData = createMockUserData();
+      const user = await userService.createUser(userData);
+      
+      const deactivatedUser = await userService.deactivateUser(user.id);
+      
+      expect(deactivatedUser.isActive).toBe(false);
+      expect(deactivatedUser.deactivatedAt).toBeInstanceOf(Date);
+    });
+
+    it('should throw error when deactivating already inactive user', async () => {
+      const userData = createMockUserData();
+      const user = await userService.createUser(userData);
+      
+      await userService.deactivateUser(user.id);
+      
+      await expect(userService.deactivateUser(user.id)).rejects.toThrow(
+        'User is already deactivated'
+      );
+    });
+  });
+
+  describe('searchUsers', () => {
+    it('should search users with minimum term length', async () => {
+      await expect(userService.searchUsers('a')).rejects.toThrow(
+        'Search term must be at least 2 characters'
+      );
+    });
+
+    it('should return matching users', async () => {
+      // Create test users
+      await Promise.all([
+        userService.createUser(createMockUserData({ 
+          name: 'John Doe', 
+          email: 'john@test.com' 
+        })),
+        userService.createUser(createMockUserData({ 
+          name: 'Jane Smith', 
+          email: 'jane@test.com' 
+        })),
+      ]);
+      
+      const results = await userService.searchUsers('john');
+      
+      expect(results).toHaveLength(1);
+      expect(results[0].name).toBe('John Doe');
+    });
+  });
+});
+```
+
+### Transaction Testing
+```powershell
+# Create transaction service test
+New-Item -Path "src\lib\services\__tests__\transaction.service.test.ts" -ItemType File
+```
+
+```typescript
+// src/lib/services/__tests__/transaction.service.test.ts
+import { TransactionService } from '../transaction.service';
+import { createMockUserData } from '../../__mocks__/user.mock';
+
+describe('TransactionService', () => {
+  let transactionService: TransactionService;
+
+  beforeEach(() => {
+    transactionService = new TransactionService();
+  });
+
+  describe('createUserWithProfile', () => {
+    it('should create user and profile atomically', async () => {
+      // ✅ Correct transaction testing
+      const userData = createMockUserData();
+      const profileData = {
+        bio: 'Test bio',
+        avatar: 'test-avatar.jpg',
+      };
+      
+      const result = await transactionService.createUserWithProfile(
+        userData, 
+        profileData
+      );
+      
+      expect(result.user).toMatchObject({
+        email: userData.email,
+        name: userData.name,
+      });
+      expect(result.profile).toMatchObject({
+        bio: profileData.bio,
+        userId: result.user.id,
+      });
+      
+      // Verify both records exist in database
+      const userInDb = await global.testPrisma.user.findUnique({
+        where: { id: result.user.id },
+        include: { profile: true },
+      });
+      
+      expect(userInDb?.profile).not.toBeNull();
+    });
+
+    it('should rollback on failure', async () => {
+      // ✅ Correct transaction rollback testing
+      const userData = createMockUserData();
+      const invalidProfileData = {
+        // Missing required fields to cause failure
+      };
+      
+      await expect(
+        transactionService.createUserWithProfile(userData, invalidProfileData)
+      ).rejects.toThrow();
+      
+      // Verify no user was created due to rollback
+      const userCount = await global.testPrisma.user.count();
+      expect(userCount).toBe(0);
+    });
+  });
+
+  describe('transferUserPoints', () => {
+    it('should transfer points between users', async () => {
+      // Setup test users with points
+      const fromUser = await global.testPrisma.user.create({
+        data: { ...createMockUserData(), points: 100 },
+      });
+      
+      const toUser = await global.testPrisma.user.create({
+        data: { ...createMockUserData(), points: 50 },
+      });
+      
+      await transactionService.transferUserPoints(fromUser.id, toUser.id, 30);
+      
+      // Verify point transfer
+      const [updatedFromUser, updatedToUser] = await Promise.all([
+        global.testPrisma.user.findUnique({ where: { id: fromUser.id } }),
+        global.testPrisma.user.findUnique({ where: { id: toUser.id } }),
+      ]);
+      
+      expect(updatedFromUser?.points).toBe(70);
+      expect(updatedToUser?.points).toBe(80);
+    });
+
+    it('should fail for insufficient points', async () => {
+      const fromUser = await global.testPrisma.user.create({
+        data: { ...createMockUserData(), points: 10 },
+      });
+      
+      const toUser = await global.testPrisma.user.create({
+        data: { ...createMockUserData(), points: 0 },
+      });
+      
+      await expect(
+        transactionService.transferUserPoints(fromUser.id, toUser.id, 20)
+      ).rejects.toThrow('Insufficient points');
+      
+      // Verify no changes occurred
+      const [unchangedFromUser, unchangedToUser] = await Promise.all([
+        global.testPrisma.user.findUnique({ where: { id: fromUser.id } }),
+        global.testPrisma.user.findUnique({ where: { id: toUser.id } }),
+      ]);
+      
+      expect(unchangedFromUser?.points).toBe(10);
+      expect(unchangedToUser?.points).toBe(0);
+    });
+  });
+});
+```
+
+## API Route Testing with Database
+
+### Testing NextJS API Routes
+```powershell
+# Create API route test directory
+New-Item -ItemType Directory -Path "src\app\api\__tests__" -Force
+New-Item -Path "src\app\api\__tests__\users.route.test.ts" -ItemType File
+```
+
+```typescript
+// src/app/api/__tests__/users.route.test.ts
+import { NextRequest } from 'next/server';
+import { POST, GET } from '../users/route';
+import { createMockUserData } from '@/lib/__mocks__/user.mock';
+
+// ✅ Correct API route testing with database
+describe('/api/users', () => {
+  describe('POST', () => {
+    it('should create user with valid data', async () => {
+      const userData = createMockUserData();
+      const request = new NextRequest('http://localhost:3000/api/users', {
+        method: 'POST',
+        body: JSON.stringify(userData),
+        headers: {
+          'Content-Type': 'application/json',
+        },
+      });
+      
+      const response = await POST(request);
+      const result = await response.json();
+      
+      expect(response.status).toBe(201);
+      expect(result).toMatchObject({
+        email: userData.email,
+        name: userData.name,
+      });
+      
+      // Verify user was created in database
+      const userInDb = await global.testPrisma.user.findUnique({
+        where: { email: userData.email },
+      });
+      expect(userInDb).not.toBeNull();
+    });
+
+    it('should return error for invalid data', async () => {
+      const invalidData = {
+        email: 'invalid-email',
+        name: '',
+      };
+      
+      const request = new NextRequest('http://localhost:3000/api/users', {
+        method: 'POST',
+        body: JSON.stringify(invalidData),
+      });
+      
+      const response = await POST(request);
+      
+      expect(response.status).toBe(400);
+    });
+  });
+
+  describe('GET', () => {
+    beforeEach(async () => {
+      // Setup test data
+      await Promise.all([
+        global.testPrisma.user.create({
+          data: createMockUserData({
+            name: 'John Doe',
+            email: 'john@test.com',
+          }),
+        }),
+        global.testPrisma.user.create({
+          data: createMockUserData({
+            name: 'Jane Smith',
+            email: 'jane@test.com',
+          }),
+        }),
+      ]);
+    });
+
+    it('should return all users', async () => {
+      const request = new NextRequest('http://localhost:3000/api/users');
+      
+      const response = await GET(request);
+      const users = await response.json();
+      
+      expect(response.status).toBe(200);
+      expect(users).toHaveLength(2);
+    });
+
+    it('should search users by term', async () => {
+      const request = new NextRequest(
+        'http://localhost:3000/api/users?search=john'
+      );
+      
+      const response = await GET(request);
+      const users = await response.json();
+      
+      expect(response.status).toBe(200);
+      expect(users).toHaveLength(1);
+      expect(users[0].name).toBe('John Doe');
+    });
+  });
+});
+```
+
+## Performance Testing
+
+### Database Query Performance Testing
+```powershell
+# Create performance test utilities
+New-Item -Path "src\lib\__tests__\performance.test.ts" -ItemType File
+```
+
+```typescript
+// src/lib/__tests__/performance.test.ts
+import { UserRepository } from '@/lib/repositories/user.repository';
+import { createMockUserData } from '@/lib/__mocks__/user.mock';
+
+describe('Database Performance', () => {
+  let userRepository: UserRepository;
+
+  beforeEach(() => {
+    userRepository = new UserRepository();
+  });
+
+  // ✅ Correct performance testing
+  it('should handle bulk user creation efficiently', async () => {
+    const userCount = 100;
+    const userData = Array.from({ length: userCount }, () => createMockUserData());
+    
+    const startTime = Date.now();
+    
+    // Use transaction for bulk creation
+    await global.testPrisma.$transaction(
+      userData.map(user => global.testPrisma.user.create({ data: user }))
+    );
+    
+    const endTime = Date.now();
+    const duration = endTime - startTime;
+    
+    // Should complete within reasonable time (adjust based on your needs)
+    expect(duration).toBeLessThan(5000); // 5 seconds
+    
+    const totalUsers = await global.testPrisma.user.count();
+    expect(totalUsers).toBe(userCount);
+  });
+
+  it('should search users efficiently with large dataset', async () => {
+    // Create test dataset
+    const userCount = 1000;
+    const userData = Array.from({ length: userCount }, (_, index) => 
+      createMockUserData({
+        name: `User ${index}`,
+        email: `user${index}@test.com`,
+      })
+    );
+    
+    await global.testPrisma.$transaction(
+      userData.map(user => global.testPrisma.user.create({ data: user }))
+    );
+    
+    const startTime = Date.now();
+    const searchResults = await userRepository.searchUsers('User 1');
+    const endTime = Date.now();
+    
+    const duration = endTime - startTime;
+    
+    // Search should be fast even with large dataset
+    expect(duration).toBeLessThan(1000); // 1 second
+         expect(searchResults.length).toBeGreaterThan(0);
+   });
+ });
+ ```
+
+## Test Execution and Coverage
+
+### Running Database Tests
+```powershell
+# Install additional testing dependencies
+npm install --save-dev @faker-js/faker
+
+# Run all tests including database tests
+npm run test
+
+# Run only database tests
+npm run test -- --testPathPattern="(repositories|services|database)" 
+
+# Run tests with coverage
+npm run test:coverage
+
+# Run integration tests
+npm run test -- --testPathPattern="integration"
+```
+
+### Continuous Integration Setup
+```powershell
+# Add test scripts to package.json
+```
+
+```json
+{
+  "scripts": {
+    "test": "jest",
+    "test:watch": "jest --watch",
+    "test:coverage": "jest --coverage",
+    "test:db": "jest --testPathPattern=\"(repositories|services|database)\"",
+    "test:integration": "jest --testPathPattern=\"integration\"",
+    "test:performance": "jest --testPathPattern=\"performance\"",
+    "pretest": "powershell -ExecutionPolicy Bypass -File scripts/setup-test-db.ps1"
+  }
+}
+```
+
+## Verification Steps
+
+### Step 1: Validate Test Database Setup
+```powershell
+# Verify test database exists and is accessible
+$env:DATABASE_URL = "postgresql://test_user:test_pass@localhost:5432/myapp_test"
+npx prisma db pull --print
+
+# Verify test database isolation
+$testTables = psql -h localhost -U test_user -d myapp_test -t -c "SELECT tablename FROM pg_tables WHERE schemaname='public';"
+Write-Output "Test database tables: $testTables"
+```
+
+**Expected result**: Test database configured properly and isolated from development data.
+
+### Step 2: Validate Test Coverage
+```powershell
+# Run coverage analysis
+npm run test:coverage
+
+# Check coverage thresholds are met
+$coverageReport = Get-Content "coverage/coverage-summary.json" | ConvertFrom-Json
+$linesCoverage = $coverageReport.total.lines.pct
+
+if ($linesCoverage -ge 80) {
+    Write-Output "✅ Coverage threshold met: $linesCoverage%"
+} else {
+    Write-Warning "❌ Coverage below threshold: $linesCoverage%"
+}
+```
+
+**Expected result**: All coverage thresholds (80%) are met including database layer.
+
+### Step 3: Validate Repository and Service Tests
+```powershell
+# Check that all repositories have corresponding tests
+$repositories = Get-ChildItem -Path "src\lib\repositories" -Filter "*.ts" | Where-Object { $_.Name -notmatch "base|index" }
+$repositoryTests = Get-ChildItem -Path "src\lib\repositories\__tests__" -Filter "*.test.ts"
+
+foreach ($repo in $repositories) {
+    $testFile = $repo.Name -replace "\.ts$", ".test.ts"
+    if ($repositoryTests.Name -contains $testFile) {
+        Write-Output "✅ $($repo.Name) has tests"
+    } else {
+        Write-Warning "❌ $($repo.Name) missing tests"
+    }
+}
+
+# Check services
+$services = Get-ChildItem -Path "src\lib\services" -Filter "*.ts" | Where-Object { $_.Name -notmatch "index" }
+$serviceTests = Get-ChildItem -Path "src\lib\services\__tests__" -Filter "*.test.ts"
+
+foreach ($service in $services) {
+    $testFile = $service.Name -replace "\.ts$", ".test.ts"
+    if ($serviceTests.Name -contains $testFile) {
+        Write-Output "✅ $($service.Name) has tests"
+    } else {
+        Write-Warning "❌ $($service.Name) missing tests"
+    }
+}
+```
+
+**Expected result**: All repositories and services have corresponding test files.
+
+### Step 4: Run Integration Test Suite
+```powershell
+# Run full integration test suite
+npm run test:integration
+
+# Verify API route tests work with database
+npm run test -- --testPathPattern="api.*test"
+
+# Check performance tests pass
+npm run test:performance
+```
+
+**Expected result**: All integration tests pass and performance benchmarks are met.
+
+## Troubleshooting Common Issues
+
+### Problem: Test Database Connection Failures
+**Symptoms**: 
+- Tests fail with connection timeout errors
+- "database does not exist" errors
+
+**Solution**: 
+```powershell
+# Check PostgreSQL service is running
+Get-Service -Name postgresql*
+
+# Verify test database exists
+psql -h localhost -U postgres -l | Select-String "myapp_test"
+
+# Recreate test database if needed
+psql -h localhost -U postgres -c "DROP DATABASE IF EXISTS myapp_test;"
+psql -h localhost -U postgres -c "CREATE DATABASE myapp_test;"
+
+# Run migrations on test database
+$env:DATABASE_URL = "postgresql://test_user:test_pass@localhost:5432/myapp_test"
+npx prisma migrate dev
+```
+
+### Problem: Test Data Pollution Between Tests
+**Symptoms**: 
+- Tests pass individually but fail when run together
+- Unexpected data exists during test execution
+
+**Solution**: 
+```powershell
+# Verify test isolation setup in jest.setup.db.js
+Get-Content "jest.setup.db.js" | Select-String -Pattern "deleteMany|beforeEach"
+
+# Check test cleanup order respects foreign keys
+# Update jest.setup.db.js to clean in correct order:
+# 1. Child tables first (posts, profiles)
+# 2. Parent tables last (users)
+
+# Run tests individually to identify problematic tests
+npm run test -- --testNamePattern="should create user" --verbose
+```
+
+### Problem: Mock Data Generation Issues
+**Symptoms**: 
+- Validation errors in tests
+- Inconsistent test data across test runs
+
+**Solution**: 
+```powershell
+# Verify Faker.js is properly installed
+npm list @faker-js/faker
+
+# Check mock data generation follows schema constraints
+Get-Content "src\lib\__mocks__\*.ts" | Select-String -Pattern "faker\."
+
+# Update mock generators to match current schema
+npx prisma generate
+# Then update mock files to use correct types
+```
+
+### Problem: Test Performance Issues
+**Symptoms**: 
+- Tests run very slowly
+- Database timeouts during test execution
+
+**Solution**: 
+```powershell
+# Use database transactions for faster cleanup
+# Update jest.setup.db.js to use transactions
+
+# Optimize test database configuration
+# Add to .env.test:
+# DATABASE_URL="postgresql://user:pass@localhost:5432/myapp_test?connection_limit=10"
+
+# Run performance profiling
+npm run test:performance -- --verbose
+
+# Consider using test database in memory for unit tests
+npm install --save-dev @databases/pg-test
+```
+
+## Success Criteria
+
+The database testing standards are implemented when:
+- [x] **Test database is properly isolated** from development and production data
+- [x] **All repositories have unit tests** covering CRUD operations and business methods
+- [x] **All services have integration tests** covering business logic and validation
+- [x] **Transaction testing** verifies atomic operations and rollback scenarios
+- [x] **API routes are tested** with actual database operations
+- [x] **Mock data generation** provides realistic test data for all scenarios
+- [x] **Coverage thresholds are met** (80% for all database layer components)
+- [x] **Performance tests** validate query efficiency and bulk operations
+- [x] **CI/CD integration** runs database tests automatically
+
+## Integration with Existing Rules
+
+This rule integrates with:
+- **Testing Standards (bp-testing-standards.mdc)**: Extends Jest configuration and patterns
+- **Database Client Standards**: Tests repository and service implementations
+- **Security Standards**: Validates input sanitization and access control in tests
+- **Code Quality Standards**: Maintains coverage thresholds and TypeScript strict mode
+
+---
+
+**Note**: This rule ensures comprehensive testing of the database layer while maintaining fast test execution and reliable test isolation, supporting confident database schema changes and business logic development.
+

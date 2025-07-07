@@ -1,0 +1,363 @@
+---
+description: When writing tests
+globs: 
+alwaysApply: false
+---
+# Testing Standards
+
+Comprehensive testing strategy and standards for NextJS 15 applications to ensure code reliability, prevent regressions, and maintain high quality using modern testing tools.
+
+## Prerequisites
+
+- NextJS 15+ with TypeScript
+- **Vitest** (recommended modern testing framework)
+- React Testing Library for component testing
+- **Playwright** (recommended E2E framework)
+- Windows PowerShell for examples
+
+## Core Principle
+
+**ALWAYS implement comprehensive testing at multiple levels using Vitest for unit/integration tests and Playwright for E2E tests to ensure fast, reliable, and maintainable test suites.**
+
+## Recommended Testing Stack
+
+### Primary Recommendation: Vitest + Playwright
+
+**Why Vitest over Jest**:
+- **Native ESM support** - Better compatibility with modern JavaScript modules
+- **Faster execution** - Up to 10x faster than Jest for large test suites
+- **Better TypeScript integration** - Native TypeScript support without additional configuration
+- **Vite ecosystem alignment** - Shares configuration with build tools for consistency
+- **Modern features** - Built-in coverage, watch mode, and parallel execution
+
+**Why Playwright over Cypress**:
+- **Cross-browser reliability** - Better support for WebKit, Chrome, Firefox
+- **Modern architecture** - Auto-waiting, parallel execution, network interception
+- **TypeScript-first** - Excellent TypeScript support out of the box
+
+**When to consider alternatives**:
+- Use Jest if you have extensive existing Jest infrastructure and plugins
+- Use Cypress if you have established Cypress workflows and team expertise
+
+## Testing Pyramid Structure
+
+### Unit Tests (70% of tests)
+**Purpose**: Test individual functions, hooks, and components in isolation
+**Tools**: Vitest + React Testing Library
+
+```typescript
+// ✅ Correct unit test example with Vitest
+import { describe, it, expect, vi } from 'vitest';
+import { render, screen } from '@testing-library/react';
+import { Button } from '@/components/ui/Button';
+
+describe('Button Component', () => {
+  it('renders with correct text', () => {
+    render(<Button>Click me</Button>);
+    expect(screen.getByRole('button', { name: /click me/i })).toBeInTheDocument();
+  });
+
+  it('calls onClick handler when clicked', async () => {
+    const handleClick = vi.fn();
+    const user = userEvent.setup();
+    render(<Button onClick={handleClick}>Click me</Button>);
+    
+    await user.click(screen.getByRole('button'));
+    expect(handleClick).toHaveBeenCalledOnce();
+  });
+});
+```
+
+### Integration Tests (20% of tests)
+**Purpose**: Test component interactions and API integrations
+**Tools**: Vitest + MSW (Mock Service Worker)
+
+```typescript
+// ✅ Correct integration test example with Vitest
+import { describe, it, expect, beforeAll, afterEach, afterAll } from 'vitest';
+import { render, screen, waitFor } from '@testing-library/react';
+import { UserProfile } from '@/components/UserProfile';
+import { server } from '@/mocks/server';
+
+describe('UserProfile Integration', () => {
+  beforeAll(() => server.listen());
+  afterEach(() => server.resetHandlers());
+  afterAll(() => server.close());
+
+  it('loads and displays user data', async () => {
+    render(<UserProfile userId="123" />);
+    
+    await waitFor(() => {
+      expect(screen.getByText('John Doe')).toBeInTheDocument();
+    });
+    
+    expect(screen.getByText('john@example.com')).toBeInTheDocument();
+  });
+});
+```
+
+### E2E Tests (10% of tests)
+**Purpose**: Test complete user workflows and critical paths
+**Tools**: Playwright
+
+```typescript
+// ✅ Correct E2E test example (Playwright)
+import { test, expect } from '@playwright/test';
+
+test('user can complete registration flow', async ({ page }) => {
+  await page.goto('/register');
+  
+  await page.fill('[data-testid="email"]', 'test@example.com');
+  await page.fill('[data-testid="password"]', 'SecurePass123!');
+  await page.click('[data-testid="submit"]');
+  
+  await expect(page).toHaveURL('/dashboard');
+  await expect(page.getByText('Welcome')).toBeVisible();
+});
+```
+
+## Implementation Guidance
+
+### Step 1: Install Testing Dependencies
+```powershell
+# Core testing framework - Vitest with React support
+npm install --save-dev vitest @vitejs/plugin-react jsdom
+
+# React testing utilities
+npm install --save-dev @testing-library/react @testing-library/jest-dom @testing-library/user-event
+
+# E2E testing
+npm install --save-dev @playwright/test
+
+# API mocking
+npm install --save-dev msw
+```
+
+### Step 2: Configure Vitest
+Create `vitest.config.ts`:
+```typescript
+import { defineConfig } from 'vitest/config';
+import react from '@vitejs/plugin-react';
+import { resolve } from 'path';
+
+export default defineConfig({
+  plugins: [react()],
+  test: {
+    environment: 'jsdom',
+    setupFiles: ['./src/test/setup.ts'],
+    globals: true,
+    css: true,
+  },
+  resolve: {
+    alias: {
+      '@': resolve(__dirname, './src'),
+    },
+  },
+});
+```
+
+Create `src/test/setup.ts`:
+```typescript
+import '@testing-library/jest-dom';
+import { beforeAll, afterEach, afterAll } from 'vitest';
+import { server } from './mocks/server';
+
+// Setup MSW
+beforeAll(() => server.listen({ onUnhandledRequest: 'error' }));
+afterEach(() => server.resetHandlers());
+afterAll(() => server.close());
+```
+
+### Step 3: Configure Test Scripts
+Add to `package.json`:
+```json
+{
+  "scripts": {
+    "test": "vitest",
+    "test:run": "vitest run",
+    "test:coverage": "vitest run --coverage",
+    "test:ui": "vitest --ui",
+    "test:e2e": "playwright test",
+    "test:e2e:ui": "playwright test --ui"
+  }
+}
+```
+
+## Testing Patterns
+
+### Component Testing with Vitest
+```typescript
+// ✅ Test component props and state
+import { describe, it, expect, vi } from 'vitest';
+import { render, screen } from '@testing-library/react';
+import userEvent from '@testing-library/user-event';
+
+describe('SearchInput', () => {
+  it('updates search term on input change', async () => {
+    const user = userEvent.setup();
+    const onSearch = vi.fn();
+    
+    render(<SearchInput onSearch={onSearch} />);
+    const input = screen.getByPlaceholderText(/search/i);
+    
+    await user.type(input, 'test query');
+    expect(input).toHaveValue('test query');
+  });
+});
+```
+
+### Custom Hook Testing
+```typescript
+// ✅ Test custom hooks with Vitest
+import { describe, it, expect } from 'vitest';
+import { renderHook, act } from '@testing-library/react';
+import { useCounter } from '@/hooks/useCounter';
+
+describe('useCounter', () => {
+  it('increments counter', () => {
+    const { result } = renderHook(() => useCounter(0));
+    
+    act(() => {
+      result.current.increment();
+    });
+    
+    expect(result.current.count).toBe(1);
+  });
+});
+```
+
+### API Route Testing
+```typescript
+// ✅ Test API routes with Vitest
+import { describe, it, expect, vi } from 'vitest';
+import { createMocks } from 'node-mocks-http';
+import handler from '@/pages/api/users';
+
+describe('/api/users', () => {
+  it('returns users list', async () => {
+    const { req, res } = createMocks({
+      method: 'GET',
+    });
+
+    await handler(req, res);
+
+    expect(res._getStatusCode()).toBe(200);
+    expect(JSON.parse(res._getData())).toEqual(
+      expect.arrayContaining([
+        expect.objectContaining({
+          id: expect.any(String),
+          name: expect.any(String),
+        }),
+      ])
+    );
+  });
+});
+```
+
+## Verification and Success
+
+How to confirm the guidance is being followed:
+
+```powershell
+# Run tests with coverage
+npm run test:coverage
+
+# Coverage should meet minimum thresholds:
+# - Lines: 80%
+# - Functions: 80% 
+# - Branches: 80%
+# - Statements: 80%
+
+# Verify Vitest configuration
+Test-Path "vitest.config.ts"
+# Expected: True
+
+# Check test execution
+npm run test:run
+# Expected: All tests pass with fast execution times
+```
+
+## Common Scenarios and Decisions
+
+### Scenario: Legacy Jest Project Migration
+**Guidance**: Migrate incrementally by running Vitest alongside Jest
+**Reasoning**: Allows gradual migration without disrupting existing workflows
+
+### Scenario: Complex Mocking Requirements  
+**Guidance**: Use Vitest's vi.mock() with MSW for network requests
+**Reasoning**: Provides comprehensive mocking without complexity
+
+### When to Deviate
+**Situations where Jest might still be appropriate**:
+- Extensive existing Jest plugin ecosystem dependencies
+- Large Jest test suites with complex custom matchers
+- Team has deep Jest expertise and limited time for migration
+
+## Success Criteria
+
+- [x] **Unit tests** use Vitest with React Testing Library
+- [x] **Integration tests** use Vitest with MSW for API mocking
+- [x] **E2E tests** use Playwright for complete workflows
+- [x] **Code coverage** meets 80% minimum threshold across all metrics
+- [x] **Test execution** is fast (under 10 seconds for unit tests)
+- [x] **CI/CD integration** runs tests automatically on all PRs
+
+## Examples
+
+✅ **Recommended Pattern:**
+```typescript
+// File: src/components/Button/Button.test.tsx
+import { describe, it, expect, vi } from 'vitest';
+import { render, screen } from '@testing-library/react';
+import userEvent from '@testing-library/user-event';
+import { Button } from './Button';
+
+describe('Button', () => {
+  it('handles click events correctly', async () => {
+    const handleClick = vi.fn();
+    const user = userEvent.setup();
+    
+    render(<Button onClick={handleClick}>Submit</Button>);
+    
+    await user.click(screen.getByRole('button', { name: /submit/i }));
+    
+    expect(handleClick).toHaveBeenCalledOnce();
+  });
+});
+```
+
+❌ **Avoid This Pattern:**
+```typescript
+// Using Jest syntax in a Vitest project
+import jest from 'jest'; // Wrong framework import
+import { jest.fn() } from 'jest'; // Inconsistent mocking
+
+describe('Component', () => {
+  it('test', () => {
+    const mockFn = jest.fn(); // Should use vi.fn()
+    // Test implementation
+  });
+});
+```
+
+### Test Organization Structure
+```
+src/
+├── test/
+│   ├── setup.ts              # Vitest setup
+│   ├── utils.tsx             # Test utilities
+│   └── mocks/                # MSW mocks
+├── components/
+│   ├── Button/
+│   │   ├── Button.tsx
+│   │   ├── Button.test.tsx   # Component tests
+│   │   └── Button.stories.tsx
+└── hooks/
+    ├── useCounter.ts
+    └── useCounter.test.ts     # Hook tests
+```
+
+---
+
+**Note**: This guidance ensures fast, reliable testing with modern tools while maintaining comprehensive coverage across unit, integration, and E2E test levels.
+

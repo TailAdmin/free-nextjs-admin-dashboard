@@ -1,0 +1,217 @@
+---
+description: 
+globs: 
+alwaysApply: false
+---
+# Dashboard UI Patterns Guidance
+
+Establishes architectural principles and design patterns for creating professional dashboard interfaces that are scalable, maintainable, and user-friendly.
+
+## Prerequisites
+
+**Required Foundation:**
+- Next.js 15+ with App Router configured
+- Tailwind CSS design system established (see `ui-tailwind-css-standards.mdc`)
+- Basic UI component library (Button, Card, Input primitives)
+- TypeScript configuration with path aliases
+- Understanding of responsive design principles
+
+**Verification:**
+```powershell
+# Verify foundation is in place
+Test-Path "src/components/ui" -or Test-Path "src/app/_components/ui"
+Get-Content "src/app/globals.css" | Select-String "@theme.*--color-primary"
+```
+
+## Core Principle
+
+**Dashboard interfaces should follow component-driven architecture with clear information hierarchy, responsive layouts, and consistent user experience patterns that scale from simple metrics to complex data visualizations.**
+
+## Recommended Approach
+
+### Primary Recommendation: Layered Component Architecture
+Build dashboards using a layered approach: layout → navigation → content areas → data components.
+
+**Why this approach:**
+- Separates concerns between layout, navigation, and content
+- Enables consistent user experience across dashboard sections
+- Supports progressive enhancement from basic metrics to advanced visualizations
+- Maintains responsive design across device sizes
+
+**When to consider alternatives:** For highly specialized single-purpose dashboards or embedded dashboard widgets where full navigation isn't needed.
+
+## Architectural Guidance
+
+### 1. Layout Structure Principles
+
+**Primary Pattern: Sidebar + Main Content**
+```typescript
+// Conceptual structure - not implementation
+<DashboardLayout>
+  <Sidebar /> {/* Fixed navigation */}
+  <MainContent> {/* Scrollable content area */}
+    <Header /> {/* Page title, actions */}
+    <MetricsGrid /> {/* Key performance indicators */}
+    <VisualizationArea /> {/* Charts, tables, detailed data */}
+  </MainContent>
+</DashboardLayout>
+```
+
+**Alternative Patterns:**
+- **Top Navigation:** When horizontal space is limited or mobile-first design is priority
+- **Tabbed Interface:** For related dashboard sections that users switch between frequently
+- **Modal/Overlay:** For dashboard widgets embedded in other applications
+
+**Selection Criteria:**
+- **Sidebar:** Best for 5+ navigation items, desktop-focused applications
+- **Top Nav:** Better for mobile responsiveness, fewer navigation items
+- **Tabs:** When dashboard sections are closely related workflows
+
+### 2. Navigation Design Principles
+
+**Hierarchical Organization:**
+- **Primary Level:** Main dashboard sections (Overview, Analytics, Reports)
+- **Secondary Level:** Sub-sections within each area
+- **Contextual:** Actions specific to current view
+
+**Visual Hierarchy Guidelines:**
+- Use consistent icons and labeling across navigation items
+- Indicate current location with clear active states
+- Group related functionality together
+- Provide visual separation between navigation levels
+
+**Responsive Considerations:**
+- Collapsible sidebar for tablet and mobile views
+- Bottom navigation for mobile-first applications
+- Hamburger menu for complex navigation on smaller screens
+
+### 3. Data Presentation Patterns
+
+**Metrics Card Pattern:**
+- **Purpose:** Display key performance indicators with context
+- **Structure:** Icon + Label + Value + Trend indicator
+- **Usage:** Dashboard overview, summary sections
+- **Responsive:** Stack vertically on mobile, grid layout on desktop
+
+**Chart Integration Guidance:**
+- **Bar Charts:** Comparing values across categories
+- **Line Charts:** Showing trends over time
+- **Donut/Pie:** Showing proportional relationships (use sparingly)
+- **Tables:** Detailed data that users need to scan or search
+
+**Data Loading States:**
+- Skeleton screens for predictable content layouts
+- Progressive loading for large datasets
+- Error states with actionable recovery options
+
+### 4. Component Composition Strategies
+
+**Extend Existing UI Library:**
+Build dashboard-specific components by composing existing primitives:
+
+```typescript
+// Guidance pattern - extend base components
+const MetricCard = ({ title, value, trend, icon }) => (
+  <Card> {/* Use existing Card component */}
+    <CardHeader>
+      <Icon /> + <Label />
+      <TrendBadge variant={trend.type} />
+    </CardHeader>
+    <CardContent>
+      <Value />
+    </CardContent>
+  </Card>
+)
+```
+
+**Component Hierarchy:**
+- **Layout Components:** Handle structure and positioning
+- **Container Components:** Manage data and state
+- **Presentation Components:** Handle display and interaction
+- **Primitive Components:** Reusable UI elements (from base UI library)
+
+## Implementation Decisions
+
+### Technology Selection
+
+**Data Visualization Libraries:**
+- **Recharts:** Recommended for standard charts (bar, line, area) with React integration
+- **D3.js:** For custom visualizations requiring fine-grained control
+- **Chart.js:** For simple, lightweight charting needs
+
+**Selection Criteria:**
+- **Recharts:** Good TypeScript support, React-native patterns, moderate customization
+- **D3:** Maximum flexibility, complex interactions, higher development cost
+- **Chart.js:** Simplicity, small bundle size, limited React integration
+
+### Responsive Design Strategy
+
+**Breakpoint Considerations:**
+- **Mobile (< 768px):** Single column layout, stacked metrics, simplified charts
+- **Tablet (768px - 1024px):** Two-column grids, collapsible sidebar
+- **Desktop (> 1024px):** Full layout with sidebar, multi-column grids
+
+**Progressive Enhancement:**
+1. Start with mobile-first design
+2. Add complexity for larger screens
+3. Ensure touch targets are accessible
+4. Consider data density appropriate for screen size
+
+### Performance Patterns
+
+**Data Loading Strategies:**
+- **Initial Load:** Essential metrics first, progressive enhancement
+- **Lazy Loading:** Charts and detailed data on demand
+- **Caching:** Implement appropriate caching for dashboard data
+- **Real-time Updates:** WebSocket or polling for live data when needed
+
+## Common Scenarios and Decisions
+
+### Scenario: Adding New Dashboard Section
+**Guidance:** Follow established navigation hierarchy and component patterns
+**Decision Criteria:**
+- Does it fit existing navigation structure?
+- Can it reuse existing metric and chart components?
+- What data loading strategy is appropriate?
+
+### Scenario: Custom Data Visualization
+**Guidance:** Extend chart library rather than building from scratch
+**When to deviate:** Highly specialized visualizations that don't fit standard chart patterns
+
+### Scenario: Mobile Dashboard Experience
+**Guidance:** Prioritize essential metrics, simplify navigation, stack content vertically
+**Key Considerations:**
+- Touch-friendly navigation
+- Simplified data displays
+- Fast loading for mobile networks
+
+## Success Indicators
+
+**User Experience:**
+- Users can quickly find key information
+- Navigation is intuitive and consistent
+- Data loads performantly across devices
+- Visual hierarchy guides attention effectively
+
+**Technical Quality:**
+- Components are reusable across dashboard sections
+- Responsive design works smoothly across breakpoints
+- Performance meets targets for data loading and rendering
+- Code follows established patterns and is maintainable
+
+**Integration:**
+- New dashboard sections can be added without structural changes
+- Existing UI component library is leveraged effectively
+- Data visualization patterns are consistent
+- Mobile experience provides value without compromising usability
+
+---
+
+**Note**: This guidance establishes dashboard architectural principles while maintaining flexibility for specific project requirements and technical constraints. Focus on user experience patterns and component composition rather than rigid implementation details.
+
+
+
+
+
+
+

@@ -1,0 +1,416 @@
+---
+description: When writing code and looking to understand best software engineering practices
+globs: 
+alwaysApply: false
+---
+# Code Quality Standards
+
+Comprehensive code quality standards for NextJS applications ensuring consistent formatting, catching potential bugs, and maintaining high code standards across the team.
+
+## Prerequisites
+
+- NextJS 15+ with TypeScript
+- ESLint and Prettier configured
+- Husky for git hooks
+- Windows PowerShell for commands
+
+## Core Principle
+
+**ALWAYS enforce consistent code quality through automated tools, formatting standards, and systematic code review processes.**
+
+## ESLint Configuration
+
+### Step 1: Install ESLint Dependencies
+```powershell
+# Core ESLint packages
+npm install --save-dev eslint @typescript-eslint/eslint-plugin @typescript-eslint/parser
+
+# NextJS and React specific rules
+npm install --save-dev eslint-config-next @next/eslint-plugin-next
+
+# Additional quality rules
+npm install --save-dev eslint-plugin-import eslint-plugin-jsx-a11y eslint-plugin-react-hooks
+```
+
+### Step 2: Configure .eslintrc.json
+```json
+{
+  "extends": [
+    "next/core-web-vitals",
+    "@typescript-eslint/recommended",
+    "plugin:@typescript-eslint/recommended-requiring-type-checking"
+  ],
+  "parser": "@typescript-eslint/parser",
+  "parserOptions": {
+    "project": "./tsconfig.json"
+  },
+  "plugins": ["@typescript-eslint", "import"],
+  "rules": {
+    // TypeScript specific rules
+    "@typescript-eslint/no-unused-vars": ["error", { "argsIgnorePattern": "^_" }],
+    "@typescript-eslint/no-explicit-any": "error",
+    "@typescript-eslint/prefer-const": "error",
+    "@typescript-eslint/no-non-null-assertion": "error",
+    
+    // Import organization
+    "import/order": [
+      "error",
+      {
+        "groups": [
+          "builtin",
+          "external", 
+          "internal",
+          "parent",
+          "sibling",
+          "index"
+        ],
+        "newlines-between": "always",
+        "alphabetize": {
+          "order": "asc",
+          "caseInsensitive": true
+        }
+      }
+    ],
+    
+    // Code quality rules
+    "no-console": ["warn", { "allow": ["warn", "error"] }],
+    "no-debugger": "error",
+    "prefer-const": "error",
+    "no-var": "error",
+    
+    // React/NextJS specific
+    "react/prop-types": "off",
+    "react/react-in-jsx-scope": "off",
+    "react-hooks/rules-of-hooks": "error",
+    "react-hooks/exhaustive-deps": "warn"
+  },
+  "overrides": [
+    {
+      "files": ["**/*.test.{ts,tsx}", "**/*.spec.{ts,tsx}"],
+      "rules": {
+        "@typescript-eslint/no-explicit-any": "off"
+      }
+    }
+  ]
+}
+```
+
+### Step 3: Common ESLint Suppression Patterns
+
+For situations where ESLint rules need to be bypassed due to framework requirements or unavoidable patterns:
+
+#### Required-but-Unused Parameters
+```typescript
+// ✅ Correct: React Error Boundaries (error parameter required by interface)
+// eslint-disable-next-line @typescript-eslint/no-unused-vars
+export default function GlobalError({ error, reset }: GlobalErrorProps) {
+  return (
+    <div>
+      <button onClick={reset}>Try again</button>
+    </div>
+  );
+}
+
+// ✅ Correct: Event handlers with unused event parameter
+// eslint-disable-next-line @typescript-eslint/no-unused-vars
+const handleClick = (event: React.MouseEvent) => {
+  // Logic that doesn't need the event object
+};
+```
+
+#### Acceptable Any Types
+```typescript
+// ✅ Correct: Third-party library types not available
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+type PrismaModel = any;
+
+// ✅ Correct: Generic utility functions
+function deepClone<T>(obj: T): T {
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  return JSON.parse(JSON.stringify(obj)) as any;
+}
+
+// ❌ Incorrect: Lazy typing for known types
+// Don't do this - define proper interfaces instead
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+const userInfo: any = { name: "John", age: 30 };
+```
+
+#### Import Management
+```typescript
+// ✅ Correct: Remove unused imports to avoid eslint errors
+// If an import is not used in the file, remove it entirely
+// Instead of: import { prisma } from '@/lib/database/prisma';
+
+// ✅ Correct: Conditional imports for type-only usage
+import type { User } from '@prisma/client';
+```
+
+## Prettier Configuration
+
+### Step 1: Install Prettier
+```powershell
+# Core Prettier packages
+npm install --save-dev prettier eslint-config-prettier eslint-plugin-prettier
+```
+
+### Step 2: Configure .prettierrc
+```json
+{
+  "semi": true,
+  "trailingComma": "es5",
+  "singleQuote": true,
+  "printWidth": 80,
+  "tabWidth": 2,
+  "useTabs": false,
+  "bracketSpacing": true,
+  "arrowParens": "avoid",
+  "endOfLine": "lf",
+  "importOrder": [
+    "^(react|next)",
+    "^@/(.*)$",
+    "^[./]"
+  ],
+  "importOrderSeparation": true,
+  "importOrderSortSpecifiers": true
+}
+```
+
+### Step 3: Configure .prettierignore
+```
+# Build outputs
+.next/
+out/
+build/
+
+# Dependencies
+node_modules/
+
+# Environment files
+.env*
+
+# Generated files
+*.d.ts
+```
+
+## Pre-commit Hooks with Husky
+
+### Step 1: Install Husky and lint-staged
+```powershell
+# Install Husky for git hooks
+npm install --save-dev husky lint-staged
+
+# Initialize Husky
+npx husky init
+```
+
+### Step 2: Configure lint-staged in package.json
+```json
+{
+  "lint-staged": {
+    "*.{ts,tsx,js,jsx}": [
+      "eslint --fix",
+      "prettier --write",
+      "git add"
+    ],
+    "*.{json,md,css}": [
+      "prettier --write",
+      "git add"
+    ]
+  },
+  "scripts": {
+    "lint": "eslint . --ext .ts,.tsx,.js,.jsx --fix",
+    "lint:check": "eslint . --ext .ts,.tsx,.js,.jsx",
+    "format": "prettier --write .",
+    "format:check": "prettier --check .",
+    "type-check": "tsc --noEmit"
+  }
+}
+```
+
+### Step 3: Create pre-commit hook
+```powershell
+# Create .husky/pre-commit file
+echo 'npx lint-staged' > .husky/pre-commit
+echo 'npm run type-check' >> .husky/pre-commit
+```
+
+## Code Review Guidelines
+
+### Pre-Review Checklist
+- [ ] **Code compiles** without errors or warnings
+- [ ] **All tests pass** including new tests for new features
+- [ ] **ESLint rules pass** with no violations
+- [ ] **TypeScript strict mode** passes with no errors
+- [ ] **Code is formatted** consistently with Prettier
+
+### Review Criteria
+
+#### Code Quality
+- [ ] **Naming conventions** are descriptive and consistent
+- [ ] **Functions are small** and focused (single responsibility)
+- [ ] **Components are reusable** and well-structured
+- [ ] **Error handling** is implemented appropriately
+- [ ] **Performance considerations** are addressed
+
+#### TypeScript Standards
+```typescript
+// ✅ Correct - Proper typing
+interface UserProps {
+  user: {
+    id: string;
+    name: string;
+    email: string;
+  };
+  onUpdate: (user: User) => void;
+}
+
+export const UserCard: React.FC<UserProps> = ({ user, onUpdate }) => {
+  // Implementation
+};
+
+// ❌ Incorrect - Poor typing
+const UserCard = ({ user, onUpdate }: any) => {
+  // Implementation
+};
+```
+
+#### Import Organization
+```typescript
+// ✅ Correct - Organized imports
+import React from 'react';
+import { NextPage } from 'next';
+
+import { Button } from '@/components/ui/Button';
+import { UserService } from '@/lib/services/userService';
+
+import { validateEmail } from '../utils/validation';
+import styles from './UserForm.module.css';
+
+// ❌ Incorrect - Unorganized imports
+import styles from './UserForm.module.css';
+import React from 'react';
+import { validateEmail } from '../utils/validation';
+import { Button } from '@/components/ui/Button';
+```
+
+## Naming Conventions
+
+### Files and Directories
+```
+src/
+├── components/
+│   ├── ui/                    # ✅ Lowercase for categories
+│   │   ├── Button.tsx         # ✅ PascalCase for components
+│   │   └── Input.tsx
+│   └── forms/
+│       └── UserForm.tsx
+├── lib/
+│   ├── utils.ts              # ✅ camelCase for utilities
+│   ├── apiClient.ts          # ✅ camelCase for services
+│   └── constants.ts          # ✅ camelCase for constants
+└── hooks/
+    └── useUserData.ts        # ✅ camelCase starting with 'use'
+```
+
+### Variables and Functions
+```typescript
+// ✅ Correct naming
+const getUserById = (id: string) => { /* ... */ };
+const API_BASE_URL = 'https://api.example.com';
+const isUserLoggedIn = true;
+
+interface UserProfile {
+  firstName: string;
+  lastName: string;
+  emailAddress: string;
+}
+
+// ❌ Incorrect naming
+const get_user_by_id = (id: string) => { /* ... */ };
+const apiBaseUrl = 'https://api.example.com'; // Should be UPPER_CASE for constants
+const user_logged_in = true; // Should be camelCase
+```
+
+## Verification Steps
+
+### Automated Quality Checks
+```powershell
+# Run all quality checks
+npm run lint:check
+npm run format:check
+npm run type-check
+npm test
+
+# Fix formatting and linting issues
+npm run format
+npm run lint
+```
+
+### Manual Review Process
+1. **Create Pull Request** with descriptive title and description
+2. **Self-review** code changes before requesting review
+3. **Address feedback** promptly and thoroughly
+4. **Ensure CI passes** before merging
+5. **Squash commits** when merging to maintain clean history
+
+## Success Criteria
+
+- [x] **ESLint rules** enforced with no violations
+- [x] **Prettier formatting** applied consistently
+- [x] **Pre-commit hooks** prevent bad code from being committed
+- [x] **Import organization** follows established patterns
+- [x] **Naming conventions** applied consistently
+- [x] **Code review process** ensures quality standards
+
+## IDE Configuration
+
+### VS Code Settings
+Create `.vscode/settings.json`:
+```json
+{
+  "editor.formatOnSave": true,
+  "editor.defaultFormatter": "esbenp.prettier-vscode",
+  "editor.codeActionsOnSave": {
+    "source.fixAll.eslint": true,
+    "source.organizeImports": true
+  },
+  "typescript.preferences.importModuleSpecifier": "relative",
+  "eslint.workingDirectories": ["./"],
+  "files.associations": {
+    "*.css": "tailwindcss"
+  }
+}
+```
+
+### Recommended Extensions
+- ESLint
+- Prettier - Code formatter
+- TypeScript Importer
+- Auto Rename Tag
+- Tailwind CSS IntelliSense
+
+## Troubleshooting Common Issues
+
+### Problem: ESLint conflicts with Prettier
+**Solution**: 
+```powershell
+# Install prettier eslint config
+npm install --save-dev eslint-config-prettier
+
+# Update .eslintrc.json extends array
+# Add "prettier" as the last item
+```
+
+### Problem: Pre-commit hooks not running
+**Solution**: 
+```powershell
+# Reinstall husky hooks
+rm -rf .husky
+npx husky init
+npx husky add .husky/pre-commit "npx lint-staged"
+```
+
+---
+
+**Note**: This rule ensures consistent code quality through automated tooling and established review processes, making the codebase maintainable and professional.

@@ -1,0 +1,139 @@
+---
+description: When writing NextJS code and seeking guidance on optimal performance best practices
+globs: 
+alwaysApply: false
+---
+# NextJS Performance Standards
+
+Essential performance optimization practices for NextJS 15 applications.
+
+## Prerequisites
+
+- NextJS 15+ with App Router
+- TypeScript configured
+- Windows PowerShell for commands
+
+## Core Principle
+
+**ALWAYS optimize for Web Core Vitals using NextJS built-in performance features.**
+
+## Built-in Component Optimization
+
+### Image Optimization
+```typescript
+// ✅ Correct - Use next/image
+import Image from 'next/image';
+
+export function Hero() {
+  return (
+    <Image
+      src="/hero.jpg"
+      alt="Hero image"
+      width={800}
+      height={600}
+      priority // Above fold images
+    />
+  );
+}
+
+// ❌ Incorrect - Regular img tag
+<img src="/hero.jpg" alt="Hero" />
+```
+
+### Link Prefetching
+```typescript
+// ✅ Correct - Use next/link
+import Link from 'next/link';
+
+export function Navigation() {
+  return (
+    <Link href="/dashboard" prefetch={true}>
+      Dashboard
+    </Link>
+  );
+}
+```
+
+### Font Optimization
+```typescript
+// ✅ Correct - Use next/font
+import { Inter } from 'next/font/google';
+
+const inter = Inter({ subsets: ['latin'] });
+
+export default function RootLayout({ children }: { children: React.ReactNode }) {
+  return (
+    <html lang="en">
+      <body className={inter.className}>{children}</body>
+    </html>
+  );
+}
+```
+
+## Bundle Analysis Setup
+
+### Step 1: Install Bundle Analyzer
+```powershell
+npm install --save-dev @next/bundle-analyzer
+```
+
+### Step 2: Configure next.config.ts
+```typescript
+const withBundleAnalyzer = require('@next/bundle-analyzer')({
+  enabled: process.env.ANALYZE === 'true',
+});
+
+module.exports = withBundleAnalyzer({
+  // Your Next.js config
+});
+```
+
+### Step 3: Add Analysis Script
+```json
+// package.json
+{
+  "scripts": {
+    "analyze": "ANALYZE=true npm run build"
+  }
+}
+```
+
+## Lazy Loading Implementation
+
+```typescript
+// ✅ Dynamic imports for code splitting
+import dynamic from 'next/dynamic';
+
+const DynamicComponent = dynamic(() => import('./HeavyComponent'), {
+  loading: () => <p>Loading...</p>,
+});
+
+export function Page() {
+  return (
+    <div>
+      <h1>Page Title</h1>
+      <DynamicComponent />
+    </div>
+  );
+}
+```
+
+## Verification Steps
+
+- [ ] Images use next/image: `Get-Content **/*.tsx | Select-String "next/image"`
+- [ ] Links use next/link: `Get-Content **/*.tsx | Select-String "next/link"`
+- [ ] Bundle analyzer configured: `Test-Path "next.config.ts"`
+- [ ] Dynamic imports used for heavy components
+
+## Success Criteria
+
+- [x] All images optimized with next/image
+- [x] Navigation uses next/link with prefetching
+- [x] Fonts optimized with next/font
+- [x] Bundle analysis tools configured
+- [x] Lazy loading implemented for non-critical components
+
+---
+
+**Note**: This rule ensures NextJS applications achieve optimal performance through built-in optimization features.
+

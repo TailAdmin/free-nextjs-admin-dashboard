@@ -1,0 +1,322 @@
+---
+description: 
+globs: 
+alwaysApply: false
+---
+# Docker Standards for Modern Web Applications
+
+Best practices for containerizing Node.js applications with modern dependencies like Next.js, Prisma ORM, and CSS frameworks with native binaries.
+
+## Prerequisites
+
+- Docker 20.0+ and Docker Compose 2.0+
+- Understanding of multi-stage Docker builds
+- Node.js application with package.json
+- Modern dependencies that may require native compilation
+
+## Core Principle
+
+**Use proven Docker patterns that handle modern JavaScript ecosystem dependencies correctly, prioritizing compatibility and build reliability over image size optimization.**
+
+## Base Image Selection
+
+### Use Debian-based Images for Modern Dependencies
+
+```dockerfile
+# ✅ CORRECT: Use Debian-based for native dependencies
+FROM node:20-slim AS base
+
+# ❌ AVOID: Alpine for apps with native dependencies
+# FROM node:20-alpine AS base
+```
+
+**Why Debian over Alpine:**
+- Better compatibility with native binaries (LightningCSS, sharp, etc.)
+- glibc vs musl compatibility issues resolved
+- More predictable builds with modern CSS frameworks
+
+### Required Build Dependencies
+
+```dockerfile
+# Install build dependencies for native compilation
+FROM base AS deps
+RUN apt-get update && apt-get install -y --no-install-recommends \
+    python3 \
+    make \
+    g++ \
+    && rm -rf /var/lib/apt/lists/*
+```
+
+## Dependency Installation Strategy
+
+### Install All Dependencies for Build Process
+
+```dockerfile
+# ✅ CORRECT: Install all dependencies (including dev)
+COPY package.json package-lock.json* ./
+COPY prisma ./prisma  # Copy schema before npm install
+RUN npm ci  # Includes devDependencies needed for build
+
+# ❌ INCORRECT: Production only misses build dependencies
+# RUN npm ci --only=production
+```
+
+**Rationale:**
+- Modern CSS frameworks (Tailwind CSS v4) are often in devDependencies
+- Build tools are required during Docker build process
+- Runtime optimization happens in final image layer
+
+## File Copying Order Best Practices
+
+### Critical: Copy Schema Files Before npm install
+
+```dockerfile
+# ✅ CORRECT ORDER
+COPY package.json package-lock.json* ./
+COPY prisma ./prisma  # Required for postinstall scripts
+RUN npm ci
+
+# ❌ INCORRECT ORDER - Causes postinstall failures
+# COPY package.json package-lock.json* ./
+# RUN npm ci  # Fails if postinstall needs schema files
+# COPY prisma ./prisma
+```
+
+### Complete Multi-Stage Build Pattern
+
+```dockerfile
+# Use the official Node.js 20 image (Debian-based for compatibility)
+FROM node:20-slim AS base
+
+# Install dependencies only when needed
+FROM base AS deps
+RUN apt-get update && apt-get install -y --no-install-recommends \
+    python3 \
+    make \
+    g++ \
+    && rm -rf /var/lib/apt/lists/*
+WORKDIR /app
+
+# Copy package files and required schemas BEFORE npm install
+COPY package.json package-lock.json* ./
+COPY prisma ./prisma
+
+# Install all dependencies (including dev dependencies needed for build)
+RUN npm ci
+
+# Build stage
+FROM base AS builder
+WORKDIR /app
+RUN apt-get update && apt-get install -y --no-install-recommends \
+    python3 \
+    make \
+    g++ \
+    && rm -rf /var/lib/apt/lists/*
+
+COPY --from=deps /app/node_modules ./node_modules
+COPY . .
+
+# Generate database client if needed
+RUN npx prisma generate
+
+# Build the application
+RUN npm run build
+
+# Production image
+FROM base AS runner
+WORKDIR /app
+
+ENV NODE_ENV=production
+
+RUN groupadd --system --gid 1001 nodejs
+RUN useradd --system --uid 1001 nextjs
+
+# Copy built application
+COPY --from=builder /app/public ./public
+COPY --from=builder --chown=nextjs:nodejs /app/.next/standalone ./
+COPY --from=builder --chown=nextjs:nodejs /app/.next/static ./.next/static
+
+# Copy database schema and generated client
+COPY --from=builder /app/prisma ./prisma
+COPY --from=builder /app/generated ./generated
+
+USER nextjs
+
+EXPOSE 3000
+
+ENV PORT=3000
+ENV HOSTNAME="0.0.0.0"
+
+CMD ["node", "server.js"]
+```
+
+## Next.js Specific Configuration
+
+### Required next.config.ts Settings
+
+```typescript
+const nextConfig: NextConfig = {
+  // Enable standalone output for Docker
+  output: 'standalone',
+  
+  // External packages for server components
+  serverExternalPackages: ['@prisma/client'],
+  
+  // Security headers for production
+  async headers() {
+    return [
+      {
+        source: '/(.*)',
+        headers: [
+          { key: 'X-Frame-Options', value: 'DENY' },
+          { key: 'X-Content-Type-Options', value: 'nosniff' },
+          { key: 'Referrer-Policy', value: 'origin-when-cross-origin' },
+          { key: 'X-XSS-Protection', value: '1; mode=block' },
+        ],
+      },
+    ];
+  },
+};
+```
+
+## Prisma Integration
+
+### Schema and Client Generation
+
+```dockerfile
+# Copy schema before npm install (for postinstall scripts)
+COPY prisma ./prisma
+
+# Generate client after copying all files
+RUN npx prisma generate
+
+# Copy generated client to runtime image
+COPY --from=builder /app/generated ./generated
+```
+
+### Custom Output Path Handling
+
+If using custom Prisma output:
+
+```prisma
+generator client {
+  provider = "prisma-client-js"
+  output   = "../generated/prisma"
+}
+```
+
+Ensure both `prisma` and `generated` directories are copied to runtime image.
+
+## Docker Compose Configuration
+
+```yaml
+services:
+  app:
+    build: .
+    ports:
+      - "3000:3000"
+    environment:
+      - NODE_ENV=production
+      - DATABASE_URL=postgresql://user:password@db:5432/dbname
+    depends_on:
+      - db
+      - redis
+
+  db:
+    image: postgres:15-alpine
+    environment:
+      POSTGRES_USER: user
+      POSTGRES_PASSWORD: password
+      POSTGRES_DB: dbname
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+      - ./scripts/init-db.sql:/docker-entrypoint-initdb.d/init.sql
+    ports:
+      - "5432:5432"
+
+  redis:
+    image: redis:7-alpine
+    ports:
+      - "6379:6379"
+    volumes:
+      - redis_data:/data
+
+volumes:
+  postgres_data:
+  redis_data:
+```
+
+## Troubleshooting Common Issues
+
+### Problem: "Cannot find module" during build
+
+**Symptoms:**
+- Build fails with missing module errors
+- Errors related to native binaries (lightningcss, sharp, etc.)
+
+**Solution:**
+```dockerfile
+# Ensure build tools are installed
+RUN apt-get update && apt-get install -y --no-install-recommends \
+    python3 make g++ && rm -rf /var/lib/apt/lists/*
+
+# Use full npm ci (not --only=production)
+RUN npm ci
+```
+
+### Problem: Prisma postinstall script failures
+
+**Symptoms:**
+- "Schema not found" during npm install
+- Prisma generate fails in Docker build
+
+**Solution:**
+```dockerfile
+# Copy schema BEFORE npm install
+COPY package.json package-lock.json* ./
+COPY prisma ./prisma  # Critical: Before npm ci
+RUN npm ci
+```
+
+### Problem: Alpine/musl compatibility issues
+
+**Symptoms:**
+- Native binary not found errors
+- Architecture-specific module missing
+
+**Solution:**
+```dockerfile
+# Switch to Debian-based image
+FROM node:20-slim AS base  # Not node:20-alpine
+```
+
+## Validation Steps
+
+After implementing Docker configuration:
+
+```powershell
+# Build successfully
+docker-compose build
+
+# Start all services
+docker-compose up -d
+
+# Verify all containers are healthy
+docker-compose ps
+
+# Check application accessibility
+# App should be available at http://localhost:3000
+```
+
+## Success Criteria
+
+Docker implementation is complete when:
+- [x] Build completes without errors on first attempt
+- [x] All services start successfully in Docker Compose
+- [x] Application is accessible on configured ports
+- [x] Database connections work correctly
+- [x] No native dependency compilation errors
+
+---
+
+**Note**: This rule ensures Docker builds succeed reliably with modern JavaScript dependencies and prevents common containerization issues.

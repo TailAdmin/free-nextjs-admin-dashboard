@@ -1,0 +1,790 @@
+---
+description: Performing any git commands
+globs: 
+alwaysApply: false
+---
+---
+description: Enforce Git workflow standards, conventional commits, and repository organization
+---
+
+# Git Standards
+
+This document outlines the standards and best practices for using Git in this project. Adhering to these standards ensures a clean, understandable, and maintainable version history.
+
+## Core Workflow
+
+1.  **Branching:** All new work, including features and bugfixes, MUST be done on a feature branch created from the latest version of the `main` branch.
+    -   Before creating a new branch, always run `git checkout main` followed by `git pull origin main` to ensure you are starting from the most up-to-date point.
+2.  **Merging:** Feature branches MUST be merged into `main` exclusively through Pull Requests (PRs) on the remote Git provider (e.g., GitHub, GitLab).
+    -   **NEVER** merge a local feature branch directly into your local `main` branch (`git merge my-feature`).
+    -   **NEVER** push directly to the `main` branch. This should be enforced with branch protection rules on the remote.
+3.  **Staying Updated:** To incorporate new changes from `main` into your active feature branch, use `git rebase main`. This maintains a clean, linear history. Avoid using `git merge main` for this purpose.
+
+## Commit Messages
+
+## Core Requirements
+**ALWAYS follow conventional commit standards and maintain a clean Git history.** Establish consistent Git workflows from project inception.
+
+## Conventional Commits Standard
+
+### Commit Message Format
+```
+<type>[optional scope]: <description>
+
+[optional body]
+
+[optional footer(s)]
+```
+
+### Required Commit Types
+- **feat**: A new feature for the user
+- **fix**: A bug fix for the user
+- **docs**: Documentation only changes
+- **style**: Changes that don't affect meaning (white-space, formatting, etc.)
+- **refactor**: Code change that neither fixes a bug nor adds a feature
+- **perf**: Code change that improves performance
+- **test**: Adding missing tests or correcting existing tests
+- **chore**: Changes to build process or auxiliary tools
+- **ci**: Changes to CI configuration files and scripts
+- **build**: Changes that affect the build system or external dependencies
+
+### Commit Message Examples for NextJS Projects
+```bash
+# ✅ Good Examples
+feat(auth): add NextAuth.js OAuth integration with Google provider
+fix(api): resolve NextJS API route timeout issue
+docs(readme): update NextJS development setup instructions
+style(components): format code with Prettier and ESLint
+refactor(api): extract API client logic to separate service
+perf(pages): optimize page loading with dynamic imports
+test(auth): add unit tests for authentication components
+chore(deps): update Next.js to version 14.0.0
+ci(github): add automated testing workflow for NextJS
+build(docker): update Node.js base image to 20-alpine
+
+# ✅ NextJS-Specific Examples
+feat(ui): add reusable Button component with Tailwind variants
+fix(routing): resolve App Router middleware redirect issue
+perf(images): implement Next.js Image optimization
+style(layout): apply consistent spacing with Tailwind utilities
+refactor(components): convert class components to React hooks
+test(pages): add integration tests for dashboard routes
+
+# ✅ Breaking Changes
+feat(api)!: migrate from Pages Router to App Router
+BREAKING CHANGE: API routes moved from /pages/api to /src/app/api
+
+# ❌ Bad Examples
+"Fixed stuff"                    # Too vague
+"Updated files"                  # No context
+"WIP"                           # Not descriptive
+"asdf"                          # Meaningless
+"Fixed the thing that was in a broken state" # Too casual
+```
+
+## Branch Naming Conventions
+
+### Branch Types and Patterns
+```bash
+# Feature branches
+feature/user-authentication
+feature/payment-integration
+feature/dashboard-ui
+
+# Bug fix branches
+fix/login-redirect-issue
+fix/memory-leak-in-parser
+hotfix/critical-security-patch
+
+# Release branches
+release/v1.2.0
+release/v2.0.0-beta
+
+# Development branches
+develop
+main (or master)
+
+# Personal/experimental branches
+chore/update-dependencies
+docs/api-documentation
+refactor/database-layer
+```
+
+### Branch Naming Rules
+- Use lowercase with hyphens (kebab-case)
+- Include ticket number when applicable: `feature/AUTH-123-user-login`
+- Keep names concise but descriptive
+- Use prefixes: `feature/`, `fix/`, `hotfix/`, `release/`, `chore/`
+
+## Repository Structure Requirements
+
+### Required Files in NextJS Repository Root
+```
+project-root/
+├── .cursor/                   # Cursor AI rules and configuration
+├── .github/                   # GitHub-specific files
+│   ├── ISSUE_TEMPLATE.md     # Issue template
+│   ├── PULL_REQUEST_TEMPLATE.md  # PR template
+│   └── workflows/            # GitHub Actions
+├── public/                    # Static assets served directly
+├── src/                       # Application source code
+│   └── app/                   # NextJS App Router directory
+├── .env.example              # Environment template
+├── .env.local                # Local environment variables
+├── .eslintrc.json            # ESLint configuration
+├── .gitignore                # Comprehensive ignore patterns
+├── CHANGELOG.md              # Version history
+├── CONTRIBUTING.md           # Contribution guidelines
+├── LICENSE                   # Project license
+├── next.config.ts            # NextJS configuration
+├── package.json              # Dependencies and scripts
+├── README.md                 # Project documentation
+├── postcss.config.mjs        # PostCSS configuration (Tailwind v4)
+└── tsconfig.json             # TypeScript configuration
+```
+
+**Cross-Reference**: See `nextjs-structure-standards.mdc` for detailed App Router structure requirements.
+
+### .gitignore Template for NextJS Projects
+```gitignore
+# NextJS
+.next/
+out/
+build/
+*.tsbuildinfo
+
+# Node.js
+node_modules/
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+lerna-debug.log*
+.pnpm-debug.log*
+
+# Environment files
+.env
+.env.local
+.env.development.local
+.env.test.local
+.env.production.local
+
+# TypeScript
+*.tsbuildinfo
+
+# Testing
+coverage/
+.nyc_output/
+.coverage
+*.lcov
+
+# Logs
+logs/
+*.log
+
+# IDEs
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+
+# OS
+.DS_Store
+.DS_Store?
+._*
+.Spotlight-V100
+.Trashes
+ehthumbs.db
+Thumbs.db
+
+# Docker
+*.pid
+*.seed
+*.pid.lock
+
+# Database
+*.db
+*.sqlite
+*.sqlite3
+
+# Temporary files
+.tmp/
+.temp/
+*.tmp
+*.temp
+
+# Vercel
+.vercel
+
+# Turbo
+.turbo
+
+# Secrets
+*.pem
+*.key
+*.crt
+secrets/
+.secrets/
+
+# Build outputs
+/build
+/dist
+/.next
+/out
+
+# Testing
+/coverage
+/.nyc_output
+
+# Secrets
+*.pem
+*.key
+*.crt
+secrets/
+.secrets/
+
+# Temporary files
+.tmp/
+.temp/
+*.tmp
+*.temp
+```
+
+## GitHub Templates
+
+### Issue Template (.github/ISSUE_TEMPLATE.md)
+```markdown
+---
+name: Bug report
+about: Create a report to help us improve
+title: '[BUG] '
+labels: bug
+assignees: ''
+---
+
+## Bug Description
+A clear and concise description of what the bug is.
+
+## Steps to Reproduce
+1. Go to '...'
+2. Click on '....'
+3. Scroll down to '....'
+4. See error
+
+## Expected Behavior
+A clear and concise description of what you expected to happen.
+
+## Actual Behavior
+A clear and concise description of what actually happened.
+
+## Screenshots
+If applicable, add screenshots to help explain your problem.
+
+## Environment
+- OS: [e.g. Windows 10, macOS Big Sur]
+- Browser: [e.g. Chrome, Safari]
+- Version: [e.g. 22]
+- Docker version: [if applicable]
+
+## Additional Context
+Add any other context about the problem here.
+
+## Possible Solution
+If you have suggestions on how to fix the bug, please describe them here.
+```
+
+### Pull Request Template (.github/PULL_REQUEST_TEMPLATE.md)
+```markdown
+## Description
+Brief description of what this PR does.
+
+## Type of Change
+- [ ] Bug fix (non-breaking change which fixes an issue)
+- [ ] New feature (non-breaking change which adds functionality)
+- [ ] Breaking change (fix or feature that would cause existing functionality to not work as expected)
+- [ ] Documentation update
+- [ ] Code refactoring
+- [ ] Performance improvement
+- [ ] Test coverage improvement
+
+## Related Issues
+Closes #[issue_number]
+Relates to #[issue_number]
+
+## Changes Made
+- [ ] Change 1
+- [ ] Change 2
+- [ ] Change 3
+
+## Testing
+- [ ] Unit tests added/updated
+- [ ] Integration tests added/updated
+- [ ] Manual testing completed
+- [ ] All tests pass
+
+## Checklist
+- [ ] My code follows the project's style guidelines
+- [ ] I have performed a self-review of my own code
+- [ ] I have commented my code, particularly in hard-to-understand areas
+- [ ] I have made corresponding changes to the documentation
+- [ ] My changes generate no new warnings
+- [ ] I have added tests that prove my fix is effective or that my feature works
+- [ ] New and existing unit tests pass locally with my changes
+- [ ] Any dependent changes have been merged and published
+
+## Screenshots (if applicable)
+Add screenshots here if the changes affect the UI.
+
+## Additional Notes
+Any additional information that reviewers should know.
+```
+
+## Git Hooks and Quality Gates
+
+### Pre-commit Hooks with Husky
+
+**For NextJS projects, use Husky for pre-commit hooks instead of Python-based pre-commit tools.**
+
+**Cross-Reference**: See `bp-code-quality-standards.mdc` for complete Husky setup including:
+- Husky installation and configuration  
+- lint-staged setup for file-specific linting
+- ESLint and Prettier integration
+- TypeScript checking on commit
+- Pre-commit hook creation
+
+**Quick Setup Reference:**
+```powershell
+# Install quality tools (detailed in bp-code-quality-standards.mdc)
+npm install --save-dev husky lint-staged eslint prettier
+
+# Initialize Husky
+npx husky init
+
+# Configure pre-commit hooks
+echo 'npx lint-staged' > .husky/pre-commit
+echo 'npm run type-check' >> .husky/pre-commit
+```
+
+**Integration with Git Workflow:**
+- Pre-commit hooks enforce code quality before commits
+- Conventional commits ensure clear commit messages
+- Combined approach prevents poor code from entering repository
+
+### Commit Message Validation Hook
+```bash
+#!/bin/sh
+# .git/hooks/commit-msg
+
+# Conventional Commits pattern
+conventional_commit_pattern="^(feat|fix|docs|style|refactor|perf|test|chore|ci|build)(\(.+\))?: .{1,50}"
+
+if ! grep -qE "$conventional_commit_pattern" "$1"; then
+    echo "❌ Invalid commit message format!"
+    echo ""
+    echo "Please use conventional commits format:"
+    echo "  <type>[optional scope]: <description>"
+    echo ""
+    echo "Examples:"
+    echo "  feat(auth): add user login functionality"
+    echo "  fix(api): resolve database connection issue"
+    echo "  docs(readme): update installation guide"
+    echo ""
+    echo "Valid types: feat, fix, docs, style, refactor, perf, test, chore, ci, build"
+    exit 1
+fi
+
+# Check commit message length
+if [ $(head -n1 "$1" | wc -c) -gt 72 ]; then
+    echo "❌ Commit message too long! Keep it under 72 characters."
+    exit 1
+fi
+
+echo "✅ Commit message format is valid"
+```
+
+## Git Workflow Standards
+
+### Repository Initialization: The First Push
+**To avoid bootstrap paradoxes, the `main` branch MUST be created on the remote repository with a single, minimal commit *before* any feature development begins.** This allows the very first feature to be managed through a proper pull request.
+
+**Procedure for a New Repository:**
+
+1.  **Initialize the local repository.**
+    ```powershell
+    git init
+    git config --local init.defaultBranch main
+    ```
+
+2.  **Create essential root files.**
+    At a minimum, create a `README.md` and a comprehensive `.gitignore`.
+    ```powershell
+    New-Item README.md
+    New-Item .gitignore
+    # (Then, populate .gitignore from the template below)
+    ```
+
+3.  **Make the initial commit.**
+    ```powershell
+    git add README.md .gitignore
+    git commit -m "chore(project): initial commit"
+    ```
+
+4.  **Add the remote and push `main`.**
+    This establishes the `main` branch on the remote server.
+    ```powershell
+    git remote add origin <your-remote-repository-url>
+    git push -u origin main
+    ```
+
+5.  **Immediately create your first feature branch.**
+    All subsequent work MUST be done on a feature branch.
+    ```powershell
+    git checkout -b feature/PROJECT-1-initial-project-setup
+    ```
+
+### Feature Development Workflow
+```powershell
+# Start new feature
+git checkout main; git pull origin main
+git checkout -b feature/user-authentication
+
+# Make changes and commit
+git add .
+git commit -m "feat(auth): add JWT token validation"
+
+# For multi-line commits, it is safer to run 'git commit' without flags
+# to open a text editor, avoiding potential shell parsing issues.
+# Example:
+# git commit 
+# (This will open VS Code, Nano, Vim, etc. to write the full message)
+
+# Push feature branch
+git push -u origin feature/user-authentication
+
+# Create pull request via GitHub CLI or web interface
+# Note: Ensure 'gh' is installed and authenticated
+gh pr create --title "feat(auth): add user authentication" --body "Implements JWT-based authentication system"
+
+# After review and approval
+git checkout main; git pull origin main
+git branch -d feature/user-authentication
+```
+
+### Hotfix Workflow
+```powershell
+# Create hotfix from main
+git checkout main; git pull origin main
+git checkout -b hotfix/critical-security-patch
+
+# Fix and commit
+git add .
+git commit -m "fix(security): patch SQL injection vulnerability"
+
+# Push and create urgent PR
+git push -u origin hotfix/critical-security-patch
+gh pr create --title "URGENT: Security patch" --body "Fixes critical SQL injection vulnerability"
+
+# Deploy immediately after review
+```
+
+### Release Workflow
+```powershell
+# Create release branch
+git checkout main; git pull origin main
+git checkout -b release/v1.2.0
+
+# Update version numbers and changelog
+# Commit version changes
+git commit -m "chore(release): bump version to 1.2.0"
+
+# Create release PR
+git push -u origin release/v1.2.0
+gh pr create --title "Release v1.2.0" --body "Release version 1.2.0 with new features and bug fixes"
+
+# After merge, tag the release
+git checkout main; git pull origin main
+git tag -a v1.2.0 -m "Release version 1.2.0"
+git push origin v1.2.0
+```
+
+## CHANGELOG.md Maintenance
+
+### Changelog Format (Keep a Changelog)
+```markdown
+# Changelog
+
+All notable changes to this project will be documented in this file.
+
+The format is based on [Keep a Changelog](mdc:https:/keepachangelog.com/en/1.0.0),
+and this project adheres to [Semantic Versioning](mdc:https:/semver.org/spec/v2.0.0.html).
+
+## [Unreleased]
+
+### Added
+- New feature descriptions
+
+### Changed
+- Changes in existing functionality
+
+### Deprecated
+- Soon-to-be removed features
+
+### Removed
+- Now removed features
+
+### Fixed
+- Any bug fixes
+
+### Security
+- Security improvements
+
+## [1.2.0] - 2023-12-01
+
+### Added
+- JWT authentication system
+- User profile management
+- Docker containerization
+
+### Changed
+- Database schema for better performance
+- API response format for consistency
+
+### Fixed
+- Memory leak in data processing
+- CORS configuration issues
+
+### Security
+- Input validation improvements
+- SQL injection prevention
+
+## [1.1.0] - 2023-11-15
+
+### Added
+- Initial user authentication
+- Basic API endpoints
+- Database migrations
+
+[Unreleased]: https://github.com/username/repo/compare/v1.2.0...HEAD
+[1.2.0]: https://github.com/username/repo/compare/v1.1.0...v1.2.0
+[1.1.0]: https://github.com/username/repo/releases/tag/v1.1.0
+```
+
+## Git Configuration
+
+### Required Git Configuration
+```powershell
+# Set user information
+git config --global user.name "Your Name"
+git config --global user.email "your.email@example.com"
+
+# Set default branch name
+git config --global init.defaultBranch main
+
+# Enable automatic line ending conversion
+git config --global core.autocrlf true  # Windows
+git config --global core.autocrlf input # macOS/Linux
+
+# Set default editor
+git config --global core.editor "code --wait"
+
+# Enable color output
+git config --global color.ui auto
+
+# Set pull strategy
+git config --global pull.rebase true
+
+# Set push strategy
+git config --global push.default simple
+```
+
+## Common Git Commands (PowerShell Compatible)
+
+### Daily Workflow Commands
+```powershell
+# Check status and staged changes
+git status
+git diff --staged
+
+# Add files selectively
+git add -p  # Interactive staging
+git add backend/  # Add directory
+
+# Commit with conventional format
+# For simple messages:
+git commit -m "feat(api): add user endpoint"
+# For complex/multi-line messages, run 'git commit' and use your editor.
+
+# Push current branch
+git push
+
+# Update local main branch
+git checkout main; git pull origin main
+
+# Clean up merged branches
+git branch --merged | Where-Object { $_ -notmatch "main|develop" } | ForEach-Object { git branch -d $_.Trim() }
+```
+
+### History and Debugging
+```powershell
+# View commit history
+git log --oneline --graph --decorate
+git log --grep="feat" --oneline  # Search commits
+
+# Find when bug was introduced
+git bisect start
+git bisect bad HEAD
+git bisect good v1.0.0
+
+# Check who changed what
+git blame filename.py
+git show commit-hash
+```
+
+
+## Engineering Practices Integration
+
+### Cross-References to Related Standards
+
+This Git standards rule integrates with the complete engineering practices ecosystem:
+
+#### Code Quality and Pre-commit Hooks
+- **`bp-code-quality-standards.mdc`**: Implements Husky pre-commit hooks, ESLint, Prettier
+- **Integration**: Git hooks enforce quality gates before commits are allowed
+
+#### Project Structure and Organization  
+- **`nextjs-structure-standards.mdc`**: Defines NextJS App Router project structure
+- **Integration**: Repository structure requirements align with NextJS conventions
+
+#### Security and Environment Management
+- **`bp-security-standards.mdc`**: Handles .env file security, secrets management
+- **Integration**: .gitignore templates exclude sensitive files, commit validation prevents secrets
+
+#### Testing and Continuous Integration
+- **`bp-testing-standards.mdc`**: Defines testing structure and coverage requirements
+- **Integration**: Git workflow includes test validation, CI/CD pipeline integration
+
+#### Performance and Build Optimization
+- **`nextjs-performance-standards.mdc`**: Build and deployment optimization standards
+- **Integration**: Git hooks can validate build requirements, performance budgets
+
+#### Type Safety and Development Standards
+- **`typescript-nextjs-standards.mdc`**: TypeScript configuration and usage standards
+- **Integration**: Git hooks enforce TypeScript compilation, type checking on commit
+
+### Unified Workflow Implementation
+
+**Complete Quality Gate Pipeline:**
+1. **Developer commits** → Conventional commit format validation
+2. **Pre-commit hooks** → ESLint, Prettier, TypeScript checks (bp-code-quality-standards)
+3. **Push to branch** → Structured according to NextJS standards (nextjs-structure-standards)
+4. **Pull Request** → Security review, test coverage (bp-security-standards, bp-testing-standards)
+5. **Merge to main** → Performance validation, production readiness
+
+**Remember: Consistent Git practices are essential for team collaboration. Always use conventional commits, maintain clean history, and follow established branching strategies.**
+
+## Verification Steps
+
+### Git Standards Compliance Checklist
+
+**Repository Structure Verification:**
+```powershell
+# Verify NextJS repository structure
+$requiredFiles = @(
+    "src\app\layout.tsx",
+    "src\app\page.tsx",
+    "next.config.ts",
+    "package.json",
+    "tsconfig.json",
+    ".gitignore",
+    ".eslintrc.json"
+)
+
+foreach ($file in $requiredFiles) {
+    if (Test-Path $file) {
+        Write-Output "✅ $file exists"
+    } else {
+        Write-Output "❌ $file missing"
+    }
+}
+```
+
+**Git Configuration Verification:**
+```powershell
+# Check git configuration
+git config --list | Select-String -Pattern "(user.name|user.email|init.defaultBranch|pull.rebase)"
+
+# Verify Husky hooks are installed
+Test-Path ".husky\pre-commit"
+```
+
+**Quality Gates Integration:**
+- [ ] **Husky pre-commit hooks** configured (see bp-code-quality-standards.mdc)
+- [ ] **ESLint and Prettier** integrated (see bp-code-quality-standards.mdc)
+- [ ] **TypeScript strict mode** enabled (see typescript-nextjs-standards.mdc)
+- [ ] **Testing framework** configured (see bp-testing-standards.mdc)
+- [ ] **Security measures** implemented (see bp-security-standards.mdc)
+- [ ] **NextJS structure** follows conventions (see nextjs-structure-standards.mdc)
+
+**Commit Message Validation:**
+```powershell
+# Test commit message format (run this before committing)
+$commitMessage = "feat(auth): add NextAuth.js OAuth integration"
+if ($commitMessage -match "^(feat|fix|docs|style|refactor|perf|test|chore|ci|build)(\(.+\))?: .{1,50}") {
+    Write-Output "✅ Commit message format valid"
+} else {
+    Write-Output "❌ Commit message format invalid"
+}
+```
+
+### Success Criteria
+
+**Git Workflow Implementation Complete When:**
+- [x] **Repository structure** matches NextJS standards
+- [x] **Conventional commits** enforced and followed
+- [x] **Pre-commit hooks** prevent poor code quality
+- [x] **Branch naming** follows established conventions
+- [x] **Pull request templates** ensure proper documentation
+- [x] **Integration** with all bp- engineering practices verified
+
+### Pull Request Content Generation
+
+**ALWAYS generate a complete pull request description after pushing a feature or fix branch.** This is a critical step to ensure clear communication and efficient code reviews. The generated content should be based on the project's `PULL_REQUEST_TEMPLATE.md`.
+
+**Procedure:**
+1.  After pushing the branch, identify that a pull request needs to be created.
+2.  Read the `.github/PULL_REQUEST_TEMPLATE.md` to understand the required structure.
+3.  Generate a complete title and body for the pull request, filling out all relevant sections of the template.
+4.  Present this content to the user to be copied into the pull request on the Git hosting platform.
+
+This ensures that every PR is well-documented from the moment of its creation.
+
+## Merging and Rebasing
+```
+
+### Continuing Development After a Merge
+
+**After a feature pull request is merged, the local `main` branch must be updated, and a new feature branch must be created from it for the next task.** This ensures a clean history and prevents old feature branches from being stacked on top of each other.
+
+**Procedure:**
+1.  **Switch to the local `main` branch:**
+    ```powershell
+    git checkout main
+    ```
+2.  **Pull the latest changes from the remote `main` branch:**
+    This syncs your local repository with the newly merged code.
+    ```powershell
+    git pull origin main
+    ```
+3.  **Create a new feature branch for the next task:**
+    Name the branch according to the conventional commit standard.
+    ```powershell
+    git checkout -b feat/PROJECT-3-linting-and-formatting
+    ```
+4.  **Delete the old, merged feature branch:**
+    This keeps your local repository clean.
+    ```powershell
+    git branch -d name-of-old-feature-branch
+    ```
+
+## Conventional Commits
+# ... existing code ...

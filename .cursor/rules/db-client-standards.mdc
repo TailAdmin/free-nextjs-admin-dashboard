@@ -1,0 +1,949 @@
+---
+description: Used when building database clients using Prisma
+globs: 
+alwaysApply: false
+---
+# Database Client Standards (Prisma)
+
+Comprehensive standards for using Prisma Client in NextJS applications, ensuring type-safe database operations, clean architecture patterns, and maintainable service layers.
+
+## Prerequisites
+
+Before implementing these standards, ensure:
+- Prisma schema configured (following db-schema-standards.mdc)
+- Prisma migrations applied (following db-migration-standards.mdc)
+- NextJS 15+ with App Router configured
+- TypeScript strict mode enabled
+- Zod validation library installed
+- Understanding of repository and service patterns
+- Windows PowerShell for command execution
+
+## Core Principle
+
+**ALWAYS use type-safe Prisma Client operations through well-structured repository and service layers that separate data access logic from business logic while maintaining full type safety.**
+
+## Project Structure Setup
+
+### Step 1: Create Database Layer Structure
+```powershell
+# Create core database directories (following nextjs-structure-standards.mdc)
+New-Item -ItemType Directory -Path "src\lib\database" -Force
+New-Item -ItemType Directory -Path "src\lib\repositories" -Force
+New-Item -ItemType Directory -Path "src\lib\services" -Force
+New-Item -ItemType Directory -Path "src\lib\validators" -Force
+
+# Verify structure created
+Get-ChildItem -Path "src\lib" -Recurse | Where-Object { $_.PSIsContainer } | Select-Object FullName
+```
+
+**Expected result**: Clean folder structure for database layer components.
+
+### Step 2: Configure Prisma Client Instance
+```powershell
+# Create main Prisma client configuration file
+New-Item -Path "src\lib\database\prisma.ts" -ItemType File
+```
+
+```typescript
+// src/lib/database/prisma.ts
+import { PrismaClient } from '@prisma/client';
+
+// ✅ Correct Prisma Client singleton pattern
+const globalForPrisma = globalThis as unknown as {
+  prisma: PrismaClient | undefined;
+};
+
+export const prisma = globalForPrisma.prisma ?? new PrismaClient({
+  log: process.env.NODE_ENV === 'development' ? ['query', 'error', 'warn'] : ['error'],
+  errorFormat: 'pretty',
+});
+
+if (process.env.NODE_ENV !== 'production') {
+  globalForPrisma.prisma = prisma;
+}
+
+// Graceful shutdown handling
+process.on('beforeExit', async () => {
+  await prisma.$disconnect();
+});
+
+// ❌ Incorrect - Creating new instance every time
+// export const prisma = new PrismaClient();
+```
+
+### Step 2.5: Docker Compatibility Configuration
+
+**CRITICAL: Configure Prisma binary targets for Docker deployment compatibility.**
+
+Modern Docker deployments often use different OpenSSL versions than the development environment, causing runtime crashes. Configure multiple binary targets to ensure compatibility:
+
+```powershell
+# Update Prisma schema generator section
+# Edit prisma/schema.prisma
+```
+
+```prisma
+// prisma/schema.prisma
+generator client {
+  provider = "prisma-client-js"
+  output   = "../generated/prisma"
+  // ✅ CRITICAL: Multiple binary targets for Docker compatibility
+  binaryTargets = ["native", "debian-openssl-1.1.x", "debian-openssl-3.0.x", "linux-musl", "linux-musl-openssl-3.0.x"]
+}
+```
+
+**Why This Is Critical:**
+- **Development**: Uses your local system's OpenSSL version (e.g., OpenSSL 3.0.x on Windows)
+- **Docker**: Often uses different OpenSSL versions (e.g., OpenSSL 1.1.x in Node.js slim images)
+- **Runtime crash**: Mismatched binary targets cause `PrismaClientInitializationError` in production
+
+**Common Error Without This Fix:**
+```
+Error [PrismaClientInitializationError]: Prisma Client could not locate the Query Engine for runtime "debian-openssl-1.1.x".
+This happened because Prisma Client was generated for "debian-openssl-3.0.x", but the actual deployment required "debian-openssl-1.1.x".
+```
+
+**After Configuration:**
+```powershell
+# Regenerate Prisma client with multiple targets
+npx prisma generate
+
+# Verify multiple binaries generated
+Get-ChildItem -Path "generated\prisma" -Recurse | Where-Object { $_.Name -like "*engine*" }
+```
+
+**Expected Result:** Prisma client works reliably across development, Docker, and production environments without binary target mismatches.
+
+### Step 3: Create Database Connection Utilities
+```powershell
+# Create connection management utilities
+New-Item -Path "src\lib\database\connection.ts" -ItemType File
+```
+
+```typescript
+// src/lib/database/connection.ts
+import { prisma } from './prisma';
+
+// ✅ Correct connection health check
+export async function checkDatabaseConnection(): Promise<boolean> {
+  try {
+    await prisma.$queryRaw`SELECT 1`;
+    return true;
+  } catch (error) {
+    console.error('Database connection failed:', error);
+    return false;
+  }
+}
+
+// ✅ Correct database initialization
+export async function initializeDatabase(): Promise<void> {
+  try {
+    await prisma.$connect();
+    console.log('Database connected successfully');
+  } catch (error) {
+    console.error('Failed to connect to database:', error);
+    throw error;
+  }
+}
+
+// ✅ Correct cleanup function
+export async function closeDatabaseConnection(): Promise<void> {
+  await prisma.$disconnect();
+}
+```
+
+## Type Safety Standards
+
+### Database Type Utilities
+```powershell
+# Create type utilities file
+New-Item -Path "src\lib\database\types.ts" -ItemType File
+```
+
+```typescript
+// src/lib/database/types.ts
+import type { Prisma } from '@prisma/client';
+
+// ✅ Correct type exports for common operations
+export type UserCreateInput = Prisma.UserCreateInput;
+export type UserUpdateInput = Prisma.UserUpdateInput;
+export type UserWhereInput = Prisma.UserWhereInput;
+export type UserWhereUniqueInput = Prisma.UserWhereUniqueInput;
+export type UserInclude = Prisma.UserInclude;
+export type UserSelect = Prisma.UserSelect;
+
+// ✅ Correct custom result types
+export type UserWithPosts = Prisma.UserGetPayload<{
+  include: { posts: true };
+}>;
+
+export type UserWithProfile = Prisma.UserGetPayload<{
+  include: { profile: true };
+}>;
+
+// ✅ Correct pagination types
+export interface PaginationParams {
+  page: number;
+  limit: number;
+}
+
+export interface PaginatedResult<T> {
+  data: T[];
+  pagination: {
+    page: number;
+    limit: number;
+    total: number;
+    totalPages: number;
+  };
+}
+
+// ❌ Incorrect - Using any type
+// export type UserData = any;
+```
+
+## Repository Pattern Implementation
+
+### Base Repository Pattern
+```powershell
+# Create base repository class
+New-Item -Path "src\lib\repositories\base.repository.ts" -ItemType File
+```
+
+```typescript
+// src/lib/repositories/base.repository.ts
+import { prisma } from '@/lib/database/prisma';
+import type { PaginationParams, PaginatedResult } from '@/lib/database/types';
+
+// ✅ Correct base repository with generic types
+export abstract class BaseRepository<T, CreateInput, UpdateInput, WhereInput, WhereUniqueInput> {
+  protected abstract model: any;
+
+  // ✅ Correct generic CRUD operations
+  async create(data: CreateInput): Promise<T> {
+    return await this.model.create({ data });
+  }
+
+  async findById(id: string): Promise<T | null> {
+    return await this.model.findUnique({ where: { id } });
+  }
+
+  async findMany(where?: WhereInput): Promise<T[]> {
+    return await this.model.findMany({ where });
+  }
+
+  async update(where: WhereUniqueInput, data: UpdateInput): Promise<T> {
+    return await this.model.update({ where, data });
+  }
+
+  async delete(where: WhereUniqueInput): Promise<T> {
+    return await this.model.delete({ where });
+  }
+
+  // ✅ Correct pagination implementation
+  async findManyPaginated(
+    params: PaginationParams,
+    where?: WhereInput
+  ): Promise<PaginatedResult<T>> {
+    const { page, limit } = params;
+    const skip = (page - 1) * limit;
+
+    const [data, total] = await Promise.all([
+      this.model.findMany({
+        where,
+        skip,
+        take: limit,
+      }),
+      this.model.count({ where }),
+    ]);
+
+    return {
+      data,
+      pagination: {
+        page,
+        limit,
+        total,
+        totalPages: Math.ceil(total / limit),
+      },
+    };
+     }
+ }
+ ```
+
+### Concrete Repository Implementation
+```powershell
+# Create user repository implementation
+New-Item -Path "src\lib\repositories\user.repository.ts" -ItemType File
+```
+
+```typescript
+// src/lib/repositories/user.repository.ts
+import { prisma } from '@/lib/database/prisma';
+import { BaseRepository } from './base.repository';
+import type {
+  UserCreateInput,
+  UserUpdateInput,
+  UserWhereInput,
+  UserWhereUniqueInput,
+  UserWithPosts,
+  UserWithProfile,
+} from '@/lib/database/types';
+import type { User } from '@prisma/client';
+
+// ✅ Correct concrete repository implementation
+export class UserRepository extends BaseRepository<
+  User,
+  UserCreateInput,
+  UserUpdateInput,
+  UserWhereInput,
+  UserWhereUniqueInput
+> {
+  protected model = prisma.user;
+
+  // ✅ Correct domain-specific methods
+  async findByEmail(email: string): Promise<User | null> {
+    return await this.model.findUnique({
+      where: { email },
+    });
+  }
+
+  async findWithPosts(id: string): Promise<UserWithPosts | null> {
+    return await this.model.findUnique({
+      where: { id },
+      include: { posts: true },
+    });
+  }
+
+  async findWithProfile(id: string): Promise<UserWithProfile | null> {
+    return await this.model.findUnique({
+      where: { id },
+      include: { profile: true },
+    });
+  }
+
+  async findActiveUsers(): Promise<User[]> {
+    return await this.model.findMany({
+      where: {
+        isActive: true,
+        deletedAt: null,
+      },
+      orderBy: { createdAt: 'desc' },
+    });
+  }
+
+  // ✅ Correct complex query method
+  async searchUsers(searchTerm: string): Promise<User[]> {
+    return await this.model.findMany({
+      where: {
+        OR: [
+          { name: { contains: searchTerm, mode: 'insensitive' } },
+          { email: { contains: searchTerm, mode: 'insensitive' } },
+        ],
+        isActive: true,
+      },
+      take: 50,
+    });
+  }
+}
+
+// ❌ Incorrect - Direct Prisma usage in repository
+// export class BadUserRepository {
+//   async getUser(id: string) {
+//     return prisma.user.findUnique({ where: { id } });
+//   }
+// }
+```
+
+## Service Layer Standards
+
+### User Service Implementation
+```powershell
+# Create user service
+New-Item -Path "src\lib\services\user.service.ts" -ItemType File
+```
+
+```typescript
+// src/lib/services/user.service.ts
+import { UserRepository } from '@/lib/repositories/user.repository';
+import { userCreateSchema, userUpdateSchema } from '@/lib/validators/user.validators';
+import type { User } from '@prisma/client';
+import type { z } from 'zod';
+
+type CreateUserInput = z.infer<typeof userCreateSchema>;
+type UpdateUserInput = z.infer<typeof userUpdateSchema>;
+
+// ✅ Correct service layer with business logic
+export class UserService {
+  private userRepository: UserRepository;
+
+  constructor() {
+    this.userRepository = new UserRepository();
+  }
+
+  // ✅ Correct service method with validation
+  async createUser(input: CreateUserInput): Promise<User> {
+    // Validate input (integrating with security standards)
+    const validatedInput = userCreateSchema.parse(input);
+
+    // Check business rules
+    const existingUser = await this.userRepository.findByEmail(validatedInput.email);
+    if (existingUser) {
+      throw new Error('User with this email already exists');
+    }
+
+    // Create user through repository
+    return await this.userRepository.create({
+      ...validatedInput,
+      createdAt: new Date(),
+      updatedAt: new Date(),
+    });
+  }
+
+  // ✅ Correct service method with business logic
+  async updateUser(id: string, input: UpdateUserInput): Promise<User> {
+    const validatedInput = userUpdateSchema.parse(input);
+
+    // Check if user exists
+    const existingUser = await this.userRepository.findById(id);
+    if (!existingUser) {
+      throw new Error('User not found');
+    }
+
+    // Business logic: prevent email updates if email is verified
+    if (validatedInput.email && existingUser.emailVerified) {
+      throw new Error('Cannot update email for verified users');
+    }
+
+    return await this.userRepository.update(
+      { id },
+      {
+        ...validatedInput,
+        updatedAt: new Date(),
+      }
+    );
+  }
+
+  // ✅ Correct service method with complex business logic
+  async deactivateUser(id: string): Promise<User> {
+    const user = await this.userRepository.findById(id);
+    if (!user) {
+      throw new Error('User not found');
+    }
+
+    if (!user.isActive) {
+      throw new Error('User is already deactivated');
+    }
+
+    return await this.userRepository.update(
+      { id },
+      {
+        isActive: false,
+        deactivatedAt: new Date(),
+        updatedAt: new Date(),
+      }
+    );
+  }
+
+  // ✅ Correct read-only service methods
+  async getUserById(id: string): Promise<User | null> {
+    return await this.userRepository.findById(id);
+  }
+
+  async getUserByEmail(email: string): Promise<User | null> {
+    return await this.userRepository.findByEmail(email);
+  }
+
+  async searchUsers(searchTerm: string): Promise<User[]> {
+    if (searchTerm.length < 2) {
+      throw new Error('Search term must be at least 2 characters');
+    }
+    return await this.userRepository.searchUsers(searchTerm);
+  }
+}
+
+// ❌ Incorrect - Service without validation or business logic
+// export class BadUserService {
+//   async createUser(data: any) {
+//     return prisma.user.create({ data });
+//   }
+// }
+```
+
+## Validation Integration
+
+### Zod Validators for Database Operations
+```powershell
+# Create user validators
+New-Item -Path "src\lib\validators\user.validators.ts" -ItemType File
+```
+
+```typescript
+// src/lib/validators/user.validators.ts
+import { z } from 'zod';
+
+// ✅ Correct validation schemas (integrating with security standards)
+export const userCreateSchema = z.object({
+  email: z
+    .string()
+    .email('Invalid email format')
+    .max(320, 'Email too long'),
+  name: z
+    .string()
+    .min(2, 'Name must be at least 2 characters')
+    .max(100, 'Name too long')
+    .optional(),
+  password: z
+    .string()
+    .min(8, 'Password must be at least 8 characters')
+    .regex(/^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)/, 'Password must contain uppercase, lowercase, and number'),
+});
+
+export const userUpdateSchema = z.object({
+  email: z
+    .string()
+    .email('Invalid email format')
+    .max(320, 'Email too long')
+    .optional(),
+  name: z
+    .string()
+    .min(2, 'Name must be at least 2 characters')
+    .max(100, 'Name too long')
+    .optional(),
+  isActive: z.boolean().optional(),
+});
+
+export const userSearchSchema = z.object({
+  searchTerm: z
+    .string()
+    .min(2, 'Search term must be at least 2 characters')
+    .max(50, 'Search term too long'),
+  limit: z.number().min(1).max(100).default(20),
+  page: z.number().min(1).default(1),
+});
+
+ // ❌ Incorrect - No validation
+ // export const badUserSchema = z.any();
+ ```
+
+## Error Handling and Transaction Management
+
+### Database Error Handling
+```typescript
+// src/lib/database/errors.ts
+import { Prisma } from '@prisma/client';
+
+// ✅ Correct Prisma error handling
+export function handlePrismaError(error: unknown): never {
+  if (error instanceof Prisma.PrismaClientKnownRequestError) {
+    switch (error.code) {
+      case 'P2002':
+        throw new Error('Unique constraint violation');
+      case 'P2025':
+        throw new Error('Record not found');
+      case 'P2003':
+        throw new Error('Foreign key constraint violation');
+      default:
+        throw new Error(`Database error: ${error.message}`);
+    }
+  }
+
+  if (error instanceof Prisma.PrismaClientValidationError) {
+    throw new Error('Invalid data provided');
+  }
+
+  throw new Error('Unexpected database error');
+}
+
+// ✅ Correct service error handling wrapper
+export function withErrorHandling<T extends any[], R>(
+  fn: (...args: T) => Promise<R>
+) {
+  return async (...args: T): Promise<R> => {
+    try {
+      return await fn(...args);
+    } catch (error) {
+      handlePrismaError(error);
+    }
+  };
+}
+```
+
+### Transaction Management
+```typescript
+// src/lib/services/transaction.service.ts
+import { prisma } from '@/lib/database/prisma';
+import { UserService } from './user.service';
+
+// ✅ Correct transaction usage
+export class TransactionService {
+  // ✅ Correct atomic operation with transaction
+  async createUserWithProfile(userData: any, profileData: any) {
+    return await prisma.$transaction(async (tx) => {
+      // Create user
+      const user = await tx.user.create({
+        data: userData,
+      });
+
+      // Create profile
+      const profile = await tx.profile.create({
+        data: {
+          ...profileData,
+          userId: user.id,
+        },
+      });
+
+      return { user, profile };
+    });
+  }
+
+  // ✅ Correct transaction with rollback on business logic failure
+  async transferUserPoints(fromUserId: string, toUserId: string, points: number) {
+    return await prisma.$transaction(async (tx) => {
+      // Get source user
+      const fromUser = await tx.user.findUnique({
+        where: { id: fromUserId },
+      });
+
+      if (!fromUser || fromUser.points < points) {
+        throw new Error('Insufficient points');
+      }
+
+      // Update users atomically
+      await Promise.all([
+        tx.user.update({
+          where: { id: fromUserId },
+          data: { points: fromUser.points - points },
+        }),
+        tx.user.update({
+          where: { id: toUserId },
+          data: { points: { increment: points } },
+        }),
+      ]);
+
+      return { success: true };
+    });
+  }
+}
+```
+
+## API Route Integration
+
+### NextJS App Router Integration
+```typescript
+// src/app/api/users/route.ts
+import { NextRequest, NextResponse } from 'next/server';
+import { UserService } from '@/lib/services/user.service';
+import { userCreateSchema } from '@/lib/validators/user.validators';
+import { withErrorHandling } from '@/lib/database/errors';
+
+// ✅ Correct API route with service layer
+export async function POST(request: NextRequest) {
+  try {
+    const body = await request.json();
+    const userService = new UserService();
+
+    const user = await userService.createUser(body);
+
+    return NextResponse.json(user, { status: 201 });
+  } catch (error) {
+    console.error('Error creating user:', error);
+    return NextResponse.json(
+      { error: 'Failed to create user' },
+      { status: 400 }
+    );
+  }
+}
+
+export async function GET(request: NextRequest) {
+  try {
+    const { searchParams } = new URL(request.url);
+    const searchTerm = searchParams.get('search');
+
+    const userService = new UserService();
+
+    if (searchTerm) {
+      const users = await userService.searchUsers(searchTerm);
+      return NextResponse.json(users);
+    }
+
+    // Return paginated users
+    const users = await userService.getAllUsers();
+    return NextResponse.json(users);
+  } catch (error) {
+    console.error('Error fetching users:', error);
+    return NextResponse.json(
+      { error: 'Failed to fetch users' },
+      { status: 500 }
+    );
+  }
+}
+
+// ❌ Incorrect - Direct Prisma usage in API route
+// export async function BadPOST(request: NextRequest) {
+//   const body = await request.json();
+//   const user = await prisma.user.create({ data: body });
+//   return NextResponse.json(user);
+// }
+```
+
+## Verification Steps
+
+### Step 1: Validate Repository Pattern Implementation
+```powershell
+# Check that repositories are properly structured
+Get-ChildItem -Path "src\lib\repositories" -Filter "*.ts" | ForEach-Object {
+    $content = Get-Content $_.FullName -Raw
+    if ($content -match "extends BaseRepository" -and $content -match "protected model") {
+        Write-Output "✅ $($_.Name) follows repository pattern"
+    } else {
+        Write-Warning "❌ $($_.Name) does not follow repository pattern"
+    }
+}
+```
+
+**Expected result**: All repository files follow the base repository pattern.
+
+### Step 2: Validate Service Layer Integration
+```powershell
+# Check that services use repositories and validation
+Get-ChildItem -Path "src\lib\services" -Filter "*.ts" | ForEach-Object {
+    $content = Get-Content $_.FullName -Raw
+    if ($content -match "Repository" -and $content -match "Schema\.parse") {
+        Write-Output "✅ $($_.Name) properly integrates repository and validation"
+    } else {
+        Write-Warning "❌ $($_.Name) missing repository or validation integration"
+    }
+}
+```
+
+**Expected result**: All services integrate repositories and validation properly.
+
+### Step 3: Test Database Operations
+```powershell
+# Run type checking to ensure all database operations are type-safe
+npx tsc --noEmit --project tsconfig.json
+
+# Verify Prisma Client is properly generated
+Test-Path "node_modules\.prisma\client\index.d.ts"
+
+# Run database connection test
+npm run test:db-connection
+```
+
+**Expected result**: TypeScript validation passes and database connection successful.
+
+## Troubleshooting Common Issues
+
+### Problem: Type Import Errors
+**Symptoms**:
+- TypeScript errors with Prisma types
+- Cannot import generated types
+
+**Solution**:
+```powershell
+# Regenerate Prisma Client
+npx prisma generate
+
+# Check that types are properly exported
+Get-Content "src\lib\database\types.ts" | Select-String -Pattern "export type"
+
+# Verify import paths in repository files
+Get-Content "src\lib\repositories\*.ts" | Select-String -Pattern "import.*@/lib"
+```
+
+### Problem: Repository Pattern Not Working
+**Symptoms**:
+- Methods not found on repository instances
+- Generic type errors
+
+**Solution**:
+```powershell
+# Verify base repository structure
+Get-Content "src\lib\repositories\base.repository.ts" | Select-String -Pattern "abstract class BaseRepository"
+
+# Check that concrete repositories extend base properly
+Get-Content "src\lib\repositories\user.repository.ts" | Select-String -Pattern "extends BaseRepository"
+
+# Ensure model property is correctly assigned
+Get-Content "src\lib\repositories\user.repository.ts" | Select-String -Pattern "protected model"
+```
+
+### Problem: Service Validation Failures
+**Symptoms**:
+- Zod validation errors
+- Service methods throwing unexpected errors
+
+**Solution**:
+```powershell
+# Check validator schemas
+npx tsc --noEmit "src\lib\validators\*.ts"
+
+# Verify service imports validators correctly
+Get-Content "src\lib\services\*.ts" | Select-String -Pattern "import.*validators"
+
+# Test validation schemas independently
+npm run test:validators
+```
+
+## Success Criteria
+
+The database client standards are implemented when:
+- [x] **Prisma Client singleton** is properly configured with connection management
+- [x] **Repository pattern** is implemented with base class and concrete implementations
+- [x] **Service layer** separates business logic from data access logic
+- [x] **Type safety** is maintained throughout the database layer
+- [x] **Validation** is integrated using Zod schemas
+- [x] **Error handling** properly manages Prisma-specific errors
+- [x] **Transaction management** is used for atomic operations
+- [x] **API routes** integrate cleanly with service layer
+
+## Docker Integration Requirements
+**Reference Rule:** `nextjs-docker-standards.mdc`
+
+### Prisma Schema Configuration for Containers
+When deploying with Docker, Prisma requires specific configuration.
+
+**For complete Next.js Docker setup, see `nextjs-docker-standards.mdc`.**
+
+```prisma
+// prisma/schema.prisma
+generator client {
+  provider = "prisma-client-js"
+  output   = "../generated/prisma"  // Custom output for Docker compatibility
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+```
+
+### Docker Build Integration
+**CRITICAL: Copy Prisma schema BEFORE npm install in Docker builds:**
+
+```dockerfile
+# ✅ CORRECT: Copy schema before npm install
+COPY package.json package-lock.json* ./
+COPY prisma ./prisma
+RUN npm ci  # postinstall script can run prisma generate
+
+# ❌ INCORRECT: Schema copied after npm install
+# COPY package.json package-lock.json* ./
+# RUN npm ci  # Fails: postinstall cannot find schema
+# COPY prisma ./prisma
+```
+
+### Database Client Singleton for Docker
+Docker containers require connection management:
+
+```typescript
+// src/lib/database/prisma.ts - Docker-compatible singleton
+import { PrismaClient } from '../../generated/prisma';
+
+// Enhanced for Docker environment
+const globalForPrisma = globalThis as unknown as {
+  prisma: PrismaClient | undefined;
+};
+
+export const prisma = globalForPrisma.prisma ??
+  new PrismaClient({
+    log: process.env.NODE_ENV === 'development' ? ['query'] : ['error'],
+    // Docker-specific connection management
+    datasources: {
+      db: {
+        url: process.env.DATABASE_URL,
+      },
+    },
+  });
+
+if (process.env.NODE_ENV !== 'production') globalForPrisma.prisma = prisma;
+
+// Docker health check support
+export async function checkDatabaseConnection(): Promise<boolean> {
+  try {
+    await prisma.$connect();
+    await prisma.$disconnect();
+    return true;
+  } catch (error) {
+    console.error('Database connection failed:', error);
+    return false;
+  }
+}
+```
+
+### Environment Variables for Docker
+```typescript
+// src/env.d.ts - Docker environment support
+declare global {
+  namespace NodeJS {
+    interface ProcessEnv {
+      DATABASE_URL: string;           // Docker service URL
+      DIRECT_URL?: string;           // Direct connection bypass
+      POSTGRES_DB?: string;          // Container environment
+      POSTGRES_USER?: string;        // Container environment
+      POSTGRES_PASSWORD?: string;    // Container environment
+    }
+  }
+}
+```
+
+### Docker Compose Database URL Format
+```yaml
+# docker-compose.yml
+services:
+  app:
+    environment:
+      - DATABASE_URL=postgresql://app_user:secure_password@db:5432/modern_web_app?schema=public
+
+  db:
+    image: postgres:15-alpine
+    environment:
+      POSTGRES_DB: modern_web_app
+      POSTGRES_USER: app_user
+      POSTGRES_PASSWORD: secure_password
+```
+
+### Generated Client Handling in Docker
+With custom output path, ensure proper copying in Dockerfile:
+
+```dockerfile
+# Copy Prisma schema and generated client to production image
+COPY --from=builder /app/prisma ./prisma
+COPY --from=builder /app/generated ./generated
+```
+
+### Migration Strategy for Docker
+```typescript
+// src/lib/database/migrations.ts - Docker migration support
+import { execSync } from 'child_process';
+
+export async function runMigrations(): Promise<void> {
+  try {
+    console.log('Running database migrations...');
+    execSync('npx prisma migrate deploy', { stdio: 'inherit' });
+    console.log('Migrations completed successfully');
+  } catch (error) {
+    console.error('Migration failed:', error);
+    process.exit(1);
+  }
+}
+
+// Use in container startup
+if (process.env.NODE_ENV === 'production') {
+  runMigrations().catch(console.error);
+}
+```
+
+## Integration with Existing Rules
+
+This rule integrates with:
+- **Code Quality Standards**: Repository and service patterns follow TypeScript conventions
+- **Security Standards**: Input validation and sanitization using Zod
+- **Testing Standards**: Database operations are testable through service layer
+- **NextJS Structure Standards**: Database layer fits App Router architecture
+- **TypeScript Standards**: Full type safety maintained throughout
+- **Docker Standards**: Prisma client works reliably in containerized environments
+
+---
+
+**Note**: This rule ensures database operations are type-safe, maintainable, and follow clean architecture principles while integrating seamlessly with NextJS applications and Docker containerization.
+

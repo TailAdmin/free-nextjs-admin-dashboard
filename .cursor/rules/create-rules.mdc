@@ -1,0 +1,180 @@
+---
+description: 
+globs: 
+alwaysApply: true
+---
+---
+description: This rule explains how to create new .mdc project rule files for the Cursor agent.
+globs: 
+alwaysApply: true
+---
+
+# Cursor Rules Location
+
+How to add new cursor rules to the project
+
+1. Always place rule files in PROJECT_ROOT/.cursor/rules/:
+    ```
+    .cursor/rules/
+    ├── your-rule-name.mdc
+    ├── another-rule.mdc
+    └── ...
+    ```
+
+2. Follow the naming convention:
+    - Use kebab-case for filenames
+    - Always use .mdc extension
+    - Make names descriptive of the rule's purpose
+
+3. Directory structure:
+    ```
+    PROJECT_ROOT/
+    ├── .cursor/
+    │   └── rules/
+    │       ├── your-rule-name.mdc
+    │       └── ...
+    └── ...
+    ```
+
+4. Never place rule files:
+    - In the project root
+    - In subdirectories outside .cursor/rules
+    - In any other location
+
+## 🚨 CRITICAL: Unambiguous Guidance Principle
+
+**ALL Cursor rules MUST follow the unambiguous guidance principle:**
+
+**Important**: Cursor rules are **guidance documents** that provide clear direction and standards, not rigid step-by-step implementation scripts. They should offer definitive recommendations while remaining flexible enough for different contexts.
+
+### Core Requirements for Guidance Documents
+1. **Clear recommendations** - Each guidance point must have unambiguous direction
+2. **No choice paralysis** - When multiple options exist, provide clear criteria for selection and recommend a primary choice
+3. **Platform-specific examples** - Use appropriate syntax for the target environment in examples
+4. **Clear prerequisites** - State all assumptions and requirements upfront
+5. **Practical guidance** - Address common scenarios and decision points
+
+### Validation Checklist
+Before finalizing any rule, verify:
+- [ ] **Clear primary recommendations** - No "A or B" without guidance on which to choose
+- [ ] **Practical examples work** - Code examples function in the target environment
+- [ ] **Guidance is actionable** - Reader knows what to do, not just what options exist
+- [ ] **Assumptions are explicit** - No hidden dependencies or requirements
+- [ ] **Common scenarios addressed** - Covers typical use cases and decision points
+- [ ] **Success criteria defined** - How to know when following the guidance correctly
+
+### Common Pitfalls to Avoid
+❌ **Don't do this:**
+- Present multiple options without clear selection criteria ("Use Jest or Vitest")
+- Mix different platform syntaxes in examples without context
+- Use "optional but recommended" without explaining when to use
+- Leave tool/approach selection ambiguous
+- Assume specific project structures without stating requirements
+
+✅ **Do this instead:**
+- Recommend primary choice with clear reasoning ("Use Jest as the primary testing framework for Next.js projects because...")
+- Provide consistent platform examples with clear context
+- Give definitive guidance with criteria for exceptions
+- Establish clear standards while explaining alternatives
+- State assumptions and requirements explicitly
+
+### Cursor Rules Structure for Guidance Documents
+
+```
+---
+description: Short, clear description of the rule's purpose
+globs: optional/path/pattern/**/* 
+alwaysApply: false
+---
+# Rule Title
+
+Brief description of what this rule accomplishes and why it's important.
+
+## Prerequisites
+
+State all requirements and assumptions upfront:
+- Software versions needed (e.g., Node.js 20.x+)
+- Environment assumptions (e.g., Windows PowerShell examples provided)
+- Project structure requirements
+- Prior setup dependencies
+
+## Core Principle
+
+**Clear statement of the main principle this rule establishes with definitive guidance.**
+
+## Recommended Approach
+
+### Primary Recommendation: [Clear Choice]
+Explain the recommended approach with reasoning.
+
+**Why this choice**: Clear justification for the recommendation.
+
+**When to consider alternatives**: Specific criteria for when other approaches make sense.
+
+```powershell
+# Example showing the recommended approach
+Recommended-Command -Parameter "Value"
+# Expected outcome: description of what should result
+```
+
+### Implementation Guidance
+
+Provide clear direction on how to apply the principle:
+
+1. **Configuration standards** - What settings and patterns to use
+2. **File organization** - How to structure related files
+3. **Integration patterns** - How this connects with other parts of the system
+
+## Verification and Success
+
+How to confirm the guidance is being followed:
+- Clear indicators of correct implementation
+- Common signs of successful adoption
+- Integration checkpoints
+
+## Common Scenarios and Decisions
+
+### Scenario: [Common Situation]
+**Guidance**: Clear recommendation for this situation
+**Reasoning**: Why this approach works best
+
+### When to Deviate
+**Situations where alternative approaches are appropriate**:
+- Specific constraint 1: Alternative approach and reasoning
+- Specific constraint 2: Alternative approach and reasoning
+
+## Examples
+
+✅ **Recommended Pattern:**
+```typescript
+// Clear example following the guidance
+function recommendedApproach() {
+  // Implementation showing best practices
+  return "success";
+}
+```
+
+❌ **Avoid This Pattern:**
+```typescript
+// Example of what not to do
+function problematicApproach() {
+  // Explanation of why this creates issues
+}
+```
+
+---
+
+**Note**: This guidance ensures [clear statement of what the rule accomplishes] while maintaining flexibility for project-specific needs.
+```
+
+## 📋 Final Validation for Guidance Documents
+
+**Before submitting any guidance rule, it MUST pass this validation:**
+
+1. **Clear primary recommendation** - Does the rule establish what the standard approach is?
+2. **Selection criteria provided** - When alternatives exist, are the decision criteria clear?
+3. **Examples are practical** - Can someone follow the examples in a real project?
+4. **Prerequisites are explicit** - Are all assumptions and requirements stated?
+5. **Success indicators clear** - Can someone tell if they're following the guidance correctly?
+
+**If ANY check fails, the rule must provide clearer guidance before use.**

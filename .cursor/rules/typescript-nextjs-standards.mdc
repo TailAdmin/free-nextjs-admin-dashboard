@@ -1,0 +1,214 @@
+---
+description: When writing NextJS code and seeking guidance on best coding practices
+globs: 
+alwaysApply: false
+---
+# TypeScript NextJS Standards
+
+TypeScript configuration and type safety practices for NextJS 15 applications.
+
+## Prerequisites
+
+- NextJS 15+ with TypeScript enabled
+- VS Code with TypeScript extension
+- Windows PowerShell for commands
+
+## Core Principle
+
+**ALWAYS use strict TypeScript configuration and proper typing patterns for NextJS components and API routes.**
+
+## TypeScript Configuration
+
+### tsconfig.json Setup
+```json
+{
+  "compilerOptions": {
+    "target": "es5",
+    "lib": ["dom", "dom.iterable", "es6"],
+    "allowJs": true,
+    "skipLibCheck": true,
+    "strict": true,
+    "noEmit": true,
+    "esModuleInterop": true,
+    "module": "esnext",
+    "moduleResolution": "bundler",
+    "resolveJsonModule": true,
+    "isolatedModules": true,
+    "jsx": "preserve",
+    "incremental": true,
+    "plugins": [
+      {
+        "name": "next"
+      }
+    ],
+    "baseUrl": ".",
+    "paths": {
+      "@/*": ["./src/*"],
+      "@/components/*": ["./src/app/_components/*"],
+      "@/lib/*": ["./src/lib/*"]
+    }
+  },
+  "include": ["next-env.d.ts", "**/*.ts", "**/*.tsx", ".next/types/**/*.ts"],
+  "exclude": ["node_modules"]
+}
+```
+
+## Component Typing Patterns
+
+### Page Components
+```typescript
+// ✅ Correct page component typing
+import { Metadata } from 'next';
+
+interface PageProps {
+  params: { id: string };
+  searchParams: { [key: string]: string | string[] | undefined };
+}
+
+export const metadata: Metadata = {
+  title: 'User Profile',
+  description: 'User profile page'
+};
+
+export default function UserPage({ params, searchParams }: PageProps) {
+  return <div>User ID: {params.id}</div>;
+}
+```
+
+### Layout Components
+```typescript
+// ✅ Correct layout component typing
+interface LayoutProps {
+  children: React.ReactNode;
+  params: { locale: string };
+}
+
+export default function RootLayout({ children, params }: LayoutProps) {
+  return (
+    <html lang={params.locale}>
+      <body>{children}</body>
+    </html>
+  );
+}
+```
+
+### API Route Typing
+```typescript
+// ✅ Correct API route typing
+import { NextRequest, NextResponse } from 'next/server';
+
+interface User {
+  id: string;
+  name: string;
+  email: string;
+}
+
+export async function GET(request: NextRequest) {
+  const users: User[] = await getUsers();
+  return NextResponse.json(users);
+}
+
+export async function POST(request: NextRequest) {
+  const body: Partial<User> = await request.json();
+  const user = await createUser(body);
+  return NextResponse.json(user, { status: 201 });
+}
+```
+
+## Custom Hook Typing
+```typescript
+// ✅ Correct custom hook typing
+interface UseUserReturn {
+  user: User | null;
+  loading: boolean;
+  error: string | null;
+}
+
+export function useUser(id: string): UseUserReturn {
+  const [user, setUser] = useState<User | null>(null);
+  const [loading, setLoading] = useState<boolean>(true);
+  const [error, setError] = useState<string | null>(null);
+
+  // Hook implementation...
+
+  return { user, loading, error };
+}
+```
+
+## Environment Variables Typing
+```typescript
+// ✅ Create src/env.d.ts
+declare namespace NodeJS {
+  interface ProcessEnv {
+    NEXT_PUBLIC_API_URL: string;
+    DATABASE_URL: string;
+    NEXTAUTH_SECRET: string;
+    NEXTAUTH_URL: string;
+  }
+}
+```
+
+## Verification Steps
+
+### Check TypeScript Configuration
+```powershell
+# Verify TypeScript compilation
+npx tsc --noEmit
+
+# Check for type errors
+npx tsc --noEmit --skipLibCheck false
+```
+
+### Validate Component Types
+```powershell
+# Search for untyped components
+Get-Content src/**/*.tsx | Select-String -Pattern "function.*\(\s*\{" | Where-Object { $_ -notmatch ":\s*\w+" }
+```
+
+## Success Criteria
+
+- [x] **Strict TypeScript** enabled in tsconfig.json
+- [x] **Path aliases** configured for clean imports
+- [x] **Component props** properly typed
+- [x] **API routes** use NextRequest/NextResponse types
+- [x] **Environment variables** typed in env.d.ts
+- [x] **Custom hooks** return proper type interfaces
+
+## Common Type Patterns
+
+### Form Handling
+```typescript
+interface FormData {
+  email: string;
+  password: string;
+}
+
+const handleSubmit = (event: React.FormEvent<HTMLFormElement>) => {
+  event.preventDefault();
+  const formData = new FormData(event.currentTarget);
+  const data: FormData = {
+    email: formData.get('email') as string,
+    password: formData.get('password') as string,
+  };
+};
+```
+
+### Server Actions
+```typescript
+'use server';
+
+interface CreateUserAction {
+  name: string;
+  email: string;
+}
+
+export async function createUserAction(data: CreateUserAction) {
+  // Server action implementation
+  return { success: true, userId: '123' };
+}
+```
+
+---
+
+**Note**: This rule ensures type safety and proper TypeScript configuration for NextJS applications.
+

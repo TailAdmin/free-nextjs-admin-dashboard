@@ -1,0 +1,372 @@
+---
+description: Used when writing Huskey pre-commit hooks
+globs: 
+alwaysApply: false
+---
+# Husky Pre-commit Hooks
+
+Establishes automated pre-commit hooks using Husky to enforce code quality, linting, formatting, and testing standards before code enters the repository.
+
+## Prerequisites
+
+State all requirements upfront:
+- Next.js project with ESLint and Prettier already configured
+- Git repository initialized (`git init` completed)
+- Windows PowerShell or Command Prompt
+- Node.js and npm/yarn package manager
+- Basic understanding of Git workflow
+
+## Core Principle
+
+**All commits must pass automated quality checks including linting, formatting, type checking, and tests before being allowed into the repository.**
+
+## Step-by-Step Instructions
+
+### Step 1: Install Husky and Related Dependencies
+
+Install Husky and lint-staged for pre-commit automation:
+
+```powershell
+# Install Husky and lint-staged
+npm install --save-dev husky lint-staged
+# Expected output: Dependencies installed successfully
+
+# Install additional quality tools if not already present
+npm install --save-dev @types/node typescript
+# Expected output: TypeScript tools installed
+```
+
+**Expected result**: Husky and lint-staged are installed as development dependencies.
+
+### Step 2: Initialize Husky
+
+Set up Husky in the project:
+
+```powershell
+# Initialize Husky
+npx husky init
+# Expected output: Husky initialized, .husky directory created
+
+# Verify Husky directory was created
+Test-Path ".husky"
+# Expected output: True
+
+# Check the pre-commit hook file was created
+Get-ChildItem ".husky" -Name
+# Expected output: Shows pre-commit file
+```
+
+**Expected result**: `.husky` directory exists with initial hook files.
+
+### Step 3: Configure Pre-commit Hook
+
+Edit the pre-commit hook file to run lint-staged using Husky v9+ format:
+
+```powershell
+# Create or update the pre-commit hook (Husky v9+ format - no deprecated lines)
+@"
+npx lint-staged
+"@ | Out-File -FilePath ".husky/pre-commit" -Encoding utf8
+# Expected output: Pre-commit hook configured with v9+ format
+```
+
+**Expected result**: Pre-commit hook runs linting, formatting, and type checking on staged files using the simplified Husky v9+ format.
+
+**⚠️ Important**: Husky v9+ no longer requires the shebang (`#!/bin/sh`) or the husky.sh script (`. "$(dirname "$0")/_/husky.sh"`). These lines are deprecated and will show warnings in newer versions.
+
+### Step 4: Configure lint-staged
+
+Add lint-staged configuration to `package.json`:
+
+```powershell
+# Read current package.json
+$packageJson = Get-Content "package.json" | ConvertFrom-Json
+
+# Add lint-staged configuration with Windows-compatible binary paths
+$lintStagedConfig = @{
+  "*.{js,jsx,ts,tsx}" = @(
+    "node_modules\.bin\eslint --fix --max-warnings=0",
+    "node_modules\.bin\prettier --write"
+  )
+  "*.{json,md,css,scss}" = @(
+    "node_modules\.bin\prettier --write"
+  )
+  "*.{ts,tsx}" = @(
+    "node_modules\.bin\tsc-files --noEmit"
+  )
+}
+
+# Add to package.json
+$packageJson | Add-Member -MemberType NoteProperty -Name "lint-staged" -Value $lintStagedConfig -Force
+
+# Write back to package.json
+$packageJson | ConvertTo-Json -Depth 5 | Out-File "package.json" -Encoding utf8
+# Expected output: Package.json updated with lint-staged config
+```
+
+**Expected result**: lint-staged configuration is added to package.json.
+
+### Step 5: Add Quality Check Scripts
+
+Add npm scripts for various quality checks:
+
+```powershell
+# Add scripts to package.json for manual quality checks
+$scripts = @{
+  "lint" = "eslint . --ext .js,.jsx,.ts,.tsx --fix"
+  "lint:check" = "eslint . --ext .js,.jsx,.ts,.tsx"
+  "format" = "prettier --write ."
+  "format:check" = "prettier --check ."
+  "type-check" = "tsc --noEmit"
+  "quality:check" = "npm run lint:check && npm run format:check && npm run type-check"
+  "pre-commit:manual" = "lint-staged"
+}
+
+# Read and update package.json scripts
+$packageJson = Get-Content "package.json" | ConvertFrom-Json
+
+# Add each script to the scripts section
+foreach ($script in $scripts.GetEnumerator()) {
+  if (-not $packageJson.scripts.$($script.Key)) {
+    $packageJson.scripts | Add-Member -MemberType NoteProperty -Name $script.Key -Value $script.Value -Force
+  }
+}
+
+# Write back to package.json
+$packageJson | ConvertTo-Json -Depth 5 | Out-File "package.json" -Encoding utf8
+# Expected output: Quality check scripts added
+```
+
+**Expected result**: npm scripts are available for manual quality checks and validation.
+
+### Step 6: Install tsc-files for Faster Type Checking
+
+Install tsc-files for efficient TypeScript checking of staged files only:
+
+```powershell
+# Install tsc-files for faster incremental type checking
+npm install --save-dev tsc-files
+# Expected output: tsc-files installed
+
+# Verify installation
+Get-Content "package.json" | Select-String "tsc-files"
+# Expected output: Shows tsc-files in devDependencies
+```
+
+**Expected result**: TypeScript type checking is optimized for pre-commit hooks.
+
+## Verification Steps
+
+How to confirm the rule was followed correctly:
+
+```powershell
+# Check Husky installation and setup
+Test-Path ".husky"
+Test-Path ".husky/pre-commit"
+# Expected output: True for both files
+
+# Verify lint-staged configuration
+Get-Content "package.json" | Select-String "lint-staged"
+# Expected output: Shows lint-staged configuration
+
+# Test pre-commit hook manually (without committing)
+npm run pre-commit:manual
+# Expected output: Runs linting and formatting on staged files
+
+# Test quality check scripts
+npm run quality:check
+# Expected output: Runs all quality checks
+
+# Verify dependencies are installed
+Get-Content "package.json" | Select-String -Pattern "(husky|lint-staged|tsc-files)"
+# Expected output: Shows all required dependencies
+```
+
+- [ ] `.husky` directory exists with pre-commit hook configured
+- [ ] lint-staged configuration is present in package.json
+- [ ] Quality check scripts are available in package.json
+- [ ] Pre-commit hook runs successfully on manual test
+- [ ] All required dependencies are installed
+
+## Troubleshooting Common Issues
+
+### Problem: Pre-commit hook not executing
+**Symptoms**:
+- Commits succeed without running quality checks
+- "husky - command not found" errors
+
+**Solution**:
+```powershell
+# Ensure Husky is properly initialized
+npx husky init
+
+# Check if .husky/pre-commit file has executable permissions
+# On Windows, verify the file exists and contains the right content
+Get-Content ".husky/pre-commit"
+
+# Reinstall Husky hooks
+npm run prepare
+```
+
+### Problem: lint-staged not working with TypeScript files
+**Symptoms**:
+- TypeScript files are not being type-checked
+- "tsc-files command not found" errors
+
+**Solution**:
+```powershell
+# Install missing tsc-files dependency
+npm install --save-dev tsc-files
+
+# Update lint-staged configuration to use proper TypeScript commands
+# Check package.json lint-staged configuration matches the rule
+```
+
+### Problem: Commits taking too long
+**Symptoms**:
+- Pre-commit hook times out
+- Large projects cause long wait times
+
+**Solution**:
+```typescript
+// Update lint-staged config to be more targeted
+{
+  "lint-staged": {
+    "*.{js,jsx,ts,tsx}": [
+      "eslint --fix --max-warnings=0",
+      "prettier --write"
+    ],
+    "*.{ts,tsx}": "tsc-files --noEmit"
+  }
+}
+```
+
+### Problem: Hook fails on Windows with shell script errors
+**Symptoms**:
+- "./bin/sh: not found" errors
+- Hook script syntax errors
+- "command not recognized" errors for ESLint/Prettier
+
+**Solution**:
+```powershell
+# Use Husky v9+ format (no shebang or husky.sh script needed)
+# Update .husky/pre-commit to simple format:
+@"
+npx lint-staged
+"@ | Out-File -FilePath ".husky/pre-commit" -Encoding utf8
+
+# Ensure lint-staged uses Windows-compatible binary paths
+# Update package.json lint-staged configuration:
+# Use "node_modules\.bin\eslint" instead of "eslint"
+```
+
+### Problem: Commands not found in lint-staged on Windows
+**Symptoms**:
+- "'eslint' is not recognized as an internal or external command"
+- "'prettier' is not recognized as an internal or external command"
+- lint-staged fails to execute tools
+
+**Solution**:
+```json
+{
+  "lint-staged": {
+    "*.{js,jsx,ts,tsx}": [
+      "node_modules\\.bin\\eslint --fix --max-warnings=0",
+      "node_modules\\.bin\\prettier --write"
+    ],
+    "*.{json,md,css,scss}": [
+      "node_modules\\.bin\\prettier --write"
+    ],
+    "*.{ts,tsx}": [
+      "node_modules\\.bin\\tsc-files --noEmit"
+    ]
+  }
+}
+```
+
+**Why this works**: Windows PowerShell requires explicit paths to node_modules binaries when running from lint-staged context.
+
+## Success Criteria
+
+The rule implementation is complete when:
+- [x] Husky is installed and properly configured
+- [x] Pre-commit hook runs lint-staged successfully
+- [x] lint-staged configuration covers all relevant file types
+- [x] TypeScript type checking is included in pre-commit process
+- [x] Quality check scripts are available for manual execution
+- [x] Pre-commit hook prevents bad code from being committed
+- [x] No commits can bypass the quality checks
+
+## Examples
+
+✅ **Correct Implementation:**
+
+**package.json configuration:**
+```json
+{
+  "scripts": {
+    "prepare": "husky init",
+    "lint": "eslint . --ext .js,.jsx,.ts,.tsx --fix",
+    "lint:check": "eslint . --ext .js,.jsx,.ts,.tsx",
+    "format": "prettier --write .",
+    "format:check": "prettier --check .",
+    "type-check": "tsc --noEmit",
+    "quality:check": "npm run lint:check && npm run format:check && npm run type-check"
+  },
+  "lint-staged": {
+    "*.{js,jsx,ts,tsx}": [
+      "node_modules\\.bin\\eslint --fix --max-warnings=0",
+      "node_modules\\.bin\\prettier --write"
+    ],
+    "*.{json,md,css,scss}": [
+      "node_modules\\.bin\\prettier --write"
+    ],
+    "*.{ts,tsx}": [
+      "node_modules\\.bin\\tsc-files --noEmit"
+    ]
+  },
+  "devDependencies": {
+    "husky": "^9.0.0",
+    "lint-staged": "^15.0.0",
+    "tsc-files": "^1.1.0"
+  }
+}
+```
+
+**.husky/pre-commit file (Husky v9+ format):**
+```bash
+npx lint-staged
+```
+
+**Workflow example:**
+```powershell
+# Developer workflow
+git add .
+git commit -m "feat: add new component"
+# Pre-commit hook automatically runs:
+# 1. ESLint fixes and checks staged files
+# 2. Prettier formats staged files
+# 3. TypeScript type checks entire project
+# 4. Commit succeeds only if all checks pass
+```
+
+❌ **Incorrect Implementation:**
+```json
+{
+  "lint-staged": {
+    "*": "eslint --fix"  // Too broad, will try to lint non-JS files
+  }
+}
+```
+
+```bash
+# Missing type checking in pre-commit hook
+#!/bin/sh
+npx lint-staged
+# No TypeScript checking - type errors can slip through
+```
+
+---
+
+**Note**: This rule ensures no code with linting errors, formatting issues, or TypeScript errors can be committed to the repository, maintaining consistent code quality across the entire development team.
+

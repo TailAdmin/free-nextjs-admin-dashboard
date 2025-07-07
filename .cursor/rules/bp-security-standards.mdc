@@ -1,0 +1,527 @@
+---
+description: When writing code or creating deployments and needing to be security compliant
+globs: 
+alwaysApply: false
+---
+# Security Standards
+
+Comprehensive security standards for NextJS applications to protect against common vulnerabilities and ensure robust, secure web applications.
+
+## Prerequisites
+
+- NextJS 15+ with TypeScript
+- Understanding of web security principles
+- Knowledge of authentication patterns
+- Windows PowerShell for commands
+
+## Core Principle
+
+**ALWAYS implement security-first development practices, including input validation, authentication, authorization, and vulnerability prevention.**
+
+## Authentication & Authorization
+
+### NextAuth.js Setup
+```powershell
+# Install NextAuth.js
+npm install next-auth
+npm install --save-dev @types/next-auth
+```
+
+### Secure Authentication Configuration
+```typescript
+// ✅ Correct - pages/api/auth/[...nextauth].ts
+import NextAuth from 'next-auth';
+import CredentialsProvider from 'next-auth/providers/credentials';
+import { compare } from 'bcryptjs';
+
+export default NextAuth({
+  providers: [
+    CredentialsProvider({
+      name: 'credentials',
+      credentials: {
+        email: { label: 'Email', type: 'email' },
+        password: { label: 'Password', type: 'password' }
+      },
+      async authorize(credentials) {
+        if (!credentials?.email || !credentials?.password) {
+          return null;
+        }
+
+        const user = await getUserByEmail(credentials.email);
+        if (!user) {
+          return null;
+        }
+
+        const isPasswordValid = await compare(credentials.password, user.hashedPassword);
+        if (!isPasswordValid) {
+          return null;
+        }
+
+        return {
+          id: user.id,
+          email: user.email,
+          name: user.name,
+        };
+      },
+    }),
+  ],
+  session: {
+    strategy: 'jwt',
+    maxAge: 30 * 24 * 60 * 60, // 30 days
+  },
+  jwt: {
+    secret: process.env.NEXTAUTH_SECRET,
+  },
+  pages: {
+    signIn: '/auth/signin',
+    error: '/auth/error',
+  },
+  callbacks: {
+    async jwt({ token, user }) {
+      if (user) {
+        token.id = user.id;
+      }
+      return token;
+    },
+    async session({ session, token }) {
+      if (token) {
+        session.user.id = token.id as string;
+      }
+      return session;
+    },
+  },
+});
+```
+
+### Route Protection
+```typescript
+// ✅ Correct - middleware.ts
+import { withAuth } from 'next-auth/middleware';
+
+export default withAuth(
+  function middleware(req) {
+    // Additional middleware logic here
+  },
+  {
+    callbacks: {
+      authorized: ({ token, req }) => {
+        // Check if user has required permissions
+        if (req.nextUrl.pathname.startsWith('/admin')) {
+          return token?.role === 'admin';
+        }
+        return !!token;
+      },
+    },
+  }
+);
+
+export const config = {
+  matcher: ['/dashboard/:path*', '/admin/:path*', '/api/protected/:path*'],
+};
+```
+
+## XSS Prevention
+
+### Input Sanitization
+```typescript
+// ✅ Correct - Sanitize user input
+import DOMPurify from 'isomorphic-dompurify';
+
+interface SafeHTMLProps {
+  content: string;
+  className?: string;
+}
+
+export const SafeHTML: React.FC<SafeHTMLProps> = ({ content, className }) => {
+  const sanitizedContent = DOMPurify.sanitize(content, {
+    ALLOWED_TAGS: ['p', 'br', 'strong', 'em', 'u'],
+    ALLOWED_ATTR: [],
+  });
+
+  return (
+    <div 
+      className={className}
+      dangerouslySetInnerHTML={{ __html: sanitizedContent }}
+    />
+  );
+};
+
+// ❌ Incorrect - Raw HTML injection
+export const UnsafeHTML: React.FC<{ content: string }> = ({ content }) => {
+  return <div dangerouslySetInnerHTML={{ __html: content }} />;
+};
+```
+
+### Content Security Policy
+```typescript
+// ✅ Correct - next.config.ts with CSP
+const nextConfig = {
+  async headers() {
+    return [
+      {
+        source: '/(.*)',
+        headers: [
+          {
+            key: 'Content-Security-Policy',
+            value: [
+              "default-src 'self'",
+              "script-src 'self' 'unsafe-inline' 'unsafe-eval'",
+              "style-src 'self' 'unsafe-inline'",
+              "img-src 'self' data: https:",
+              "font-src 'self'",
+              "connect-src 'self'",
+              "frame-ancestors 'none'",
+            ].join('; '),
+          },
+          {
+            key: 'X-Frame-Options',
+            value: 'DENY',
+          },
+          {
+            key: 'X-Content-Type-Options',
+            value: 'nosniff',
+          },
+          {
+            key: 'Referrer-Policy',
+            value: 'origin-when-cross-origin',
+          },
+        ],
+      },
+    ];
+  },
+};
+```
+
+## Input Validation
+
+### Server-Side Validation
+```typescript
+// ✅ Correct - API route with validation
+import { z } from 'zod';
+import { NextRequest, NextResponse } from 'next/server';
+
+const CreateUserSchema = z.object({
+  name: z.string().min(2).max(50),
+  email: z.string().email(),
+  password: z.string().min(8).regex(/^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)/),
+});
+
+export async function POST(request: NextRequest) {
+  try {
+    const body = await request.json();
+    
+    // Validate input
+    const validatedData = CreateUserSchema.parse(body);
+    
+    // Check if user already exists
+    const existingUser = await getUserByEmail(validatedData.email);
+    if (existingUser) {
+      return NextResponse.json(
+        { error: 'User already exists' },
+        { status: 400 }
+      );
+    }
+    
+    // Hash password
+    const hashedPassword = await hash(validatedData.password, 12);
+    
+    // Create user
+    const user = await createUser({
+      ...validatedData,
+      password: hashedPassword,
+    });
+    
+    return NextResponse.json({ user: { id: user.id, email: user.email } });
+  } catch (error) {
+    if (error instanceof z.ZodError) {
+      return NextResponse.json(
+        { error: 'Invalid input', details: error.errors },
+        { status: 400 }
+      );
+    }
+    
+    return NextResponse.json(
+      { error: 'Internal server error' },
+      { status: 500 }
+    );
+  }
+}
+```
+
+### Client-Side Validation
+```typescript
+// ✅ Correct - Form validation with react-hook-form + zod
+import { useForm } from 'react-hook-form';
+import { zodResolver } from '@hookform/resolvers/zod';
+import { z } from 'zod';
+
+const LoginSchema = z.object({
+  email: z.string().email('Invalid email address'),
+  password: z.string().min(8, 'Password must be at least 8 characters'),
+});
+
+type LoginFormData = z.infer<typeof LoginSchema>;
+
+export const LoginForm = () => {
+  const {
+    register,
+    handleSubmit,
+    formState: { errors, isSubmitting },
+  } = useForm<LoginFormData>({
+    resolver: zodResolver(LoginSchema),
+  });
+
+  const onSubmit = async (data: LoginFormData) => {
+    try {
+      const response = await fetch('/api/auth/login', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(data),
+      });
+      
+      if (!response.ok) {
+        throw new Error('Login failed');
+      }
+      
+      // Handle successful login
+    } catch (error) {
+      // Handle error
+    }
+  };
+
+  return (
+    <form onSubmit={handleSubmit(onSubmit)}>
+      <input
+        {...register('email')}
+        type="email"
+        placeholder="Email"
+        autoComplete="email"
+      />
+      {errors.email && <span>{errors.email.message}</span>}
+      
+      <input
+        {...register('password')}
+        type="password"
+        placeholder="Password"
+        autoComplete="current-password"
+      />
+      {errors.password && <span>{errors.password.message}</span>}
+      
+      <button type="submit" disabled={isSubmitting}>
+        {isSubmitting ? 'Signing in...' : 'Sign In'}
+      </button>
+    </form>
+  );
+};
+```
+
+## Environment Variables Security
+
+### Secure Environment Configuration
+```bash
+# ✅ Correct - .env.local
+# Public variables (accessible in browser)
+NEXT_PUBLIC_APP_URL=https://myapp.com
+NEXT_PUBLIC_API_URL=https://api.myapp.com
+
+# Server-only variables (never sent to browser)
+DATABASE_URL=postgresql://user:password@localhost:5432/myapp
+NEXTAUTH_SECRET=your-super-secret-jwt-secret-here
+NEXTAUTH_URL=https://myapp.com
+API_SECRET_KEY=your-api-secret-key
+```
+
+### Environment Variable Validation
+```typescript
+// ✅ Correct - lib/env.ts
+import { z } from 'zod';
+
+const envSchema = z.object({
+  NODE_ENV: z.enum(['development', 'production', 'test']),
+  DATABASE_URL: z.string().url(),
+  NEXTAUTH_SECRET: z.string().min(32),
+  NEXTAUTH_URL: z.string().url(),
+  NEXT_PUBLIC_APP_URL: z.string().url(),
+});
+
+export const env = envSchema.parse(process.env);
+```
+
+## CSRF Protection
+
+### API Route Protection
+```typescript
+// ✅ Correct - CSRF protection for API routes
+import { getServerSession } from 'next-auth';
+import { authOptions } from '../auth/[...nextauth]';
+
+export async function POST(request: NextRequest) {
+  const session = await getServerSession(authOptions);
+  
+  if (!session) {
+    return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+  }
+  
+  // Verify CSRF token
+  const csrfToken = request.headers.get('X-CSRF-Token');
+  const sessionToken = session.csrfToken;
+  
+  if (!csrfToken || csrfToken !== sessionToken) {
+    return NextResponse.json({ error: 'Invalid CSRF token' }, { status: 403 });
+  }
+  
+  // Process request
+}
+```
+
+## Dependency Security
+
+### Vulnerability Scanning
+```powershell
+# Install audit tools
+npm install --save-dev npm-audit-resolver audit-ci
+
+# Run security audit
+npm audit --audit-level moderate
+
+# Fix vulnerabilities automatically
+npm audit fix
+
+# Check for outdated packages
+npm outdated
+```
+
+### Package.json Security Scripts
+```json
+{
+  "scripts": {
+    "security:audit": "npm audit --audit-level moderate",
+    "security:fix": "npm audit fix",
+    "security:check": "audit-ci --moderate",
+    "security:outdated": "npm outdated"
+  }
+}
+```
+
+## Secure Headers Configuration
+
+### Security Headers Setup
+```typescript
+// ✅ Correct - Security headers in next.config.ts
+const securityHeaders = [
+  {
+    key: 'X-DNS-Prefetch-Control',
+    value: 'on'
+  },
+  {
+    key: 'Strict-Transport-Security',
+    value: 'max-age=63072000; includeSubDomains; preload'
+  },
+  {
+    key: 'X-XSS-Protection',
+    value: '1; mode=block'
+  },
+  {
+    key: 'X-Frame-Options',
+    value: 'SAMEORIGIN'
+  },
+  {
+    key: 'Permissions-Policy',
+    value: 'camera=(), microphone=(), geolocation=()'
+  },
+  {
+    key: 'X-Content-Type-Options',
+    value: 'nosniff'
+  },
+  {
+    key: 'Referrer-Policy',
+    value: 'origin-when-cross-origin'
+  }
+];
+
+const nextConfig = {
+  async headers() {
+    return [
+      {
+        source: '/(.*)',
+        headers: securityHeaders,
+      },
+    ];
+  },
+};
+```
+
+## Verification Steps
+
+### Security Checklist
+- [ ] **Authentication** implemented with secure session management
+- [ ] **Input validation** on both client and server
+- [ ] **XSS prevention** through sanitization and CSP
+- [ ] **CSRF protection** implemented for state-changing operations
+- [ ] **Environment variables** properly secured and validated
+- [ ] **Dependencies** regularly audited for vulnerabilities
+- [ ] **Security headers** configured correctly
+
+### Automated Security Testing
+```powershell
+# Run security tests
+npm run security:audit
+npm run security:check
+
+# Test for common vulnerabilities
+npx @next/bundle-analyzer
+npm run build
+```
+
+## Success Criteria
+
+- [x] **Authentication system** secure and properly configured
+- [x] **Input validation** prevents injection attacks
+- [x] **XSS protection** implemented at multiple layers
+- [x] **CSRF tokens** protect state-changing operations
+- [x] **Environment variables** secured and validated
+- [x] **Dependencies** regularly scanned for vulnerabilities
+- [x] **Security headers** configured for defense in depth
+
+## Security Monitoring
+
+### Error Logging
+```typescript
+// ✅ Correct - Security event logging
+import { logger } from '@/lib/logger';
+
+export const logSecurityEvent = (
+  event: string,
+  details: Record<string, any>,
+  userId?: string
+) => {
+  logger.warn('Security Event', {
+    event,
+    userId,
+    timestamp: new Date().toISOString(),
+    userAgent: details.userAgent,
+    ipAddress: details.ipAddress,
+    ...details,
+  });
+};
+
+// Usage in API routes
+export async function POST(request: NextRequest) {
+  try {
+    // Process request
+  } catch (error) {
+    logSecurityEvent('failed_login_attempt', {
+      email: requestData.email,
+      userAgent: request.headers.get('user-agent'),
+      ipAddress: request.ip,
+    });
+    
+    return NextResponse.json({ error: 'Authentication failed' }, { status: 401 });
+  }
+}
+```
+
+---
+
+**Note**: This rule ensures comprehensive security practices are implemented to protect against common web vulnerabilities and maintain user trust.
+

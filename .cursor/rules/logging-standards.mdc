@@ -1,0 +1,58 @@
+---
+description: 
+globs: 
+alwaysApply: true
+---
+# Error Handling & Logging Standards
+
+## Core Principle
+
+**ALWAYS implement comprehensive error handling and logging for production-ready applications, using structured logging patterns and proper error boundaries.**
+
+## Frontend Error Handling (React/TypeScript)
+
+### Error Boundaries
+- Implement React Error Boundaries for component-level error catching
+- Provide fallback UI for graceful error handling
+- Log errors with context and user information
+
+### API Error Handling
+- Implement consistent error response patterns
+- Add retry logic for transient failures
+- Log API failures with request/response context
+
+### Client-Side Logging
+- Use structured logging with consistent format
+- Include user context and session information
+- Implement log levels (error, warn, info, debug)
+
+## Backend Error Handling (API Routes)
+
+### API Route Error Handling
+- Implement try-catch blocks in all API routes
+- Return consistent error response format
+- Log errors with request context and stack traces
+
+### Validation Errors
+- Use Zod or similar for input validation
+- Return detailed validation error messages
+- Log validation failures for monitoring
+
+### Database Error Handling
+- Handle Prisma/database connection errors
+- Implement proper transaction rollback
+- Log database errors with query context
+
+## Integration Patterns
+
+### Error Correlation
+- Use correlation IDs across frontend and backend
+- Link errors to user sessions and requests
+- Implement error aggregation and alerting
+
+### Monitoring Integration
+- Consider error tracking services (Sentry, LogRocket, etc.)
+- Implement health checks and uptime monitoring
+- Set up alerting for critical error patterns
+
+**Note: This overview provides general patterns. Implement specific logging libraries and error tracking services based on your project requirements.**

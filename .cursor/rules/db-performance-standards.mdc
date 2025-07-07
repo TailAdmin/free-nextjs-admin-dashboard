@@ -1,0 +1,1244 @@
+---
+description: Used when analysing databases and performance guidance is required
+globs: 
+alwaysApply: false
+---
+# Database Performance Standards
+
+Comprehensive performance standards for database operations, ensuring optimal query performance, efficient connection management, strategic caching, and comprehensive monitoring for scalable applications.
+
+## Prerequisites
+
+Before implementing these standards, ensure:
+- Database layer implemented (following db-client-standards.mdc)
+- PostgreSQL database with appropriate resources allocated
+- Redis or compatible caching solution available
+- Performance monitoring tools configured
+- Understanding of database indexing and query optimization
+- Windows PowerShell for command execution
+
+## Core Principle
+
+**ALWAYS optimize database operations for performance through strategic indexing, query optimization, connection pooling, caching strategies, and continuous monitoring while maintaining data consistency and reliability.**
+
+## Query Optimization
+
+### Prisma Query Optimization Patterns
+```powershell
+# Create performance utilities
+New-Item -Path "src\lib\database\performance.ts" -ItemType File
+```
+
+```typescript
+// src/lib/database/performance.ts
+import { prisma } from './prisma';
+import type { Prisma } from '@prisma/client';
+
+// ✅ Correct query optimization utilities
+export class QueryOptimizer {
+  
+  // ✅ Correct select field optimization
+  static createSelectFields<T extends Record<string, any>>(fields: (keyof T)[]): any {
+    return fields.reduce((acc, field) => {
+      acc[field] = true;
+      return acc;
+    }, {} as any);
+  }
+
+  // ✅ Correct pagination with cursor optimization
+  static createCursorPagination(cursor?: string, take: number = 20) {
+    return {
+      take,
+      ...(cursor && {
+        skip: 1,
+        cursor: { id: cursor },
+      }),
+      orderBy: { createdAt: 'desc' as const },
+    };
+  }
+
+  // ✅ Correct batch operations optimization
+  static async batchCreate<T>(
+    model: any,
+    data: T[],
+    batchSize: number = 100
+  ): Promise<void> {
+    for (let i = 0; i < data.length; i += batchSize) {
+      const batch = data.slice(i, i + batchSize);
+      await model.createMany({
+        data: batch,
+        skipDuplicates: true,
+      });
+    }
+  }
+
+  // ✅ Correct N+1 query prevention
+  static async findManyWithIncludes<T>(
+    model: any,
+    where: any,
+    includes: Record<string, any>
+  ): Promise<T[]> {
+    return model.findMany({
+      where,
+      include: includes,
+      // Use specific field selection to reduce data transfer
+      select: this.optimizeSelect(includes),
+    });
+  }
+
+  private static optimizeSelect(includes: Record<string, any>): any {
+    const select: any = {
+      id: true,
+      createdAt: true,
+      updatedAt: true,
+    };
+
+    // Only select necessary fields for included relations
+    Object.keys(includes).forEach(key => {
+      if (includes[key] === true) {
+        select[key] = {
+          select: {
+            id: true,
+            // Add only essential fields for each relation
+          },
+        };
+      }
+    });
+
+    return select;
+  }
+}
+
+// ✅ Correct query performance monitoring
+export class QueryMonitor {
+  private static queryTimes: Map<string, number[]> = new Map();
+
+  static async trackQuery<T>(
+    queryName: string,
+    queryFn: () => Promise<T>
+  ): Promise<T> {
+    const startTime = Date.now();
+    
+    try {
+      const result = await queryFn();
+      const duration = Date.now() - startTime;
+      
+      this.recordQueryTime(queryName, duration);
+      
+      // Log slow queries
+      if (duration > 1000) { // 1 second threshold
+        console.warn(`Slow query detected: ${queryName} took ${duration}ms`);
+      }
+      
+      return result;
+    } catch (error) {
+      const duration = Date.now() - startTime;
+      console.error(`Query failed: ${queryName} after ${duration}ms`, error);
+      throw error;
+    }
+  }
+
+  private static recordQueryTime(queryName: string, duration: number): void {
+    if (!this.queryTimes.has(queryName)) {
+      this.queryTimes.set(queryName, []);
+    }
+    
+    const times = this.queryTimes.get(queryName)!;
+    times.push(duration);
+    
+    // Keep only last 100 measurements
+    if (times.length > 100) {
+      times.shift();
+    }
+  }
+
+  static getQueryStats(queryName?: string): any {
+    if (queryName) {
+      const times = this.queryTimes.get(queryName) || [];
+      return this.calculateStats(queryName, times);
+    }
+    
+    const allStats: any = {};
+    this.queryTimes.forEach((times, name) => {
+      allStats[name] = this.calculateStats(name, times);
+    });
+    
+    return allStats;
+  }
+
+  private static calculateStats(name: string, times: number[]): any {
+    if (times.length === 0) return { name, count: 0 };
+    
+    const sorted = [...times].sort((a, b) => a - b);
+    return {
+      name,
+      count: times.length,
+      min: Math.min(...times),
+      max: Math.max(...times),
+      avg: Math.round(times.reduce((a, b) => a + b, 0) / times.length),
+      p50: sorted[Math.floor(sorted.length * 0.5)],
+      p95: sorted[Math.floor(sorted.length * 0.95)],
+      p99: sorted[Math.floor(sorted.length * 0.99)],
+    };
+  }
+}
+
+// ❌ Incorrect - Unoptimized query patterns
+// export class BadQueryPatterns {
+//   // Selecting all fields when only a few are needed
+//   async getAllUsers() {
+//     return prisma.user.findMany(); // Selects all fields
+//   }
+//   
+//   // N+1 query problem
+//   async getUsersWithPosts() {
+//     const users = await prisma.user.findMany();
+//     for (const user of users) {
+//       user.posts = await prisma.post.findMany({ where: { authorId: user.id } });
+//     }
+//     return users;
+//   }
+// }
+```
+
+### Optimized Repository Patterns
+```powershell
+# Create performance-optimized user repository
+New-Item -Path "src\lib\repositories\optimized-user.repository.ts" -ItemType File
+```
+
+```typescript
+// src/lib/repositories/optimized-user.repository.ts
+import { UserRepository } from './user.repository';
+import { QueryOptimizer, QueryMonitor } from '@/lib/database/performance';
+import type { User, Post } from '@prisma/client';
+
+// ✅ Correct performance-optimized repository
+export class OptimizedUserRepository extends UserRepository {
+  
+  // ✅ Correct efficient user search with pagination
+  async searchUsersOptimized(
+    searchTerm: string,
+    cursor?: string,
+    take: number = 20
+  ): Promise<User[]> {
+    return QueryMonitor.trackQuery('searchUsers', async () => {
+      const pagination = QueryOptimizer.createCursorPagination(cursor, take);
+      
+      return this.model.findMany({
+        where: {
+          OR: [
+            { name: { contains: searchTerm, mode: 'insensitive' } },
+            { email: { contains: searchTerm, mode: 'insensitive' } },
+          ],
+          isActive: true,
+        },
+        select: {
+          id: true,
+          name: true,
+          email: true,
+          createdAt: true,
+          // Only select needed fields
+        },
+        ...pagination,
+      });
+    });
+  }
+
+  // ✅ Correct optimized user with posts (preventing N+1)
+  async findUsersWithPostsOptimized(limit: number = 10): Promise<any[]> {
+    return QueryMonitor.trackQuery('findUsersWithPosts', async () => {
+      return this.model.findMany({
+        take: limit,
+        select: {
+          id: true,
+          name: true,
+          email: true,
+          posts: {
+            select: {
+              id: true,
+              title: true,
+              published: true,
+              createdAt: true,
+            },
+            where: { published: true },
+            orderBy: { createdAt: 'desc' },
+            take: 5, // Limit posts per user
+          },
+        },
+        where: { isActive: true },
+        orderBy: { createdAt: 'desc' },
+      });
+    });
+  }
+
+  // ✅ Correct bulk user creation with optimization
+  async createManyUsersOptimized(userData: any[]): Promise<void> {
+    return QueryMonitor.trackQuery('createManyUsers', async () => {
+      await QueryOptimizer.batchCreate(this.model, userData, 100);
+    });
+  }
+
+  // ✅ Correct aggregation with proper indexing
+  async getUserStatsOptimized(): Promise<any> {
+    return QueryMonitor.trackQuery('getUserStats', async () => {
+      const [totalUsers, activeUsers, recentUsers] = await Promise.all([
+        this.model.count(),
+        this.model.count({ where: { isActive: true } }),
+        this.model.count({
+          where: {
+            createdAt: {
+              gte: new Date(Date.now() - 30 * 24 * 60 * 60 * 1000), // Last 30 days
+            },
+          },
+        }),
+      ]);
+
+      return { totalUsers, activeUsers, recentUsers };
+    });
+  }
+
+  // ✅ Correct efficient filtering with database-level operations
+  async findActiveUsersWithFilters(filters: {
+    namePattern?: string;
+    createdAfter?: Date;
+    hasProfile?: boolean;
+  }): Promise<User[]> {
+    return QueryMonitor.trackQuery('findActiveUsersWithFilters', async () => {
+      const where: any = { isActive: true };
+
+      if (filters.namePattern) {
+        where.name = { contains: filters.namePattern, mode: 'insensitive' };
+      }
+
+      if (filters.createdAfter) {
+        where.createdAt = { gte: filters.createdAfter };
+      }
+
+      if (filters.hasProfile !== undefined) {
+        where.profile = filters.hasProfile ? { isNot: null } : { is: null };
+      }
+
+      return this.model.findMany({
+        where,
+        select: QueryOptimizer.createSelectFields(['id', 'name', 'email', 'createdAt']),
+        orderBy: { createdAt: 'desc' },
+        take: 100, // Reasonable limit
+      });
+    });
+  }
+}
+```
+
+## Database Indexing Strategy
+
+### Index Creation and Management
+```sql
+-- PostgreSQL index optimization scripts
+-- Run these in your PostgreSQL database
+
+-- ✅ Correct indexes for common query patterns
+
+-- Users table indexes
+CREATE INDEX CONCURRENTLY IF NOT EXISTS idx_users_email 
+ON users(email) WHERE is_active = true;
+
+CREATE INDEX CONCURRENTLY IF NOT EXISTS idx_users_name_search 
+ON users USING gin(name gin_trgm_ops) WHERE is_active = true;
+
+CREATE INDEX CONCURRENTLY IF NOT EXISTS idx_users_created_at 
+ON users(created_at DESC) WHERE is_active = true;
+
+CREATE INDEX CONCURRENTLY IF NOT EXISTS idx_users_active_created 
+ON users(is_active, created_at DESC);
+
+-- Posts table indexes  
+CREATE INDEX CONCURRENTLY IF NOT EXISTS idx_posts_author_published 
+ON posts(author_id, published, created_at DESC);
+
+CREATE INDEX CONCURRENTLY IF NOT EXISTS idx_posts_published_created 
+ON posts(published, created_at DESC) WHERE published = true;
+
+CREATE INDEX CONCURRENTLY IF NOT EXISTS idx_posts_title_search 
+ON posts USING gin(title gin_trgm_ops) WHERE published = true;
+
+-- Composite indexes for complex queries
+CREATE INDEX CONCURRENTLY IF NOT EXISTS idx_posts_author_status_date 
+ON posts(author_id, published, created_at DESC, updated_at DESC);
+
+-- Audit logs indexes (for security and performance)
+CREATE INDEX CONCURRENTLY IF NOT EXISTS idx_audit_logs_user_timestamp 
+ON audit_logs(user_id, timestamp DESC);
+
+CREATE INDEX CONCURRENTLY IF NOT EXISTS idx_audit_logs_table_record 
+ON audit_logs(table_name, record_id, timestamp DESC);
+```
+
+### Index Monitoring and Maintenance
+```powershell
+# Create index monitoring utilities
+New-Item -Path "src\lib\database\index-monitor.ts" -ItemType File
+```
+
+```typescript
+// src/lib/database/index-monitor.ts
+import { prisma } from './prisma';
+
+// ✅ Correct index usage monitoring
+export class IndexMonitor {
+  
+  // ✅ Correct index usage analysis
+  static async getIndexUsageStats(): Promise<any[]> {
+    return prisma.$queryRaw`
+      SELECT 
+        schemaname,
+        tablename,
+        indexname,
+        idx_tup_read,
+        idx_tup_fetch,
+        idx_scan,
+        CASE 
+          WHEN idx_scan = 0 THEN 'UNUSED'
+          WHEN idx_scan < 100 THEN 'LOW'
+          WHEN idx_scan < 1000 THEN 'MEDIUM'
+          ELSE 'HIGH'
+        END as usage_level
+      FROM pg_stat_user_indexes 
+      WHERE schemaname = 'public'
+      ORDER BY idx_scan DESC;
+    `;
+  }
+
+  // ✅ Correct missing index detection
+  static async findMissingIndexes(): Promise<any[]> {
+    return prisma.$queryRaw`
+      SELECT 
+        schemaname,
+        tablename,
+        seq_scan,
+        seq_tup_read,
+        idx_scan,
+        n_tup_ins + n_tup_upd + n_tup_del as modifications,
+        CASE 
+          WHEN seq_scan > idx_scan * 2 AND seq_tup_read > 1000 
+          THEN 'NEEDS_INDEX'
+          ELSE 'OK'
+        END as recommendation
+      FROM pg_stat_user_tables 
+      WHERE schemaname = 'public'
+      AND seq_scan > idx_scan * 2 
+      AND seq_tup_read > 1000
+      ORDER BY seq_tup_read DESC;
+    `;
+  }
+
+  // ✅ Correct table size monitoring
+  static async getTableSizes(): Promise<any[]> {
+    return prisma.$queryRaw`
+      SELECT 
+        schemaname,
+        tablename,
+        pg_size_pretty(pg_total_relation_size(schemaname||'.'||tablename)) as size,
+        pg_size_pretty(pg_relation_size(schemaname||'.'||tablename)) as table_size,
+        pg_size_pretty(pg_total_relation_size(schemaname||'.'||tablename) - pg_relation_size(schemaname||'.'||tablename)) as index_size
+      FROM pg_tables 
+      WHERE schemaname = 'public'
+      ORDER BY pg_total_relation_size(schemaname||'.'||tablename) DESC;
+    `;
+  }
+
+  // ✅ Correct slow query detection
+  static async getSlowQueries(): Promise<any[]> {
+    // This requires pg_stat_statements extension
+    return prisma.$queryRaw`
+      SELECT 
+        query,
+        calls,
+        total_time,
+        mean_time,
+        rows,
+        100.0 * shared_blks_hit / nullif(shared_blks_hit + shared_blks_read, 0) AS hit_percent
+      FROM pg_stat_statements
+      WHERE mean_time > 100 -- Queries taking more than 100ms on average
+      ORDER BY mean_time DESC
+      LIMIT 20;
+         `;
+   }
+ }
+ ```
+
+## Connection Pooling and Configuration
+
+### Optimized Database Connection Setup
+```powershell
+# Update database configuration for performance
+# Add to .env.local
+Add-Content -Path ".env.local" -Value @"
+
+# Database Performance Configuration
+DATABASE_URL="postgresql://username:password@localhost:5432/mydb?sslmode=require&connection_limit=20&pool_timeout=20&connect_timeout=10"
+DATABASE_POOL_MIN=5
+DATABASE_POOL_MAX=20
+DATABASE_POOL_IDLE_TIMEOUT=30000
+DATABASE_STATEMENT_TIMEOUT=30000
+"@
+```
+
+```typescript
+// src/lib/database/connection-pool.ts
+import { PrismaClient } from '@prisma/client';
+
+// ✅ Correct connection pool configuration
+export class DatabaseConnectionPool {
+  private static instance: PrismaClient;
+  private static connectionCount = 0;
+  private static maxConnections = 20;
+
+  static getInstance(): PrismaClient {
+    if (!this.instance) {
+      this.instance = new PrismaClient({
+        datasources: {
+          db: {
+            url: process.env.DATABASE_URL,
+          },
+        },
+        log: process.env.NODE_ENV === 'development' ? ['query', 'warn', 'error'] : ['error'],
+        // Connection pool optimization
+        __internal: {
+          engine: {
+            // Connection pool settings
+            connectionString: process.env.DATABASE_URL,
+            poolSize: parseInt(process.env.DATABASE_POOL_MAX || '20'),
+            poolTimeout: parseInt(process.env.DATABASE_POOL_IDLE_TIMEOUT || '30000'),
+          },
+        },
+      });
+
+      // Connection monitoring
+      this.setupConnectionMonitoring();
+    }
+
+    return this.instance;
+  }
+
+  private static setupConnectionMonitoring(): void {
+    // Monitor connection events
+    this.instance.$on('query', (e) => {
+      if (e.duration > 1000) {
+        console.warn(`Slow query detected: ${e.duration}ms - ${e.query.substring(0, 100)}...`);
+      }
+    });
+
+    // Connection health checks
+    setInterval(async () => {
+      try {
+        await this.instance.$queryRaw`SELECT 1`;
+      } catch (error) {
+        console.error('Database health check failed:', error);
+      }
+    }, 60000); // Check every minute
+  }
+
+  // ✅ Correct connection pool status monitoring
+  static async getConnectionStats(): Promise<any> {
+    try {
+      const stats = await this.instance.$queryRaw`
+        SELECT 
+          count(*) as total_connections,
+          count(*) FILTER (WHERE state = 'active') as active_connections,
+          count(*) FILTER (WHERE state = 'idle') as idle_connections,
+          count(*) FILTER (WHERE state = 'idle in transaction') as idle_in_transaction
+        FROM pg_stat_activity 
+        WHERE datname = current_database();
+      `;
+
+      return stats[0];
+    } catch (error) {
+      console.error('Failed to get connection stats:', error);
+      return null;
+    }
+  }
+
+  // ✅ Correct graceful shutdown
+  static async shutdown(): Promise<void> {
+    if (this.instance) {
+      await this.instance.$disconnect();
+    }
+  }
+}
+
+// ❌ Incorrect - No connection pooling management
+// export class BadConnectionManager {
+//   static getConnection() {
+//     return new PrismaClient(); // Creates new connection every time
+//   }
+// }
+```
+
+## Caching Strategy
+
+### Redis Cache Integration
+```powershell
+# Install Redis caching dependency
+npm install redis @types/redis
+
+# Create cache service
+New-Item -Path "src\lib\services\cache.service.ts" -ItemType File
+```
+
+```typescript
+// src/lib/services/cache.service.ts
+import { createClient, RedisClientType } from 'redis';
+
+// ✅ Correct Redis cache implementation
+export class CacheService {
+  private static client: RedisClientType;
+  private static isConnected = false;
+
+  static async initialize(): Promise<void> {
+    if (!this.client) {
+      this.client = createClient({
+        url: process.env.REDIS_URL || 'redis://localhost:6379',
+        socket: {
+          connectTimeout: 5000,
+          lazyConnect: true,
+        },
+      });
+
+      this.client.on('error', (err) => {
+        console.error('Redis Client Error:', err);
+        this.isConnected = false;
+      });
+
+      this.client.on('connect', () => {
+        console.log('Redis Client Connected');
+        this.isConnected = true;
+      });
+
+      await this.client.connect();
+    }
+  }
+
+  // ✅ Correct cache-aside pattern
+  static async get<T>(key: string): Promise<T | null> {
+    if (!this.isConnected) return null;
+
+    try {
+      const value = await this.client.get(key);
+      return value ? JSON.parse(value) : null;
+    } catch (error) {
+      console.error('Cache get error:', error);
+      return null;
+    }
+  }
+
+  static async set(key: string, value: any, ttlSeconds: number = 3600): Promise<void> {
+    if (!this.isConnected) return;
+
+    try {
+      await this.client.setEx(key, ttlSeconds, JSON.stringify(value));
+    } catch (error) {
+      console.error('Cache set error:', error);
+    }
+  }
+
+  static async del(key: string): Promise<void> {
+    if (!this.isConnected) return;
+
+    try {
+      await this.client.del(key);
+    } catch (error) {
+      console.error('Cache delete error:', error);
+    }
+  }
+
+  // ✅ Correct cache invalidation patterns
+  static async invalidatePattern(pattern: string): Promise<void> {
+    if (!this.isConnected) return;
+
+    try {
+      const keys = await this.client.keys(pattern);
+      if (keys.length > 0) {
+        await this.client.del(keys);
+      }
+    } catch (error) {
+      console.error('Cache pattern invalidation error:', error);
+    }
+  }
+
+  // ✅ Correct cache warming
+  static async warmCache(key: string, dataFetcher: () => Promise<any>, ttl: number = 3600): Promise<any> {
+    const cached = await this.get(key);
+    if (cached) return cached;
+
+    const data = await dataFetcher();
+    await this.set(key, data, ttl);
+    return data;
+  }
+}
+
+// ✅ Correct cached repository pattern
+export class CachedUserRepository {
+  private static CACHE_TTL = 300; // 5 minutes
+  private static CACHE_PREFIX = 'user:';
+
+  // ✅ Correct cached user lookup
+  static async findById(id: string): Promise<any> {
+    const cacheKey = `${this.CACHE_PREFIX}${id}`;
+    
+    return CacheService.warmCache(
+      cacheKey,
+      async () => {
+        // Fallback to database
+        return prisma.user.findUnique({ where: { id } });
+      },
+      this.CACHE_TTL
+    );
+  }
+
+  // ✅ Correct cache invalidation on update
+  static async update(id: string, data: any): Promise<any> {
+    const user = await prisma.user.update({ where: { id }, data });
+    
+    // Invalidate related caches
+    await CacheService.del(`${this.CACHE_PREFIX}${id}`);
+    await CacheService.invalidatePattern(`${this.CACHE_PREFIX}list:*`);
+    
+    return user;
+  }
+
+  // ✅ Correct cached search with pagination
+  static async searchCached(searchTerm: string, page: number = 1, limit: number = 20): Promise<any> {
+    const cacheKey = `${this.CACHE_PREFIX}search:${searchTerm}:${page}:${limit}`;
+    
+    return CacheService.warmCache(
+      cacheKey,
+      async () => {
+        return prisma.user.findMany({
+          where: {
+            OR: [
+              { name: { contains: searchTerm, mode: 'insensitive' } },
+              { email: { contains: searchTerm, mode: 'insensitive' } },
+            ],
+          },
+          skip: (page - 1) * limit,
+          take: limit,
+          orderBy: { createdAt: 'desc' },
+        });
+      },
+      120 // 2 minutes for search results
+    );
+  }
+}
+```
+
+## Performance Monitoring and Alerting
+
+### Database Performance Metrics
+```powershell
+# Create performance monitoring service
+New-Item -Path "src\lib\services\performance-monitor.service.ts" -ItemType File
+```
+
+```typescript
+// src/lib/services/performance-monitor.service.ts
+import { prisma } from '@/lib/database/prisma';
+import { QueryMonitor } from '@/lib/database/performance';
+import { DatabaseConnectionPool } from '@/lib/database/connection-pool';
+
+interface PerformanceMetrics {
+  queryStats: any;
+  connectionStats: any;
+  cacheStats: any;
+  slowQueries: any[];
+  indexUsage: any[];
+  systemHealth: any;
+}
+
+// ✅ Correct performance monitoring service
+export class PerformanceMonitorService {
+  
+  // ✅ Correct comprehensive performance metrics
+  static async getPerformanceMetrics(): Promise<PerformanceMetrics> {
+    const [
+      queryStats,
+      connectionStats,
+      slowQueries,
+      indexUsage,
+      systemHealth
+    ] = await Promise.all([
+      QueryMonitor.getQueryStats(),
+      DatabaseConnectionPool.getConnectionStats(),
+      this.getSlowQueries(),
+      this.getIndexUsage(),
+      this.getSystemHealth(),
+    ]);
+
+    return {
+      queryStats,
+      connectionStats,
+      cacheStats: await this.getCacheStats(),
+      slowQueries,
+      indexUsage,
+      systemHealth,
+    };
+  }
+
+  // ✅ Correct slow query detection
+  private static async getSlowQueries(): Promise<any[]> {
+    try {
+      return await prisma.$queryRaw`
+        SELECT 
+          query,
+          calls,
+          total_time,
+          mean_time,
+          stddev_time,
+          rows,
+          100.0 * shared_blks_hit / nullif(shared_blks_hit + shared_blks_read, 0) AS cache_hit_ratio
+        FROM pg_stat_statements
+        WHERE mean_time > 500 -- Queries taking more than 500ms
+        ORDER BY total_time DESC
+        LIMIT 10;
+      `;
+    } catch {
+      return [];
+    }
+  }
+
+  // ✅ Correct index usage monitoring
+  private static async getIndexUsage(): Promise<any[]> {
+    try {
+      return await prisma.$queryRaw`
+        SELECT 
+          schemaname,
+          tablename,
+          indexname,
+          idx_scan,
+          idx_tup_read,
+          idx_tup_fetch,
+          CASE 
+            WHEN idx_scan = 0 THEN 'UNUSED'
+            WHEN idx_scan < 100 THEN 'UNDERUSED'
+            ELSE 'ACTIVE'
+          END as status
+        FROM pg_stat_user_indexes
+        WHERE schemaname = 'public'
+        ORDER BY idx_scan ASC;
+      `;
+    } catch {
+      return [];
+    }
+  }
+
+  // ✅ Correct system health monitoring
+  private static async getSystemHealth(): Promise<any> {
+    try {
+      const [dbSize, activeConnections, lockStats] = await Promise.all([
+        prisma.$queryRaw`SELECT pg_size_pretty(pg_database_size(current_database())) as size`,
+        prisma.$queryRaw`SELECT count(*) as active FROM pg_stat_activity WHERE state = 'active'`,
+        prisma.$queryRaw`SELECT count(*) as locks FROM pg_locks WHERE NOT granted`,
+      ]);
+
+      return {
+        databaseSize: dbSize[0]?.size,
+        activeConnections: activeConnections[0]?.active,
+        blockedQueries: lockStats[0]?.locks,
+        timestamp: new Date(),
+      };
+    } catch {
+      return null;
+    }
+  }
+
+  // ✅ Correct cache statistics
+  private static async getCacheStats(): Promise<any> {
+    try {
+      // This would integrate with your cache service
+      return {
+        hitRate: '95%', // Example - implement with your cache service
+        memoryUsage: '64MB',
+        evictions: 12,
+        connections: 5,
+      };
+    } catch {
+      return null;
+    }
+  }
+
+  // ✅ Correct performance alerts
+  static async checkPerformanceAlerts(): Promise<string[]> {
+    const alerts: string[] = [];
+    const metrics = await this.getPerformanceMetrics();
+
+    // Check for slow queries
+    if (metrics.slowQueries.length > 5) {
+      alerts.push(`High number of slow queries detected: ${metrics.slowQueries.length}`);
+    }
+
+    // Check connection pool usage
+    if (metrics.connectionStats && metrics.connectionStats.active_connections > 15) {
+      alerts.push(`High connection usage: ${metrics.connectionStats.active_connections}/20`);
+    }
+
+    // Check for unused indexes
+    const unusedIndexes = metrics.indexUsage.filter(idx => idx.status === 'UNUSED');
+    if (unusedIndexes.length > 3) {
+      alerts.push(`Unused indexes detected: ${unusedIndexes.length} indexes`);
+    }
+
+    // Check database size growth
+    if (metrics.systemHealth?.databaseSize) {
+      const size = metrics.systemHealth.databaseSize;
+      if (size.includes('GB') && parseInt(size) > 10) {
+        alerts.push(`Database size growing large: ${size}`);
+      }
+    }
+
+    return alerts;
+  }
+
+  // ✅ Correct performance dashboard endpoint
+  static async generatePerformanceReport(): Promise<any> {
+    const metrics = await this.getPerformanceMetrics();
+    const alerts = await this.checkPerformanceAlerts();
+
+    return {
+      timestamp: new Date(),
+      status: alerts.length === 0 ? 'HEALTHY' : 'WARNING',
+      alerts,
+      metrics,
+      recommendations: this.generateRecommendations(metrics),
+    };
+  }
+
+  // ✅ Correct performance recommendations
+  private static generateRecommendations(metrics: PerformanceMetrics): string[] {
+    const recommendations: string[] = [];
+
+    // Query optimization recommendations
+    if (metrics.slowQueries.length > 0) {
+      recommendations.push('Consider optimizing slow queries or adding indexes');
+    }
+
+    // Index recommendations
+    const unusedIndexes = metrics.indexUsage.filter(idx => idx.status === 'UNUSED');
+    if (unusedIndexes.length > 0) {
+      recommendations.push(`Consider removing ${unusedIndexes.length} unused indexes`);
+    }
+
+    // Connection pool recommendations
+    if (metrics.connectionStats?.active_connections > 12) {
+      recommendations.push('Consider increasing connection pool size or optimizing query patterns');
+    }
+
+         return recommendations;
+   }
+ }
+ ```
+
+## Verification Steps
+
+### Step 1: Validate Query Performance
+```powershell
+# Run query performance analysis
+npm run test -- --testPathPattern="performance.test"
+
+# Check slow query monitoring
+npx tsx -e "
+import { QueryMonitor } from './src/lib/database/performance.js';
+import { PerformanceMonitorService } from './src/lib/services/performance-monitor.service.js';
+
+const report = await PerformanceMonitorService.generatePerformanceReport();
+console.log('Performance Status:', report.status);
+console.log('Query Stats:', QueryMonitor.getQueryStats());
+if (report.alerts.length > 0) {
+  console.log('⚠️ Alerts:', report.alerts);
+} else {
+  console.log('✅ No performance alerts');
+}
+"
+
+# Test connection pool efficiency
+psql -h localhost -U postgres -d myapp -c "
+  SELECT 
+    count(*) as total_connections,
+    count(*) FILTER (WHERE state = 'active') as active,
+    count(*) FILTER (WHERE state = 'idle') as idle
+  FROM pg_stat_activity 
+  WHERE datname = current_database();
+"
+```
+
+**Expected result**: Query performance monitoring active and connection pool properly configured.
+
+### Step 2: Validate Indexing Strategy
+```powershell
+# Check index usage and recommendations
+psql -h localhost -U postgres -d myapp -c "
+  SELECT 
+    schemaname,
+    tablename,
+    indexname,
+    idx_scan,
+    CASE 
+      WHEN idx_scan = 0 THEN 'UNUSED ❌'
+      WHEN idx_scan < 100 THEN 'UNDERUSED ⚠️'
+      ELSE 'ACTIVE ✅'
+    END as status
+  FROM pg_stat_user_indexes
+  WHERE schemaname = 'public'
+  ORDER BY idx_scan ASC;
+"
+
+# Verify indexes exist for common query patterns
+psql -h localhost -U postgres -d myapp -c "
+  SELECT 
+    i.relname as index_name,
+    t.relname as table_name,
+    a.attname as column_name
+  FROM pg_index ix
+  JOIN pg_class i ON i.oid = ix.indexrelid
+  JOIN pg_class t ON t.oid = ix.indrelid
+  JOIN pg_attribute a ON a.attrelid = t.oid AND a.attnum = ANY(ix.indkey)
+  WHERE t.relkind = 'r' AND i.relname NOT LIKE '%_pkey'
+  ORDER BY t.relname, i.relname;
+"
+```
+
+**Expected result**: Appropriate indexes exist and are being used effectively.
+
+### Step 3: Test Cache Performance
+```powershell
+# Test Redis connection and cache functionality
+npx tsx -e "
+import { CacheService } from './src/lib/services/cache.service.js';
+
+await CacheService.initialize();
+
+// Test cache operations
+const testKey = 'test:performance';
+const testData = { message: 'Cache test', timestamp: Date.now() };
+
+await CacheService.set(testKey, testData, 60);
+const retrieved = await CacheService.get(testKey);
+
+if (retrieved && retrieved.message === testData.message) {
+  console.log('✅ Cache operations working correctly');
+} else {
+  console.log('❌ Cache operations failed');
+}
+
+await CacheService.del(testKey);
+console.log('Cache test completed');
+"
+
+# Check Redis status
+redis-cli ping
+```
+
+**Expected result**: Cache service functioning correctly with Redis connectivity.
+
+### Step 4: Monitor Performance Metrics
+```powershell
+# Generate comprehensive performance report
+npx tsx -e "
+import { PerformanceMonitorService } from './src/lib/services/performance-monitor.service.js';
+
+const report = await PerformanceMonitorService.generatePerformanceReport();
+console.log('=== PERFORMANCE REPORT ===');
+console.log('Status:', report.status);
+console.log('Timestamp:', report.timestamp);
+
+if (report.alerts.length > 0) {
+  console.log('\n⚠️ ALERTS:');
+  report.alerts.forEach(alert => console.log('  -', alert));
+}
+
+if (report.recommendations.length > 0) {
+  console.log('\n💡 RECOMMENDATIONS:');
+  report.recommendations.forEach(rec => console.log('  -', rec));
+}
+
+console.log('\n📊 METRICS SUMMARY:');
+console.log('  Slow Queries:', report.metrics.slowQueries.length);
+console.log('  System Health:', report.metrics.systemHealth?.databaseSize || 'N/A');
+console.log('  Active Connections:', report.metrics.connectionStats?.active_connections || 'N/A');
+"
+```
+
+**Expected result**: Performance metrics are collected and analyzed successfully.
+
+## Troubleshooting Common Issues
+
+### Problem: Slow Query Performance
+**Symptoms**: 
+- High query execution times
+- Database CPU usage spikes
+- Application timeouts
+
+**Solution**: 
+```powershell
+# Identify slow queries
+psql -h localhost -U postgres -d myapp -c "
+  SELECT 
+    query,
+    calls,
+    total_time,
+    mean_time,
+    stddev_time
+  FROM pg_stat_statements
+  WHERE mean_time > 1000
+  ORDER BY mean_time DESC
+  LIMIT 5;
+"
+
+# Check for missing indexes
+psql -h localhost -U postgres -d myapp -c "
+  SELECT 
+    schemaname,
+    tablename,
+    seq_scan,
+    seq_tup_read,
+    CASE 
+      WHEN seq_scan > 1000 AND seq_tup_read > 10000 
+      THEN 'Needs Index ❌'
+      ELSE 'OK ✅'
+    END as recommendation
+  FROM pg_stat_user_tables 
+  WHERE schemaname = 'public'
+  ORDER BY seq_tup_read DESC;
+"
+
+# Optimize query patterns in application code
+Get-Content "src\lib\repositories\*.ts" | Select-String -Pattern "findMany\|include" | ForEach-Object {
+    Write-Output "Review query at: $($_.Filename):$($_.LineNumber)"
+}
+```
+
+### Problem: Connection Pool Exhaustion
+**Symptoms**: 
+- "Connection pool exhausted" errors
+- Application hangs waiting for connections
+- High number of idle connections
+
+**Solution**: 
+```powershell
+# Check current connection usage
+psql -h localhost -U postgres -d myapp -c "
+  SELECT 
+    state,
+    count(*) as connections,
+    max(now() - state_change) as max_duration
+  FROM pg_stat_activity 
+  WHERE datname = current_database()
+  GROUP BY state
+  ORDER BY connections DESC;
+"
+
+# Update connection pool configuration
+$envContent = @"
+# Optimized connection pool settings
+DATABASE_POOL_MAX=25
+DATABASE_POOL_IDLE_TIMEOUT=20000
+DATABASE_STATEMENT_TIMEOUT=20000
+"@
+Add-Content -Path ".env.local" -Value $envContent
+
+# Review connection usage patterns
+Get-Content "src\lib\**\*.ts" | Select-String -Pattern "\$disconnect\|\$connect" | ForEach-Object {
+    Write-Output "Connection management at: $($_.Filename):$($_.LineNumber)"
+}
+```
+
+### Problem: Cache Miss Rate High
+**Symptoms**: 
+- Poor cache hit ratios
+- Increased database load
+- Slow response times
+
+**Solution**: 
+```powershell
+# Check Redis status and memory usage
+redis-cli info memory
+redis-cli info stats
+
+# Review cache TTL settings
+Get-Content "src\lib\services\cache.service.ts" | Select-String -Pattern "ttl\|TTL"
+
+# Analyze cache key patterns
+redis-cli --scan --pattern "*" | head -20
+
+# Update cache strategy
+npx tsx -e "
+import { CacheService } from './src/lib/services/cache.service.js';
+// Implement cache warming for frequently accessed data
+const frequentKeys = ['user:popular', 'posts:trending'];
+for (const key of frequentKeys) {
+  console.log('Warming cache for:', key);
+  // Add cache warming logic here
+}
+"
+```
+
+### Problem: Index Bloat and Maintenance
+**Symptoms**: 
+- Large index sizes
+- Slow index scans
+- Performance degradation over time
+
+**Solution**: 
+```powershell
+# Check index bloat
+psql -h localhost -U postgres -d myapp -c "
+  SELECT 
+    schemaname,
+    tablename,
+    indexname,
+    pg_size_pretty(pg_relation_size(indexname::regclass)) as index_size,
+    idx_scan,
+    idx_tup_read
+  FROM pg_stat_user_indexes
+  WHERE schemaname = 'public'
+  ORDER BY pg_relation_size(indexname::regclass) DESC;
+"
+
+# Rebuild indexes if necessary (maintenance window)
+psql -h localhost -U postgres -d myapp -c "
+  REINDEX INDEX CONCURRENTLY idx_users_email;
+  REINDEX INDEX CONCURRENTLY idx_posts_author_published;
+"
+
+# Schedule regular maintenance
+# Add to cron or scheduled task:
+# 0 2 * * 0 psql -d myapp -c 'VACUUM ANALYZE;'
+```
+
+## Success Criteria
+
+The database performance standards are implemented when:
+- [x] **Query optimization** is implemented with field selection and pagination
+- [x] **N+1 queries are prevented** through proper include patterns
+- [x] **Database indexes** are strategically created and monitored
+- [x] **Connection pooling** is properly configured and monitored
+- [x] **Caching strategy** is implemented with Redis integration
+- [x] **Performance monitoring** tracks query times and system metrics
+- [x] **Slow query detection** identifies and alerts on performance issues
+- [x] **Index usage** is monitored and optimized regularly
+- [x] **Cache hit rates** are maintained above 90%
+- [x] **Performance alerts** notify of degradation before users are affected
+
+## Integration with Existing Rules
+
+This rule integrates with:
+- **Database Client Standards**: Optimizes repository and service patterns
+- **Database Testing Standards**: Performance tests validate optimization
+- **Security Standards**: Performance monitoring doesn't compromise security
+- **Code Quality Standards**: Performance code follows TypeScript conventions
+
+---
+
+**Note**: This rule ensures optimal database performance through comprehensive monitoring, strategic optimization, and proactive maintenance while maintaining code quality and security standards.
+
+
+

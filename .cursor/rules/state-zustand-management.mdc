@@ -1,0 +1,538 @@
+---
+description: Used when writring Zustand state management configurations
+globs: 
+alwaysApply: false
+---
+# Zustand State Management Patterns
+
+Establishes TypeScript-first state management patterns using Zustand for predictable, scalable, and maintainable application state in Next.js projects.
+
+## Prerequisites
+
+State all requirements upfront:
+- Next.js project with TypeScript already initialized
+- Windows PowerShell or Command Prompt
+- Basic understanding of React state management
+- Familiarity with TypeScript interfaces and types
+
+## Core Principle
+
+**All application state must be managed through well-structured Zustand stores with TypeScript safety, proper separation of concerns, and predictable update patterns.**
+
+## Step-by-Step Instructions
+
+### Step 1: Install Zustand Dependencies
+
+Install Zustand and related packages:
+
+```powershell
+npm install zustand
+npm install --save-dev @types/node
+# Expected output: Zustand installed successfully
+```
+
+**Expected result**: Zustand is installed as a dependency in the project.
+
+### Step 2: Create Store Directory Structure
+
+Set up organized store structure:
+
+```powershell
+# Create stores directory
+if (-not (Test-Path "src/stores")) { 
+  New-Item -ItemType Directory -Path "src/stores" -Force 
+}
+# Expected output: Directory created
+
+# Create store files
+New-Item -ItemType File -Path "src/stores/index.ts" -Force
+New-Item -ItemType File -Path "src/stores/types.ts" -Force
+# Expected output: Store files created
+```
+
+**Expected result**: Organized directory structure exists for state management.
+
+### Step 3: Define Store Types
+
+Create `src/stores/types.ts` with TypeScript interfaces:
+
+```typescript
+// Base store interface
+export interface BaseStore {
+  // Loading states
+  isLoading: boolean;
+  error: string | null;
+  
+  // Actions
+  setLoading: (loading: boolean) => void;
+  setError: (error: string | null) => void;
+  reset: () => void;
+}
+
+// User store types
+export interface User {
+  id: string;
+  email: string;
+  name: string;
+  avatar?: string;
+}
+
+export interface UserStore extends BaseStore {
+  // State
+  currentUser: User | null;
+  users: User[];
+  
+  // Actions
+  setCurrentUser: (user: User | null) => void;
+  addUser: (user: User) => void;
+  updateUser: (id: string, updates: Partial<User>) => void;
+  removeUser: (id: string) => void;
+  fetchUsers: () => Promise<void>;
+}
+
+// UI store types
+export interface UIStore {
+  // State
+  isSidebarOpen: boolean;
+  theme: 'light' | 'dark' | 'system';
+  notifications: Notification[];
+  
+  // Actions
+  toggleSidebar: () => void;
+  setTheme: (theme: 'light' | 'dark' | 'system') => void;
+  addNotification: (notification: Omit<Notification, 'id'>) => void;
+  removeNotification: (id: string) => void;
+}
+
+export interface Notification {
+  id: string;
+  type: 'success' | 'error' | 'warning' | 'info';
+  title: string;
+  message: string;
+  timestamp: Date;
+}
+```
+
+**Expected result**: TypeScript interfaces provide type safety for all stores.
+
+### Step 4: Create User Store Implementation
+
+Create `src/stores/userStore.ts`:
+
+```typescript
+import { create } from 'zustand';
+import { devtools, persist } from 'zustand/middleware';
+import type { UserStore, User } from './types';
+
+// Initial state
+const initialState = {
+  currentUser: null,
+  users: [],
+  isLoading: false,
+  error: null,
+};
+
+export const useUserStore = create<UserStore>()(
+  devtools(
+    persist(
+      (set, get) => ({
+        // State
+        ...initialState,
+        
+        // Base actions
+        setLoading: (isLoading: boolean) => set({ isLoading }),
+        setError: (error: string | null) => set({ error }),
+        reset: () => set(initialState),
+        
+        // User actions
+        setCurrentUser: (currentUser: User | null) => set({ currentUser }),
+        
+        addUser: (user: User) => set((state) => ({
+          users: [...state.users, user]
+        })),
+        
+        updateUser: (id: string, updates: Partial<User>) => set((state) => ({
+          users: state.users.map(user => 
+            user.id === id ? { ...user, ...updates } : user
+          )
+        })),
+        
+        removeUser: (id: string) => set((state) => ({
+          users: state.users.filter(user => user.id !== id)
+        })),
+        
+        fetchUsers: async () => {
+          const { setLoading, setError } = get();
+          
+          try {
+            setLoading(true);
+            setError(null);
+            
+            const response = await fetch('/api/users');
+            if (!response.ok) throw new Error('Failed to fetch users');
+            
+            const users = await response.json();
+            set({ users });
+          } catch (error) {
+            setError(error instanceof Error ? error.message : 'Unknown error');
+          } finally {
+            setLoading(false);
+          }
+        },
+      }),
+      {
+        name: 'user-store',
+        partialize: (state) => ({
+          currentUser: state.currentUser,
+          // Don't persist users array or loading states
+        }),
+      }
+    ),
+    { name: 'UserStore' }
+  )
+);
+```
+
+**Expected result**: Type-safe user store with persistence and dev tools integration.
+
+### Step 5: Create UI Store Implementation
+
+Create `src/stores/uiStore.ts`:
+
+```typescript
+import { create } from 'zustand';
+import { devtools } from 'zustand/middleware';
+import type { UIStore, Notification } from './types';
+
+export const useUIStore = create<UIStore>()(
+  devtools(
+    (set, get) => ({
+      // State
+      isSidebarOpen: false,
+      theme: 'system',
+      notifications: [],
+      
+      // Actions
+      toggleSidebar: () => set((state) => ({
+        isSidebarOpen: !state.isSidebarOpen
+      })),
+      
+      setTheme: (theme: 'light' | 'dark' | 'system') => set({ theme }),
+      
+      addNotification: (notification: Omit<Notification, 'id'>) => {
+        const id = crypto.randomUUID();
+        const newNotification: Notification = {
+          ...notification,
+          id,
+          timestamp: new Date(),
+        };
+        
+        set((state) => ({
+          notifications: [...state.notifications, newNotification]
+        }));
+        
+        // Auto-remove after 5 seconds
+        setTimeout(() => {
+          get().removeNotification(id);
+        }, 5000);
+      },
+      
+      removeNotification: (id: string) => set((state) => ({
+        notifications: state.notifications.filter(n => n.id !== id)
+      })),
+    }),
+    { name: 'UIStore' }
+  )
+);
+```
+
+**Expected result**: UI store manages application-wide UI state with automatic cleanup.
+
+### Step 6: Create Store Index
+
+Create `src/stores/index.ts` to export all stores:
+
+```typescript
+// Export all stores
+export { useUserStore } from './userStore';
+export { useUIStore } from './uiStore';
+
+// Export types
+export type * from './types';
+
+// Store utilities
+export const resetAllStores = () => {
+  useUserStore.getState().reset();
+  // Add other store resets as needed
+};
+
+// Development utilities
+if (process.env.NODE_ENV === 'development') {
+  // Expose stores to window for debugging
+  (window as any).__stores = {
+    user: useUserStore,
+    ui: useUIStore,
+  };
+}
+```
+
+**Expected result**: Centralized store exports with development utilities.
+
+## Zustand Usage Patterns
+
+### Component Usage
+
+```typescript
+// ✅ Correct: Selector usage for performance
+import { useUserStore } from '@/stores';
+
+export function UserProfile() {
+  // Select only needed state
+  const currentUser = useUserStore(state => state.currentUser);
+  const isLoading = useUserStore(state => state.isLoading);
+  const setCurrentUser = useUserStore(state => state.setCurrentUser);
+  
+  if (isLoading) return <div>Loading...</div>;
+  if (!currentUser) return <div>No user</div>;
+  
+  return (
+    <div>
+      <h1>{currentUser.name}</h1>
+      <button onClick={() => setCurrentUser(null)}>
+        Logout
+      </button>
+    </div>
+  );
+}
+
+// ✅ Correct: Multiple selectors
+export function Dashboard() {
+  const { users, fetchUsers } = useUserStore(state => ({
+    users: state.users,
+    fetchUsers: state.fetchUsers,
+  }));
+  
+  const isSidebarOpen = useUIStore(state => state.isSidebarOpen);
+  
+  React.useEffect(() => {
+    fetchUsers();
+  }, [fetchUsers]);
+  
+  return (
+    <div className={`dashboard ${isSidebarOpen ? 'sidebar-open' : ''}`}>
+      {users.map(user => (
+        <UserCard key={user.id} user={user} />
+      ))}
+    </div>
+  );
+}
+```
+
+### Server Action Integration
+
+```typescript
+// app/actions/users.ts
+'use server';
+
+import { useUserStore } from '@/stores';
+
+export async function createUser(formData: FormData) {
+  try {
+    const userData = {
+      name: formData.get('name') as string,
+      email: formData.get('email') as string,
+    };
+    
+    const response = await fetch('/api/users', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(userData),
+    });
+    
+    if (!response.ok) throw new Error('Failed to create user');
+    
+    const newUser = await response.json();
+    
+    // Update store on success
+    useUserStore.getState().addUser(newUser);
+    
+    return { success: true, user: newUser };
+  } catch (error) {
+    return { 
+      success: false, 
+      error: error instanceof Error ? error.message : 'Unknown error' 
+    };
+  }
+}
+```
+
+**Expected result**: Stores integrate seamlessly with Next.js patterns and server actions.
+
+## Verification Steps
+
+How to confirm the rule was followed correctly:
+
+```powershell
+# Check store files exist
+Test-Path "src/stores/index.ts"
+Test-Path "src/stores/types.ts"  
+Test-Path "src/stores/userStore.ts"
+Test-Path "src/stores/uiStore.ts"
+# Expected output: True for all files
+
+# Verify TypeScript compilation
+npm run build
+# Expected output: No TypeScript errors related to stores
+
+# Check Zustand installation
+Get-Content "package.json" | Select-String "zustand"
+# Expected output: Shows zustand dependency
+```
+
+- [ ] All store files exist in proper directory structure
+- [ ] TypeScript compilation succeeds without store-related errors
+- [ ] Stores use proper TypeScript interfaces
+- [ ] DevTools integration is configured
+- [ ] Persistence is set up where appropriate
+
+## Troubleshooting Common Issues
+
+### Problem: TypeScript errors about store types
+**Symptoms**: 
+- "Property does not exist on type" errors
+- TypeScript compilation failures
+
+**Solution**: 
+```powershell
+# Ensure proper imports in components
+# Check that store files export types correctly
+Get-Content "src/stores/types.ts" | Select-String "export"
+```
+Verify all interfaces are properly exported and imported.
+
+### Problem: Store state not persisting
+**Symptoms**: 
+- User data lost on page refresh
+- Store resets unexpectedly
+
+**Solution**: 
+```typescript
+// Check persist middleware configuration
+export const useUserStore = create<UserStore>()(
+  persist(
+    // store implementation
+    {
+      name: 'user-store', // Unique name required
+      partialize: (state) => ({ currentUser: state.currentUser }),
+    }
+  )
+);
+```
+
+### Problem: Performance issues with re-renders
+**Symptoms**: 
+- Components re-render frequently
+- Slow UI updates
+
+**Solution**: 
+Use proper selectors to prevent unnecessary re-renders:
+```typescript
+// ❌ Wrong: Subscribes to entire store
+const store = useUserStore();
+
+// ✅ Correct: Subscribes only to needed state
+const currentUser = useUserStore(state => state.currentUser);
+```
+
+## Success Criteria
+
+The rule implementation is complete when:
+- [x] Zustand is properly installed and configured
+- [x] Store directory structure follows the established pattern
+- [x] All stores have TypeScript interfaces with proper typing
+- [x] DevTools integration is working in development
+- [x] Persistence is configured for appropriate stores
+- [x] Components use proper selector patterns
+- [x] No TypeScript compilation errors related to state management
+
+## Examples
+
+✅ **Correct Implementation:**
+```typescript
+// Proper store creation with middleware
+export const useCartStore = create<CartStore>()(
+  devtools(
+    persist(
+      (set, get) => ({
+        items: [],
+        total: 0,
+        
+        addItem: (product: Product) => set((state) => {
+          const existingItem = state.items.find(item => item.id === product.id);
+          
+          if (existingItem) {
+            return {
+              items: state.items.map(item =>
+                item.id === product.id 
+                  ? { ...item, quantity: item.quantity + 1 }
+                  : item
+              )
+            };
+          }
+          
+          return {
+            items: [...state.items, { ...product, quantity: 1 }]
+          };
+        }),
+        
+        calculateTotal: () => set((state) => ({
+          total: state.items.reduce((sum, item) => sum + (item.price * item.quantity), 0)
+        })),
+      }),
+      { name: 'cart-store' }
+    ),
+    { name: 'CartStore' }
+  )
+);
+
+// Proper component usage
+export function CartSummary() {
+  const total = useCartStore(state => state.total);
+  const itemCount = useCartStore(state => state.items.length);
+  
+  return (
+    <div>
+      <span>{itemCount} items</span>
+      <span>${total.toFixed(2)}</span>
+    </div>
+  );
+}
+```
+
+❌ **Incorrect Implementation:**
+```typescript
+// Missing TypeScript interfaces
+export const useCartStore = create((set) => ({
+  items: [],
+  addItem: (product) => set((state) => ({ 
+    items: [...state.items, product] 
+  })),
+}));
+
+// Inefficient component usage
+export function CartSummary() {
+  const store = useCartStore(); // Subscribes to entire store
+  
+  return (
+    <div>
+      <span>{store.items.length} items</span>
+      <span>${store.total}</span>
+    </div>
+  );
+}
+```
+
+---
+
+**Note**: This rule ensures predictable state management with TypeScript safety, proper performance optimization through selectors, and maintainable store organization patterns.
+

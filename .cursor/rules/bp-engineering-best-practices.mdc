@@ -1,0 +1,143 @@
+---
+description: Used when planning features to be compliant with best practices.
+globs: 
+alwaysApply: false
+---
+# Engineering Best Practices
+
+This rule serves as the central hub for all engineering standards in modern web application development. It orchestrates multiple focused rules to ensure consistent, high-quality development practices across the entire stack.
+
+## Prerequisites
+
+Before implementing these standards, ensure:
+- Windows PowerShell 5.1+ or PowerShell Core 7.0+
+- Git 2.30+ installed and configured
+- Node.js 20.x+ and npm 10.x+
+- VS Code or compatible editor with relevant extensions
+
+## Core Principle
+
+**ALWAYS follow comprehensive engineering standards that integrate version control, testing, security, code quality, project structure, and performance into a cohesive development workflow.**
+
+## Supporting Rules Overview
+
+This main rule references and coordinates these focused rules:
+
+### 1. Version Control Standards
+**Rule**: `git-standards.mdc`
+- Conventional commit messages
+- Branch naming conventions
+- Pull request workflows
+- Repository organization
+
+### 2. Testing Standards 🆕
+**Rule**: `bp-testing-standards.mdc`
+- Unit testing with Jest/Vitest
+- Integration testing patterns
+- E2E testing with Playwright
+- 80% code coverage requirements
+
+### 3. Code Quality Standards 🆕
+**Rule**: `bp-code-quality-standards.mdc`
+- ESLint configuration and rules
+- Prettier formatting standards
+- Pre-commit hooks with Husky
+- Code review guidelines
+
+### 4. Security Standards 🆕
+**Rule**: `bp-security-standards.mdc`
+- Authentication with NextAuth.js
+- XSS and CSRF prevention
+- Input validation and sanitization
+- Dependency vulnerability scanning
+
+### 5. Logging & Error Handling Standards
+**Rule**: `logging-standards.mdc`
+- Backend logging with Loguru
+- Frontend error tracking with Sentry
+- Performance monitoring integration
+
+### 6. NextJS Project Structure Standards
+**Rule**: `nextjs-structure-standards.mdc`
+- App Router conventions
+- Component hierarchy and colocation
+- File naming conventions
+
+### 7. NextJS Performance Standards
+**Rule**: `nextjs-performance-standards.mdc`
+- Built-in component optimization
+- Bundle analysis and lazy loading
+- Performance monitoring
+
+### 8. TypeScript & NextJS Integration Standards
+**Rule**: `typescript-nextjs-standards.mdc`
+- TypeScript configuration
+- Type safety patterns
+- Component typing strategies
+
+## Integrated Workflow
+
+### Step 1: Initialize with Quality Foundation
+```powershell
+# Initialize Git repository
+git init
+git config --local init.defaultBranch main
+
+# Install testing and quality tools
+npm install --save-dev jest @testing-library/react
+npm install --save-dev eslint prettier husky lint-staged
+npm install --save-dev @next/bundle-analyzer
+
+# Set up pre-commit hooks
+npx husky init
+```
+
+### Step 2: Configure Security and Quality
+```powershell
+# Install security tools
+npm install next-auth bcryptjs zod
+npm install --save-dev audit-ci
+
+# Verify configuration files
+Test-Path ".eslintrc.json"
+Test-Path ".prettierrc"
+Test-Path "jest.config.js"
+```
+
+### Step 3: Daily Development Workflow
+```powershell
+# Start new feature
+git checkout -b feature/TICKET-123-new-feature
+
+# Development with quality checks
+npm run dev
+npm run lint
+npm run type-check
+npm run test
+
+# Commit following standards
+git add .
+git commit -m "feat(component): add user dashboard with tests"
+```
+
+## Verification Checklist
+
+- [ ] **Testing**: 80% code coverage, all tests pass
+- [ ] **Code Quality**: ESLint passes, Prettier applied
+- [ ] **Security**: No vulnerability warnings, authentication configured
+- [ ] **Performance**: Bundle size optimizations applied
+- [ ] **Type Safety**: TypeScript strict mode passes
+
+## Success Criteria
+
+The comprehensive engineering standards are implemented when:
+- [x] **All supporting rules** are properly configured and active
+- [x] **Quality gates** prevent low-quality code from being committed
+- [x] **Security measures** protect against common vulnerabilities
+- [x] **Testing strategy** ensures code reliability
+- [x] **Performance optimization** maintains fast user experience
+
+---
+
+**Note**: This rule orchestrates 8 focused rules to ensure comprehensive engineering excellence for clean, maintainable, extensible code.
+

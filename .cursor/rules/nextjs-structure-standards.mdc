@@ -1,0 +1,520 @@
+---
+description: When adding new NextJS files and creating new code
+globs: 
+alwaysApply: false
+---
+# NextJS Structure Standards
+
+This rule defines the comprehensive project structure and organizational patterns for NextJS 15 applications using the App Router architecture.
+
+## Prerequisites
+
+Before implementing these standards, ensure:
+- NextJS 15+ with App Router enabled
+- TypeScript configured for the project
+- Understanding of NextJS file-based routing system
+- Windows PowerShell for command execution
+
+## Core Principle
+
+**ALWAYS follow NextJS 15 App Router conventions for project structure, ensuring optimal performance, maintainability, and developer experience.**
+
+## Top-Level Project Structure
+
+### Required Top-Level Folders
+```
+modern-web-app/
+├── .cursor/                    # Cursor AI rules and configuration
+├── .next/                      # NextJS build output (generated)
+├── public/                     # Static assets served directly
+├── src/                        # Application source code (recommended)
+│   └── app/                    # App Router directory
+├── node_modules/              # Dependencies (generated)
+```
+
+### Required Top-Level Files
+```
+├── .env.local                 # Local environment variables
+├── .env.example               # Environment template
+├── .eslintrc.json            # ESLint configuration
+├── .gitignore                # Git ignore patterns
+├── next.config.ts            # NextJS configuration
+├── package.json              # Project dependencies and scripts
+├── README.md                 # Project documentation
+├── postcss.config.mjs        # PostCSS configuration (Tailwind v4)
+├── tsconfig.json             # TypeScript configuration
+```
+
+## App Router Structure Standards
+
+### Core App Directory Organization
+```
+src/app/
+├── layout.tsx                 # Root layout (required)
+├── page.tsx                   # Home page (required)
+├── loading.tsx                # Global loading UI
+├── error.tsx                  # Global error UI
+├── not-found.tsx             # Global 404 page
+├── global-error.tsx          # Global error boundary
+├── globals.css               # Global styles
+├── favicon.ico               # App favicon
+│
+├── (auth)/                   # Route group for auth pages
+│   ├── layout.tsx           # Auth-specific layout
+│   ├── login/
+│   │   ├── page.tsx         # /login page
+│   │   └── loading.tsx      # Login loading state
+│   └── register/
+│       └── page.tsx         # /register page
+│
+├── dashboard/               # Dashboard section
+│   ├── layout.tsx          # Dashboard layout
+│   ├── page.tsx           # /dashboard page
+│   ├── loading.tsx        # Dashboard loading
+│   ├── error.tsx          # Dashboard error boundary
+│   │
+│   ├── analytics/         # Nested route: /dashboard/analytics
+│   │   └── page.tsx
+│   │
+│   └── settings/          # Nested route: /dashboard/settings
+│       ├── page.tsx
+│       ├── profile/       # /dashboard/settings/profile
+│       │   └── page.tsx
+│       └── billing/       # /dashboard/settings/billing
+│           └── page.tsx
+│
+├── api/                    # API routes
+│   ├── auth/
+│   │   └── route.ts       # /api/auth endpoint
+│   ├── users/
+│   │   ├── route.ts       # /api/users endpoint
+│   │   └── [id]/
+│   │       └── route.ts   # /api/users/[id] endpoint
+│   └── hello/
+│       └── route.ts       # /api/hello endpoint
+│
+└── _components/           # Private components folder
+    ├── ui/               # Reusable UI components
+    ├── forms/            # Form components
+    └── layouts/          # Layout components
+```
+
+## Implementation Steps
+
+### Step 1: Verify Current Structure
+Check if your project follows the NextJS 15 App Router conventions:
+
+```powershell
+# Navigate to project root
+Set-Location "path\to\your\project"
+
+# Check for required App Router structure
+$requiredPaths = @(
+    "src\app\layout.tsx",
+    "src\app\page.tsx", 
+    "next.config.ts",
+    "tsconfig.json"
+)
+
+foreach ($path in $requiredPaths) {
+    if (Test-Path $path) {
+        Write-Output "✅ $path exists"
+    } else {
+        Write-Output "❌ $path missing - required for App Router"
+    }
+}
+```
+
+**Expected result**: All required App Router files exist in correct locations.
+
+### Step 2: Organize Components and Utilities
+Create proper folder structure for shared components and utilities:
+
+```powershell
+# Create private components folder
+New-Item -ItemType Directory -Path "src\app\_components" -Force
+New-Item -ItemType Directory -Path "src\app\_components\ui" -Force
+New-Item -ItemType Directory -Path "src\app\_components\forms" -Force
+New-Item -ItemType Directory -Path "src\app\_components\layouts" -Force
+
+# Create utilities folder
+New-Item -ItemType Directory -Path "src\lib" -Force
+New-Item -ItemType Directory -Path "src\lib\utils" -Force
+New-Item -ItemType Directory -Path "src\lib\hooks" -Force
+New-Item -ItemType Directory -Path "src\lib\services" -Force
+```
+
+**Expected result**: Proper folder structure for organizing components and utilities.
+
+### Step 3: Implement Route Groups
+Organize related routes using route groups:
+
+```powershell
+# Create auth route group
+New-Item -ItemType Directory -Path "src\app\(auth)" -Force
+New-Item -ItemType Directory -Path "src\app\(auth)\login" -Force
+New-Item -ItemType Directory -Path "src\app\(auth)\register" -Force
+
+# Create marketing route group
+New-Item -ItemType Directory -Path "src\app\(marketing)" -Force
+New-Item -ItemType Directory -Path "src\app\(marketing)\about" -Force
+New-Item -ItemType Directory -Path "src\app\(marketing)\pricing" -Force
+```
+
+**Expected result**: Route groups created for logical organization without affecting URL paths.
+
+### Step 4: Set Up API Routes Structure
+Create organized API routes following RESTful conventions:
+
+```powershell
+# Create API routes structure
+New-Item -ItemType Directory -Path "src\app\api\auth" -Force
+New-Item -ItemType Directory -Path "src\app\api\users" -Force
+New-Item -ItemType Directory -Path "src\app\api\users\[id]" -Force
+
+# Verify API structure
+Get-ChildItem -Path "src\app\api" -Recurse | Select-Object FullName
+```
+
+**Expected result**: API routes organized by resource with proper nesting for dynamic routes.
+
+## File Naming Conventions
+
+### NextJS Special Files
+These files have special meaning in the App Router and must follow exact naming:
+
+| File | Purpose | Location |
+|------|---------|----------|
+| `layout.tsx` | Layout component | Any route segment |
+| `page.tsx` | Page component | Any route segment |
+| `loading.tsx` | Loading UI | Any route segment |
+| `error.tsx` | Error boundary | Any route segment |
+| `not-found.tsx` | 404 page | Any route segment |
+| `route.ts` | API endpoint | API routes only |
+| `middleware.ts` | Request middleware | Project root |
+| `instrumentation.ts` | Instrumentation | Project root |
+
+### Component Naming Standards
+```typescript
+// ✅ Correct component naming
+export default function UserProfile() { }     // PascalCase for components
+export const UserAvatar = () => { }          // PascalCase for named exports
+export const useUserData = () => { }         // camelCase for hooks
+export const API_ENDPOINTS = { }             // UPPER_CASE for constants
+
+// ❌ Incorrect naming
+export default function userProfile() { }     // Wrong case
+export const user_avatar = () => { }         // Snake case not recommended
+```
+
+### File and Folder Naming
+```
+src/
+├── app/
+│   ├── user-profile/          # ✅ kebab-case for route folders
+│   ├── _components/           # ✅ underscore for private folders
+│   └── (auth)/               # ✅ parentheses for route groups
+│
+├── lib/
+│   ├── utils.ts              # ✅ camelCase for utility files
+│   ├── authHelpers.ts        # ✅ camelCase for helper files
+│   └── apiClient.ts          # ✅ camelCase for service files
+│
+└── components/               # ✅ Alternative component organization
+    ├── UserProfile.tsx       # ✅ PascalCase for component files
+    ├── Button/               # ✅ Folder per component pattern
+    │   ├── Button.tsx
+    │   ├── Button.test.tsx
+    │   └── index.ts
+    └── forms/                # ✅ Lowercase for category folders
+        └── ContactForm.tsx
+```
+
+## Advanced Organization Patterns
+
+### Pattern 1: Feature-Based Organization
+Organize code by business features for larger applications:
+
+```
+src/app/
+├── _features/               # Private features folder
+│   ├── auth/
+│   │   ├── components/
+│   │   ├── hooks/
+│   │   ├── services/
+│   │   └── types.ts
+│   │
+│   ├── dashboard/
+│   │   ├── components/
+│   │   ├── hooks/
+│   │   └── services/
+│   │
+│   └── user-management/
+│       ├── components/
+│       ├── hooks/
+│       └── services/
+│
+├── (auth)/                 # Route implementation
+│   ├── login/
+│   │   └── page.tsx       # Uses _features/auth
+│   └── register/
+│       └── page.tsx
+│
+└── dashboard/              # Route implementation
+    └── page.tsx           # Uses _features/dashboard
+```
+
+### Pattern 2: Shared Components with Private Specifics
+Combine shared components with route-specific components:
+
+```
+src/
+├── app/
+│   ├── _components/       # Private shared components
+│   │   ├── ui/           # Generic UI components
+│   │   └── layouts/      # Layout components
+│   │
+│   ├── dashboard/
+│   │   ├── _components/  # Dashboard-specific components
+│   │   │   ├── analytics-chart.tsx
+│   │   │   └── user-stats.tsx
+│   │   └── page.tsx
+│   │
+│   └── profile/
+│       ├── _components/  # Profile-specific components
+│       │   ├── avatar-upload.tsx
+│       │   └── profile-form.tsx
+│       └── page.tsx
+│
+└── components/           # Alternative: global shared components
+    ├── ui/              # Reusable across entire app
+    └── common/          # Common business components
+```
+
+## Verification Steps
+
+Confirm your project structure follows NextJS 15 standards:
+
+### Structure Verification
+- [ ] App Router directory exists: `Test-Path "src\app"`
+- [ ] Required files present: `layout.tsx`, `page.tsx` in root
+- [ ] Special files use correct naming conventions
+- [ ] API routes organized under `api/` directory
+
+### Organization Verification
+- [ ] Private folders use underscore prefix: `_components`, `_utils`
+- [ ] Route groups use parentheses: `(auth)`, `(marketing)`
+- [ ] Component files use PascalCase naming
+- [ ] Utility files use camelCase naming
+
+### Convention Verification
+```powershell
+# Check for proper file extensions
+Get-ChildItem -Path "src\app" -Recurse -Include "*.tsx", "*.ts" | 
+    Where-Object { $_.Name -notmatch '^[A-Z]|^layout\.tsx$|^page\.tsx$|^loading\.tsx$|^error\.tsx$|^not-found\.tsx$|^route\.ts$' } |
+    Select-Object FullName
+
+# Should return minimal results for non-conventional naming
+```
+
+## Success Criteria
+
+The NextJS structure standards implementation is complete when:
+
+- [x] **App Router structure** follows NextJS 15 conventions exactly
+- [x] **File naming** uses appropriate conventions for components, utilities, and special files
+- [x] **Route organization** uses groups and private folders effectively
+- [x] **Component hierarchy** is clear and maintainable
+- [x] **API routes** follow RESTful patterns and proper nesting
+- [x] **Development workflow** supports easy navigation and maintenance
+
+## Troubleshooting Common Issues
+
+### Problem: Routes not rendering correctly
+**Symptoms**: 
+- Pages show 404 errors
+- Layout not applying to child routes
+- Dynamic routes not working
+
+**Solution**: 
+```powershell
+# Check for required page.tsx files
+Get-ChildItem -Path "src\app" -Recurse -Name "page.tsx"
+
+# Verify layout.tsx exists in app root
+Test-Path "src\app\layout.tsx"
+
+# Check for file naming issues
+Get-ChildItem -Path "src\app" -Recurse | Where-Object { $_.Name -match " " }
+# Should return no files with spaces in names
+```
+
+### Problem: Components not found or poorly organized
+**Symptoms**: 
+- Import errors for components
+- Difficulty finding related files
+- Circular dependencies
+
+**Solution**: 
+```powershell
+# Reorganize into proper structure
+New-Item -ItemType Directory -Path "src\app\_components\ui" -Force
+
+# Check for circular imports (requires additional tooling)
+npx madge --circular --extensions ts,tsx src/
+
+# Verify component exports
+Get-Content "src\app\_components\**\*.tsx" | Select-String -Pattern "export default|export const"
+```
+
+## Examples
+
+✅ **Correct Implementation:**
+```typescript
+// src/app/dashboard/settings/page.tsx
+import { SettingsForm } from '../../_components/forms/SettingsForm';
+import { DashboardLayout } from '../../_components/layouts/DashboardLayout';
+
+export default function SettingsPage() {
+  return (
+    <DashboardLayout>
+      <h1>Settings</h1>
+      <SettingsForm />
+    </DashboardLayout>
+  );
+}
+
+// src/app/_components/ui/Button.tsx
+interface ButtonProps {
+  children: React.ReactNode;
+  variant?: 'primary' | 'secondary';
+}
+
+export const Button: React.FC<ButtonProps> = ({ children, variant = 'primary' }) => {
+  return (
+    <button className={`btn btn-${variant}`}>
+      {children}
+    </button>
+  );
+};
+```
+
+❌ **Incorrect Implementation:**
+```typescript
+// ❌ Wrong: src/components/dashboard-settings-page.tsx (wrong location and naming)
+import SettingsForm from '../random-location/settings-form'; // ❌ Poor import path
+
+export default function dashboard_settings_page() { // ❌ Wrong naming convention
+  return (
+    <div>
+      <h1>Settings</h1>
+      <SettingsForm />
+    </div>
+  );
+}
+
+// ❌ Wrong: No proper component structure or typing
+const button = ({ kids }) => <button>{kids}</button>; // ❌ Poor naming and typing
+```
+
+## Docker Compatibility Requirements
+**Reference Rule:** `nextjs-docker-standards.mdc`
+
+### Required Next.js Configuration for Containerization
+When deploying NextJS applications in Docker containers, specific configuration is required.
+
+**For complete Docker setup guidance, see `nextjs-docker-standards.mdc`.**
+
+```typescript
+// next.config.ts - Required for Docker deployment
+import type { NextConfig } from "next";
+
+const nextConfig: NextConfig = {
+  // CRITICAL: Enable standalone output for Docker
+  output: 'standalone',
+  
+  // External packages for server components (Prisma, etc.)
+  serverExternalPackages: ['@prisma/client'],
+  
+  // Security headers for production
+  async headers() {
+    return [
+      {
+        source: '/(.*)',
+        headers: [
+          { key: 'X-Frame-Options', value: 'DENY' },
+          { key: 'X-Content-Type-Options', value: 'nosniff' },
+          { key: 'Referrer-Policy', value: 'origin-when-cross-origin' },
+          { key: 'X-XSS-Protection', value: '1; mode=block' },
+        ],
+      },
+    ];
+  },
+};
+
+export default nextConfig;
+```
+
+### Modern CSS Framework Compatibility
+For applications using modern CSS frameworks with native dependencies:
+
+**Tailwind CSS v4 Requirements:**
+- Use Debian-based Docker images (not Alpine)
+- Install build dependencies in Docker: `python3`, `make`, `g++`
+- Include all dependencies (including devDependencies) for build process
+
+**CSS Framework File Organization:**
+```
+src/app/
+├── globals.css              # Global styles and Tailwind imports
+├── _components/
+│   ├── ui/                  # Styled UI components
+│   │   ├── button.tsx       # With Tailwind classes
+│   │   ├── card.tsx
+│   │   └── input.tsx
+│   └── layouts/
+│       └── main-layout.tsx  # Layout with responsive classes
+```
+
+### Environment Configuration for Docker
+```typescript
+// src/env.d.ts - Docker-compatible environment types
+declare global {
+  namespace NodeJS {
+    interface ProcessEnv {
+      NODE_ENV: 'development' | 'production' | 'test';
+      DATABASE_URL: string;
+      REDIS_URL: string;
+      JWT_SECRET: string;
+      ENCRYPTION_KEY: string;
+      // Docker-specific
+      PORT?: string;
+      HOSTNAME?: string;
+    }
+  }
+}
+
+export {};
+```
+
+### Build Output Structure for Docker
+With `output: 'standalone'` configuration, NextJS generates:
+
+```
+.next/
+├── standalone/              # Standalone server files
+│   ├── server.js           # Entry point for Docker CMD
+│   └── ...                 # Dependencies and runtime files
+├── static/                 # Static assets to copy separately
+└── ...                     # Other build artifacts
+```
+
+**Docker Multi-Stage Build Integration:**
+- Copy standalone output to production image
+- Copy static assets separately with proper ownership
+- Ensure proper file permissions for nextjs user
+
+---
+
+**Note**: This rule ensures NextJS 15 App Router projects follow optimal structure patterns for maintainability, performance, developer experience, and reliable Docker containerization.
+
