@@ -11,6 +11,25 @@ const compat = new FlatCompat({
 
 const eslintConfig = [
   ...compat.extends('next/core-web-vitals', 'next/typescript'),
+  {
+    ignores: [
+      '.next/',
+      '.next/**/*',
+      'out/',
+      'out/**/*',
+      'build/',
+      'build/**/*',
+      'dist/',
+      'dist/**/*',
+      'node_modules/',
+      'node_modules/**/*',
+      'tests/',
+      'tests/**/*',
+      'tests-examples/',
+      'tests-examples/**/*',
+      'jsvectormap.d.ts',
+    ],
+  },
 ];
 
 export default eslintConfig;
