@@ -15,23 +15,30 @@ import Label from "@/components/form/Label";
 
 export default function Page({ params }: { params: { id: string } }) {
     const id = params.id;
-    const { token } = useAuthStore();
+    const { token, user } = useAuthStore();
+
     const [doc, setDoc] = useState<DocTemplateResponse | null>(null);
     const [loading, setLoading] = useState(true);
+
     const [signerOptions, setSignerOptions] = useState<{ value: string; label: string }[]>([]);
     const [selectedSigner, setSelectedSigner] = useState("");
+
     const [signatureFields, setSignatureFields] = useState<SignatureField[]>([]);
     const [initialDocSignatureFields, setInitialDocSignatureFields] = useState<SignatureField[]>([]);
+
     const [showQR, setShowQR] = useState(false);
     const [qrValue, setQrValue] = useState("");
+    const [sessionId, setSessionId] = useState<string | null>(null);
+    const [signee_name, setSignee_name] = useState("");
+
     const [pdfRenderURL, setPdfRenderURL] = useState<string | null>(null);
     const [localUploadedFileURL, setLocalUploadedFileURL] = useState<string | null>(null);
+    const [showDropzone, setShowDropzone] = useState(true);
+
     const [previewPdfUrl, setPreviewPdfUrl] = useState<string | null>(null);
     const [isPreviewModalOpen, setIsPreviewModalOpen] = useState(false);
-    const [showDropzone, setShowDropzone] = useState(true);
-    const [signee_name, setSignee_name] = useState("");
     const [confirmSignatureUrl, setConfirmSignatureUrl] = useState<string | null>(null);
-    const [sessionId, setSessionId] = useState<string | null>(null);
+
     const API_URL = process.env.NEXT_PUBLIC_API_BASE_URL || "https://tanah3.darius.my.id/api/v1";
     const CLIENT_FRONTEND_BASE_URL = process.env.NEXT_PUBLIC_CLIENT_FRONTEND_URL || "http://localhost:3000";
 
@@ -72,9 +79,31 @@ export default function Page({ params }: { params: { id: string } }) {
         setInitialDocSignatureFields([...signatureFields]);
     }, [signatureFields]);
 
+    // Fungsi untuk mengirim status proses ke backend
+    const sendProcessStatus = useCallback(async (status: string, currentSessionId: string) => {
+        console.log(`Mengirim status proses: ${status} untuk session ID: ${currentSessionId}`);
+        try {
+            await fetch(`${API_URL}/signatures/process/status/`, {
+                method: "POST",
+                headers: {
+                    "Content-Type": "application/json",
+                    Authorization: `Bearer ${token}`
+                },
+                body: JSON.stringify({
+                    session_id: currentSessionId,
+                    status: status,
+                })
+            });
+            console.log(`Status proses '${status}' berhasil dikirim untuk session ID: ${currentSessionId}`);
+        } catch (error) {
+            console.error("Gagal mengirim status proses:", error);
+        }
+    }, [API_URL, token]);
+
+
     const handleProcess = async () => {
-        if (!doc || !doc.id || !selectedSigner || signatureFields.length < 2 || !pdfRenderURL) {
-            toast.warning("Lengkapi data sebelum proses. Pastikan 2 posisi tanda tangan sudah ditentukan dan file PDF tersedia.");
+        if (!doc || !doc.id || !selectedSigner || signatureFields.length < 2 || !pdfRenderURL || !signee_name) {
+            toast.warning("Lengkapi data sebelum proses. Pastikan nama penerima, petugas, 2 posisi tanda tangan, dan file PDF tersedia.");
             return;
         }
         let pdfFileToSend: File | Blob | null = null;
@@ -121,12 +150,14 @@ export default function Page({ params }: { params: { id: string } }) {
             const result: ProcessStartResponse = await res.json();
             const sessionIdFromBackend = result.session_id;
             setSessionId(sessionIdFromBackend);
+            await sendProcessStatus("proses", sessionIdFromBackend);
             const qrCodeValue = `${CLIENT_FRONTEND_BASE_URL}/sign/${sessionIdFromBackend}`;
             setQrValue(qrCodeValue);
             setShowQR(true);
             const accessFileUrl = result.metadata["confirm-signature-metadata"]["access-file"] || null;
             setConfirmSignatureUrl(accessFileUrl);
             toast.success("Proses tanda tangan berhasil dimulai");
+
         } catch (err: any) {
             toast.error(`Gagal memproses tanda tangan: ${err.message}`);
         }
@@ -139,6 +170,48 @@ export default function Page({ params }: { params: { id: string } }) {
         }
 
         try {
+            toast.info("Memeriksa status tanda tangan...");
+            const statusRes = await fetch(`${API_URL}/signatures/process/status?sid=${sessionId}`, {
+                method: "GET",
+                headers: { Authorization: `Bearer ${token}` },
+            });
+
+            if (!statusRes.ok) {
+                const errorData = await statusRes.json();
+                throw new Error(errorData.detail || "Gagal mengambil status proses");
+            }
+
+            const statusResult = await statusRes.json();
+
+            // Logika untuk mendapatkan status dengan timestamp terakhir
+            const statusObjects = statusResult.filter(
+                (item: any) => typeof item === 'object' && item !== null && 'status' in item && 'timestamp' in item
+            );
+
+            if (statusObjects.length === 0) {
+                toast.warning("Tidak ada data status yang valid ditemukan.");
+                return;
+            }
+
+            // Urutkan berdasarkan timestamp secara menurun (terbaru paling atas)
+            statusObjects.sort((a: any, b: any) => {
+                const dateA = new Date(a.timestamp).getTime();
+                const dateB = new Date(b.timestamp).getTime();
+                return dateB - dateA; // Untuk urutan menurun (terbaru ke terlama)
+            });
+
+            const latestStatusObject = statusObjects[0];
+            const currentStatus = latestStatusObject.status;
+            // Akhir logika baru
+
+            // --- Validasi status: hanya lanjutkan jika "client signed" ---
+            if (currentStatus !== "client signed") {
+                toast.warning(`Tanda tangan belum selesai atau status tidak valid. Status saat ini: ${currentStatus || 'tidak diketahui'}. Harap tunggu penandatanganan klien selesai.`);
+                return; // Hentikan proses pratinjau jika belum "client signed"
+            }
+
+            // Lanjutkan jika status sudah "client signed"
+            toast.info("Tanda tangan sudah selesai oleh klien, memuat pratinjau...");
             const res = await fetch(`${API_URL}/signatures/process/start/${sessionId}`, {
                 method: "GET",
                 headers: { Authorization: `Bearer ${token}` },
@@ -155,7 +228,6 @@ export default function Page({ params }: { params: { id: string } }) {
                 return;
             }
 
-            // Tambahkan langkah tambahan jika URL hanya kembalikan JSON
             const pdfRes = await fetch(accessFileUrl, {
                 method: "GET",
                 headers: { Authorization: `Bearer ${token}` },
@@ -168,6 +240,7 @@ export default function Page({ params }: { params: { id: string } }) {
 
             setPreviewPdfUrl(fileURL);
             setIsPreviewModalOpen(true);
+            toast.success("Pratinjau PDF berhasil dimuat.");
         } catch (err: any) {
             toast.error(`Gagal mengambil preview: ${err.message}`);
         }
@@ -203,13 +276,143 @@ export default function Page({ params }: { params: { id: string } }) {
                 const data: SignerDelegation[] = await fetchSignerDelegations(token);
                 const options = data.map((item: SignerDelegation) => ({ value: item.id, label: item.owner }));
                 setSignerOptions(options);
+                if (options.length > 0 && !selectedSigner) {
+                    setSelectedSigner(options[0].value);
+                }
             } catch (error: any) {
                 toast.error(`Gagal memuat daftar penandatangan: ${error.message}`);
                 setSignerOptions([]);
             }
         };
         loadSignerOptions();
-    }, [token]);
+    }, [token, selectedSigner]);
+
+    const handleCancelProcess = async () => {
+        if (!sessionId) {
+            toast.error("Session ID tidak ditemukan untuk membatalkan.");
+            return;
+        }
+        try {
+            toast.info("Membatalkan proses tanda tangan...");
+            const res = await fetch(`${API_URL}/signatures/process/cancel/`, {
+                method: "POST",
+                headers: {
+                    "Content-Type": "application/json",
+                    Authorization: `Bearer ${token}`
+                },
+                body: JSON.stringify({ session_id: sessionId })
+            });
+
+            if (!res.ok) {
+                const errorData = await res.json();
+                throw new Error(errorData.detail || "Gagal membatalkan proses tanda tangan");
+            }
+            toast.success("Proses tanda tangan berhasil dibatalkan.");
+            // Kirim status "dibatalkan"
+            await sendProcessStatus("dibatalkan", sessionId);
+            // Reset state terkait proses
+            setShowQR(false);
+            setQrValue("");
+            setSessionId(null);
+            setConfirmSignatureUrl(null);
+            setPreviewPdfUrl(null);
+            setIsPreviewModalOpen(false);
+            setSignee_name("");
+            setSelectedSigner("");
+        } catch (err: any) {
+            toast.error(`Gagal membatalkan proses: ${err.message}`);
+        }
+    };
+
+    // Fungsi baru untuk menangani proses retry
+    const handleRetryProcess = async () => {
+        if (!sessionId) {
+            toast.error("Session ID tidak ditemukan untuk mencoba lagi.");
+            return;
+        }
+        try {
+            toast.info("Mengulang proses tanda tangan...");
+            // Kirim status "retry" ke backend
+            await sendProcessStatus("retry", sessionId);
+
+            // Tutup modal pratinjau
+            setIsPreviewModalOpen(false);
+            setPreviewPdfUrl(null); // Clear preview URL
+            setConfirmSignatureUrl(null); // Clear confirm signature URL
+
+            // Opsional: Anda bisa memilih untuk mereset seluruh alur penandatanganan
+            // kembali ke tahap awal (misal: menampilkan QR ulang, dll.)
+            // Namun, karena Anda hanya ingin mengirim status retry, cukup tutup modal.
+            // Jika backend Anda mengharapkan inisiasi ulang QR, Anda perlu memanggil handleProcess lagi
+            // atau fungsi yang membuat QR baru.
+            // Untuk skenario 'retry' yang sederhana, kita hanya mengirim status dan menutup modal.
+            toast.success("Status 'retry' berhasil dikirim. Silakan mulai proses baru jika diperlukan.");
+
+            // Jika Anda ingin mengulang seluruh alur setelah retry (misal, QR baru):
+            // setShowQR(false);
+            // setQrValue("");
+            // setSessionId(null);
+            // setSignee_name("");
+            // setSelectedSigner("");
+            // Jika perlu memulai proses baru: handleProcess();
+            // PENTING: Keputusan ini tergantung pada bagaimana backend Anda menangani "retry".
+            // Apakah "retry" berarti memulai sesi tanda tangan baru atau mencoba kembali sesi yang sama?
+            // Saya asumsikan "retry" di sini berarti menandai sesi sebelumnya sebagai perlu diulang,
+            // dan pengguna akan memulai proses baru secara manual dari halaman utama.
+            // Jika "retry" berarti QR code yang sama harus berfungsi lagi atau QR baru harus dihasilkan,
+            // logika tambahan diperlukan di sini atau di backend.
+
+        } catch (err: any) {
+            toast.error(`Gagal mengulang proses: ${err.message}`);
+        }
+    };
+
+
+    const handleFinalizeProcess = async () => {
+        if (!sessionId || !doc?.id || !selectedSigner || !signee_name) {
+            toast.warning("Data tidak lengkap untuk menyelesaikan proses.");
+            return;
+        }
+
+        try {
+            toast.info("Menyelesaikan proses tanda tangan...");
+            const res = await fetch(`${API_URL}/signatures/process/finalize/`, {
+                method: "POST",
+                headers: {
+                    "Content-Type": "application/json",
+                    Authorization: `Bearer ${token}`
+                },
+                body: JSON.stringify({
+                    receiver_name: signee_name,
+                    session_id: sessionId,
+                    template_id: doc.id,
+                    primary_signature: selectedSigner,
+                    created_by: user?.id || null
+                })
+            });
+
+            if (!res.ok) {
+                const errorData = await res.json();
+                throw new Error(errorData.detail || "Gagal menyelesaikan proses tanda tangan");
+            }
+            toast.success("Proses tanda tangan berhasil diselesaikan!");
+            // Kirim status "selesai" setelah berhasil menyelesaikan
+            await sendProcessStatus("selesai", sessionId);
+
+            // Reset state setelah selesai
+            setShowQR(false);
+            setQrValue("");
+            setSessionId(null);
+            setConfirmSignatureUrl(null);
+            setPreviewPdfUrl(null);
+            setIsPreviewModalOpen(false);
+            setSignee_name("");
+            setSelectedSigner("");
+        } catch (err: any) {
+            toast.error(`Gagal menyelesaikan proses: ${err.message}`);
+        }
+    };
+
 
     if (loading || !doc) {
         return (
@@ -261,7 +464,7 @@ export default function Page({ params }: { params: { id: string } }) {
                 <Label className="text-xs">Masukan Nama Penerima</Label>
                 <Input
                     type="text"
-                    placeholder="Felas"
+                    placeholder="Nama Penerima Dokumen"
                     required
                     value={signee_name}
                     onChange={(e) => setSignee_name(e.target.value)}
@@ -309,6 +512,13 @@ export default function Page({ params }: { params: { id: string } }) {
                 </button>
                 {showQR && qrValue && (
                     <>
+                        <button
+                            onClick={handleCancelProcess}
+                            className="bg-red-500 hover:bg-red-600 w-full py-2 rounded text-white font-medium text-xs transition-all duration-200 mt-2"
+                        >
+                            Batalkan Proses
+                        </button>
+
                         <div className="mt-3 p-2 bg-white dark:bg-gray-700 border border-gray-200 dark:border-gray-600 rounded shadow-sm text-center animate-fadeIn">
                             <p className="text-xs text-gray-600 dark:text-gray-300 mb-2">
                                 Scan QR untuk lanjutkan:
@@ -319,21 +529,20 @@ export default function Page({ params }: { params: { id: string } }) {
                             <p className="text-[10px] text-gray-500 break-all">{qrValue}</p>
                         </div>
 
-                        {/* Tombol Preview Menggunakan confirmSignatureUrl */}
                         <button
                             onClick={fetchConfirmSignatureUrl}
                             disabled={!sessionId}
                             className={`
-            w-full mt-2 py-1 font-medium rounded text-xs transition-colors
-            ${sessionId ? "bg-green-600 hover:bg-green-700 text-white" : "bg-gray-300 text-gray-500 cursor-not-allowed"}
-        `}
+                                w-full mt-2 py-1 font-medium rounded text-xs transition-colors
+                                ${sessionId ? "bg-green-600 hover:bg-green-700 text-white" : "bg-gray-300 text-gray-500 cursor-not-allowed"}
+                            `}
                         >
                             Preview PDF
                         </button>
                     </>
                 )}
             </div>
-            {previewPdfUrl && (
+            {isPreviewModalOpen && previewPdfUrl && (
                 <Modal isOpen={isPreviewModalOpen} onClose={() => setIsPreviewModalOpen(false)} isFullscreen>
                     <div className="h-screen w-full flex flex-col">
                         <iframe
@@ -341,6 +550,20 @@ export default function Page({ params }: { params: { id: string } }) {
                             className="flex-1 w-full h-full border-none"
                             title="Preview PDF"
                         ></iframe>
+                        <div className="flex justify-end p-4 bg-gray-100 dark:bg-gray-900 border-t border-gray-200 dark:border-gray-700">
+                            <button
+                                onClick={handleRetryProcess} // Memanggil fungsi handleRetryProcess
+                                className="bg-orange-500 hover:bg-orange-600 text-white font-bold py-2 px-4 rounded text-sm mr-2"
+                            >
+                                Coba Lagi
+                            </button>
+                            <button
+                                onClick={handleFinalizeProcess}
+                                className="bg-green-500 hover:bg-green-600 text-white font-bold py-2 px-4 rounded text-sm"
+                            >
+                                Selesai
+                            </button>
+                        </div>
                     </div>
                 </Modal>
             )}
