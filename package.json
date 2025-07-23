@@ -37,6 +37,7 @@
     "react-hot-toast": "^2.5.2",
     "react-intersection-observer": "^9.16.0",
     "react-pdf": "^9.2.1",
+    "react-select": "^5.10.2",
     "signature_pad": "^5.0.9",
     "sonner": "^2.0.4",
     "swiper": "^11.2.0",

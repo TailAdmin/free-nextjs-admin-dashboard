@@ -12,6 +12,7 @@ import ProcessPdfEditor from "../ProcessPdfEditor";
 import { Modal } from "@/components/ui/modal";
 import Input from "@/components/form/input/InputField";
 import Label from "@/components/form/Label";
+import ReactSelect from 'react-select'
 
 export default function Page({ params }: { params: { id: string } }) {
     const id = params.id;
@@ -20,7 +21,7 @@ export default function Page({ params }: { params: { id: string } }) {
     const [doc, setDoc] = useState<DocTemplateResponse | null>(null);
     const [loading, setLoading] = useState(true);
 
-    const [signerOptions, setSignerOptions] = useState<{ value: string; label: string }[]>([]);
+    const [signerOptions, setSignerOptions] = useState<{ value: string; label: string, image? : string, name:string }[]>([]);
     const [selectedSigner, setSelectedSigner] = useState("");
 
     const [signatureFields, setSignatureFields] = useState<SignatureField[]>([]);
@@ -274,8 +275,9 @@ export default function Page({ params }: { params: { id: string } }) {
             if (!token) return;
             try {
                 const data: SignerDelegation[] = await fetchSignerDelegations(token);
-                const options = data.map((item: SignerDelegation) => ({ value: item.id, label: item.owner }));
+                const options = data.map((item: SignerDelegation) => ({ value: item.id, label: item.owner , name:item.fullname, image: item.file ?? "https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcSR6-Y6uY-VKr_TPEiri-UILWJyBDFUnE-jyw&s"}));
                 setSignerOptions(options);
+                console.log(options)
                 if (options.length > 0 && !selectedSigner) {
                     setSelectedSigner(options[0].value);
                 }
@@ -481,13 +483,28 @@ export default function Page({ params }: { params: { id: string } }) {
                     >
                         Petugas Penandatangan
                     </label>
-                    <Select
+                    <ReactSelect
+                        onChange={(selectedOption) => {
+                            if (selectedOption) {
+                                setSelectedSigner(selectedOption.value);
+                            } else {
+                                setSelectedSigner(""); // Or handle null/undefined as appropriate
+                            }
+                        }}
                         options={signerOptions}
                         placeholder="-- Pilih Petugas --"
-                        onChange={(value) => setSelectedSigner(value)}
                         defaultValue={selectedSigner}
                         className="text-xs"
+                        formatOptionLabel={user => (
+                        <div className="flex flex-row gap-2 text-center justify-center">
+                        <div>
+                        <p>{user.label} - {user.name}</p>
+                        <img src={user.image} width={"100em"} alt="country-image" />
+                        </div>
+                        </div>
+                    )}                    
                     />
+
                 </div>
                 <button
                     onClick={handleProcess}
