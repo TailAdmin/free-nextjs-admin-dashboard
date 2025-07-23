@@ -22,7 +22,7 @@ export default function Page({ params }: { params: { id: string } }) {
     const [doc, setDoc] = useState<DocTemplateResponse | null>(null);
     const [loading, setLoading] = useState(true);
 
-    const [signerOptions, setSignerOptions] = useState<{ value: string; label: string, image? : string }[]>([]);
+    const [signerOptions, setSignerOptions] = useState<{ value: string; label: string, image? : string, name:string }[]>([]);
     const [selectedSigner, setSelectedSigner] = useState("");
 
     const [signatureFields, setSignatureFields] = useState<SignatureField[]>([]);
@@ -278,8 +278,9 @@ export default function Page({ params }: { params: { id: string } }) {
             if (!token) return;
             try {
                 const data: SignerDelegation[] = await fetchSignerDelegations(token);
-                const options = data.map((item: SignerDelegation) => ({ value: item.id, label: item.owner , image: item.file ?? "https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcSR6-Y6uY-VKr_TPEiri-UILWJyBDFUnE-jyw&s"}));
+                const options = data.map((item: SignerDelegation) => ({ value: item.id, label: item.owner , name:item.fullname, image: item.file ?? "https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcSR6-Y6uY-VKr_TPEiri-UILWJyBDFUnE-jyw&s"}));
                 setSignerOptions(options);
+                console.log(options)
                 console.log(options)
                 if (options.length > 0 && !selectedSigner) {
                     setSelectedSigner(options[0].value);
@@ -481,7 +482,7 @@ export default function Page({ params }: { params: { id: string } }) {
                         formatOptionLabel={user => (
                         <div className="flex flex-row gap-2 text-center justify-center">
                         <div>
-                        <p>{user.label}</p>
+                        <p>{user.label} - {user.name}</p>
                         <img src={user.image} width={"100em"} alt="country-image" />
                         </div>
                         </div>

@@ -53,6 +53,10 @@ export interface SignerDelegation {
     id: string;    // ID unik dari delegasi penandatangan (yang akan menjadi 'value' di Select)
     owner: string; // Nama pemilik delegasi (yang akan menjadi 'label' di Select)
     file? : string;
+<<<<<<< HEAD
+    fullname: string;
+=======
+>>>>>>> f19a45ead232e8f3273f80e46956c9dea9038f5a
     // Anda bisa menambahkan properti lain jika API Anda mengembalikannya, contoh:
     // email: string;
     // user_id: string;
