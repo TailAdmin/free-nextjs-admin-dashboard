@@ -13,6 +13,7 @@ import { Modal } from "@/components/ui/modal";
 import Input from "@/components/form/input/InputField";
 import Label from "@/components/form/Label";
 import ReactSelect from 'react-select'
+import { useRouter } from "next/navigation";
 
 export default function Page({ params }: { params: { id: string } }) {
     const id = params.id;
@@ -40,8 +41,10 @@ export default function Page({ params }: { params: { id: string } }) {
     const [isPreviewModalOpen, setIsPreviewModalOpen] = useState(false);
     const [confirmSignatureUrl, setConfirmSignatureUrl] = useState<string | null>(null);
 
+    const router = useRouter();
+
     const API_URL = process.env.NEXT_PUBLIC_API_BASE_URL || "https://tanah3.darius.my.id/api/v1";
-    const CLIENT_FRONTEND_BASE_URL = process.env.NEXT_PUBLIC_CLIENT_FRONTEND_URL || "http://localhost:3000";
+    const CLIENT_FRONTEND_BASE_URL = process.env.NEXT_PUBLIC_CLIENT_FRONTEND_URL;
 
     useEffect(() => {
         const fetchInitialDocData = async () => {
@@ -341,28 +344,7 @@ export default function Page({ params }: { params: { id: string } }) {
             setIsPreviewModalOpen(false);
             setPreviewPdfUrl(null); // Clear preview URL
             setConfirmSignatureUrl(null); // Clear confirm signature URL
-
-            // Opsional: Anda bisa memilih untuk mereset seluruh alur penandatanganan
-            // kembali ke tahap awal (misal: menampilkan QR ulang, dll.)
-            // Namun, karena Anda hanya ingin mengirim status retry, cukup tutup modal.
-            // Jika backend Anda mengharapkan inisiasi ulang QR, Anda perlu memanggil handleProcess lagi
-            // atau fungsi yang membuat QR baru.
-            // Untuk skenario 'retry' yang sederhana, kita hanya mengirim status dan menutup modal.
-            toast.success("Status 'retry' berhasil dikirim. Silakan mulai proses baru jika diperlukan.");
-
-            // Jika Anda ingin mengulang seluruh alur setelah retry (misal, QR baru):
-            // setShowQR(false);
-            // setQrValue("");
-            // setSessionId(null);
-            // setSignee_name("");
-            // setSelectedSigner("");
-            // Jika perlu memulai proses baru: handleProcess();
-            // PENTING: Keputusan ini tergantung pada bagaimana backend Anda menangani "retry".
-            // Apakah "retry" berarti memulai sesi tanda tangan baru atau mencoba kembali sesi yang sama?
-            // Saya asumsikan "retry" di sini berarti menandai sesi sebelumnya sebagai perlu diulang,
-            // dan pengguna akan memulai proses baru secara manual dari halaman utama.
-            // Jika "retry" berarti QR code yang sama harus berfungsi lagi atau QR baru harus dihasilkan,
-            // logika tambahan diperlukan di sini atau di backend.
+            toast.success("Status 'retry' berhasil dikirim. Silakan mulai proses baru jika diperlukan.")
 
         } catch (err: any) {
             toast.error(`Gagal mengulang proses: ${err.message}`);
@@ -410,6 +392,7 @@ export default function Page({ params }: { params: { id: string } }) {
             setIsPreviewModalOpen(false);
             setSignee_name("");
             setSelectedSigner("");
+            router.push("/")
         } catch (err: any) {
             toast.error(`Gagal menyelesaikan proses: ${err.message}`);
         }
