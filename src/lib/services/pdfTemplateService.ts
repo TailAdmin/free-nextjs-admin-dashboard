@@ -1,5 +1,6 @@
 import { DocTemplatePayload, SignatureField, SignerDelegation } from "@/types/pdfTemplate.types";
 import { DocTemplateResponse } from "@/types/pdfTemplate.types";
+import apiClient from "../axiosConfig";
 
 const API_URL = process.env.NEXT_PUBLIC_API_BASE_URL;
 
@@ -21,45 +22,36 @@ export const uploadPdfTemplate = async (
         formData.append("signature_fields", JSON.stringify(payload.signature_fields));
     }
 
-    const response = await fetch(`${API_URL}/signatures/doc-templates/`, {
-        method: "POST",
-        headers: {
-            Authorization: `Bearer ${token}`,
-        },
-        body: formData,
-    });
+    const response = await apiClient.post("/signatures/doc-templates/", formData)
 
-    if (!response.ok) {
-        const errorText = await response.text();
-        console.error("Raw error response:", errorText);
-        try {
-            const errorJson = JSON.parse(errorText);
-            console.error("Parsed error response:", errorJson);
-            throw new Error(`Gagal mengupload dokumen: ${errorJson.detail || JSON.stringify(errorJson)}`);
-        } catch (e) {
-            throw new Error(`Gagal mengupload dokumen. Status: ${response.status}. Pesan: ${errorText}`);
-        }
-    }
 
-    return await response.json();
+    // if (!response.ok) {
+    //     const errorText = await response.text();
+    //     console.error("Raw error response:", errorText);
+    //     try {
+    //         const errorJson = JSON.parse(errorText);
+    //         console.error("Parsed error response:", errorJson);
+    //         throw new Error(`Gagal mengupload dokumen: ${errorJson.detail || JSON.stringify(errorJson)}`);
+    //     } catch (e) {
+    //         throw new Error(`Gagal mengupload dokumen. Status: ${response.status}. Pesan: ${errorText}`);
+    //     }
+    // }
+
+    return await response.data
 };
 
 export const fetchAllPdfTemplates = async (token: string): Promise<DocTemplateResponse[]> => {
     try {
 
-        const response = await fetch(`${API_URL}/signatures/doc-templates/short-list/`, {
-            method: "GET",
-            headers: {
-                Authorization: `Bearer ${token}`,
-            },
-        });
-
-        if (!response.ok) {
-            const errorData = await response.json();
-            console.error("Error fetching templates short-list:", errorData);
-            throw new Error(errorData.detail || `Gagal mengambil dokumen. Status: ${response.status}`);
-        }
-        const data = await response.json();
+        const response = await apiClient.get(`/signatures/doc-templates/short-list/`)
+        
+        console.log(response)
+        // if (!response.ok) {
+        //     const errorData = await response.json();
+        //     console.error("Error fetching templates short-list:", errorData);
+        //     throw new Error(errorData.detail || `Gagal mengambil dokumen. Status: ${response.status}`);
+        // }
+        const data = await response.data
         console.log("Data templates (short-list) dari API:", data);
         return data;
     } catch (error: any) {
