@@ -278,6 +278,7 @@ export default function Page({ params }: { params: { id: string } }) {
                 const options = data.map((item: SignerDelegation) => ({ value: item.id, label: item.owner , name:item.fullname, image: item.file ?? "https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcSR6-Y6uY-VKr_TPEiri-UILWJyBDFUnE-jyw&s"}));
                 setSignerOptions(options);
                 console.log(options)
+                console.log(options)
                 if (options.length > 0 && !selectedSigner) {
                     setSelectedSigner(options[0].value);
                 }
