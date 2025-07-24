@@ -3,13 +3,11 @@
 import React, { useEffect, useState } from "react";
 import LoadingSpinner from "@/components/ui/loading/LoadingSpinner";
 import { useSidebar } from "@/context/SidebarContext";
-import { useInitializeAuth } from "@/hooks/useInitializeAuth";
 import AppHeader from "@/layout/AppHeader";
 import AppSidebar from "@/layout/AppSidebar";
 import Backdrop from "@/layout/Backdrop";
 import { useAuthStore } from "@/lib/stores/useAuthStore";
 import { useRouter } from "next/navigation";
-import { refreshAccessToken } from "@/lib/services/authService";
 
 export default function AdminLayout({
   children,
@@ -18,38 +16,21 @@ export default function AdminLayout({
 }) {
   const router = useRouter();
   const { isExpanded, isHovered, isMobileOpen } = useSidebar();
-  const { isAuthenticated, token } = useInitializeAuth();
 
-  const [checkingAuth, setCheckingAuth] = useState(true);
 
-  const authState = useAuthStore((state) => state.isAuthenticated);
-  const refreshToken = useAuthStore((state) => state.refreshToken);
+  const isAuthenticated = useAuthStore((state) => state.isAuthenticated);
+  const token = useAuthStore((state) => state.token); 
 
   useEffect(() => {
-    const checkAuthStatus = async () => {
-      if (!token && !authState && refreshToken) {
-        try {
-          await refreshAccessToken();
-          setCheckingAuth(false);
-        } catch (error) {
-          console.warn("Gagal perbarui token", error);
-          setCheckingAuth(false);
-        }
-      } else {
-        setCheckingAuth(false);
+    if (!token || !isAuthenticated) {
+      if (typeof window !== "undefined") { 
+        router.push("/signin");
       }
-    };
+    }
+  }, [token, isAuthenticated, router]);
 
-    checkAuthStatus();
-  }, []);
-
-  if (checkingAuth) {
-    return <LoadingSpinner isFullScreen/>;
-  }
-
-  if (!token || !isAuthenticated) {
-    router.push("/signin");
-    return null;
+  if (typeof window !== "undefined" && (!token || !isAuthenticated)) {
+    return <LoadingSpinner isFullScreen />; 
   }
 
   // Layout utama
