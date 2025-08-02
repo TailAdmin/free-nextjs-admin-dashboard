@@ -91,7 +91,8 @@ apiClient.interceptors.response.use(
             useAuthStore.getState().logout();
             window.location.href = "/signin";
         }
-
+        
+        console.error("Kesalahan dalam response : ", error)
         // Untuk semua error lainnya, tolak promise
         return Promise.reject(error);
     }

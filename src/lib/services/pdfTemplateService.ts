@@ -45,7 +45,7 @@ export const fetchAllPdfTemplates = async (token: string): Promise<DocTemplateRe
 
         const response = await apiClient.get(`/signatures/doc-templates/short-list/`)
         
-        console.log(response)
+        // console.log(response)
         // if (!response.ok) {
         //     const errorData = await response.json();
         //     console.error("Error fetching templates short-list:", errorData);

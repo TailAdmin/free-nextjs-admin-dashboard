@@ -23,6 +23,7 @@
     "apexcharts": "^4.3.0",
     "autoprefixer": "^10.4.20",
     "axios": "^1.9.0",
+    "dayjs": "^1.11.13",
     "flatpickr": "^4.6.13",
     "next": "15.2.3",
     "pdf-lib": "^1.17.1",
