@@ -67,26 +67,8 @@ export const fetchDocById = async (id: string, token: string): Promise<DocTempla
         throw new Error(`ID dokumen tidak valid untuk diambil: ${id}`);
     }
 
-    const response = await fetch(`${API_URL}/signatures/doc-templates/${id}/`, {
-        headers: {
-            Authorization: `Bearer ${token}`,
-        },
-    });
-
-    if (!response.ok) {
-        let errorDetail = `Gagal mengambil dokumen ID: ${id}`;
-        try {
-            const errorJson = await response.json();
-            errorDetail = errorJson.detail || errorDetail;
-        } catch (e) {
-            const errorText = await response.text();
-            errorDetail = errorText || errorDetail;
-        }
-        console.error("Error fetching doc:", response.status, errorDetail);
-        throw new Error(errorDetail);
-    }
-
-    return await response.json();
+    const response = await apiClient.get(`/signatures/doc-templates/${id}/`)
+    return response.data
 };
 
 export const updateDocWithSignatures = async (
@@ -94,20 +76,20 @@ export const updateDocWithSignatures = async (
     signatureFields: SignatureField[],
     token: string
 ): Promise<DocTemplateResponse> => {
-    const response = await fetch(`${API_URL}/signatures/doc-templates/${id}/`, {
-        method: "PATCH",
-        headers: {
-            "Content-Type": "application/json",
-            Authorization: `Bearer ${token}`,
-        },
-        body: JSON.stringify({ signature_fields: signatureFields }),
-    });
+    // const response = await fetch(`${API_URL}/signatures/doc-templates/${id}/`, {
+    //     method: "PATCH",
+    //     headers: {
+    //         "Content-Type": "application/json",
+    //         Authorization: `Bearer ${token}`,
+    //     },
+    //     body: JSON.stringify({ signature_fields: signatureFields }),
+    // });
 
-    if (!response.ok) {
-        throw new Error("Gagal memperbarui dokumen");
-    }
+    // if (!response.ok) {
+    //     throw new Error("Gagal memperbarui dokumen");
+    // }
 
-    return await response.json();
+    return await apiClient.post(`/signatures/doc-templates/${id}/`, { signature_fields: signatureFields })
 };
 
 export const deletePdfTemplate = async (id: string, token: string): Promise<void> => { 
@@ -117,42 +99,36 @@ export const deletePdfTemplate = async (id: string, token: string): Promise<void
         throw new Error(`ID dokumen tidak valid untuk dihapus: ${id}`);
     }
 
-    const response = await fetch(`${API_URL}/signatures/doc-templates/${id}/`, {
-        method: "DELETE",
-        headers: {
-            Authorization: `Bearer ${token}`,
-        },
-    });
+    return await apiClient.delete(`/signatures/doc-templates/${id}/`).then(r=>r.data)
+    // const response = await fetch(`${API_URL}/signatures/doc-templates/${id}/`, {
+    //     method: "DELETE",
+    //     headers: {
+    //         Authorization: `Bearer ${token}`,
+    //     },
+    // });
 
-    if (!response.ok) {
-        let errorDetail = `Gagal menghapus dokumen ID: ${id}`;
-        try {
-            const errorJson = await response.json();
-            errorDetail = errorJson.detail || errorDetail;
-        } catch (e) {
-            const errorText = await response.text();
-            errorDetail = errorText || errorDetail;
-        }
-        console.error("Error delete:", response.status, errorDetail);
-        throw new Error(errorDetail);
-    }
+    // if (!response.ok) {
+    //     let errorDetail = `Gagal menghapus dokumen ID: ${id}`;
+    //     try {
+    //         const errorJson = await response.json();
+    //         errorDetail = errorJson.detail || errorDetail;
+    //     } catch (e) {
+    //         const errorText = await response.text();
+    //         errorDetail = errorText || errorDetail;
+    //     }
+    //     console.error("Error delete:", response.status, errorDetail);
+    //     throw new Error(errorDetail);
+    // }
 };
 
 export async function fetchSignerDelegations(token: string): Promise<SignerDelegation[]> {
-    const response = await fetch(`${API_URL}/signatures/user/delegations/`, {
-        method: "GET",
-        headers: {
-            "Content-Type": "application/json",
-            "Authorization": `Bearer ${token}`,
-        },
-        cache: 'no-store'
-    });
+    const response =  await apiClient.get(`/signatures/user/delegations/`)
+    return response.data 
+    // if (!response.ok) {
+    //     const errorData = await response.json();
+    //     throw new Error(errorData.detail || "Gagal mengambil daftar penandatangan");
+    // }
 
-    if (!response.ok) {
-        const errorData = await response.json();
-        throw new Error(errorData.detail || "Gagal mengambil daftar penandatangan");
-    }
-
-    const data: SignerDelegation[] = await response.json();
-    return data;
+    // const data: SignerDelegation[] = await response.json();
+    // return data;
 }
