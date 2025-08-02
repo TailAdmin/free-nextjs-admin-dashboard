@@ -4,7 +4,7 @@ import React, { useEffect, useState, useMemo } from "react";
 import { useAuthStore } from "@/lib/stores/useAuthStore";
 import { Table, TableBody, TableCell, TableHeader, TableRow } from "../ui/table";
 import Badge from "../ui/badge/Badge";
-import { fetchSignatureHistory, deleteSignatureHistory } from "@/lib/services/signatureHistoryService";
+import { getSignatureHistory, deleteSignatureHistory } from "@/lib/services/signatureHistoryService";
 import Button from "../ui/button/Button";
 import { toast } from "sonner";
 import { ChevronUpIcon, ChevronDownIcon } from "@/icons";
@@ -120,7 +120,7 @@ export default function BasicTableOne() {
       setIsLoading(true);
       setError(null);
 
-      const historyRawData = await fetchSignatureHistory(token);
+      const historyRawData = await getSignatureHistory();
       const mappedData: DocumentSignatureHistory[] = historyRawData.map((item) => {
         const created_at = dayjs(item.created_at).format("YYYY-MM-DD");
         const updated_at = dayjs(item.updated_at).format("YYYY-MM-DD");
