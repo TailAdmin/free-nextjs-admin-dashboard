@@ -1,4 +1,4 @@
-'use client';
+'use client'
 import React, {
     useEffect,
     useState,
@@ -13,6 +13,254 @@ import { toast } from 'sonner';
 import { useParams } from 'next/navigation';
 import { PDFDocument, rgb } from 'pdf-lib';
 import CustomSignaturePad from '@/components/canvas/SignaturePad';
+
+interface SignatureField {
+    category: 'Petugas' | 'Penerima';
+    pos_x: number;
+    pos_y: number;
+    page_signature: number;
+}
+
+interface PdfPageRendererProps {
+    pageNum: number;
+    pdfBytes: Uint8Array | null;
+    petugasSignatureImageUrl: string | null;
+    penerimaSignatureDataUrl: string | null;
+    signatureFieldsJson: string | undefined;
+    pdfDocProxy: PDFDocumentProxy | null;
+    containerRef?: React.RefObject<HTMLDivElement>; // Container reference for responsive sizing
+}
+
+const PdfPageRenderer: React.FC<PdfPageRendererProps> = ({
+    pageNum,
+    pdfBytes,
+    petugasSignatureImageUrl,
+    penerimaSignatureDataUrl,
+    signatureFieldsJson,
+    pdfDocProxy,
+    containerRef,
+}) => {
+    const canvasRef = useRef<HTMLCanvasElement>(null);
+    const [pageRenderedWidth, setPageRenderedWidth] = useState<number | null>(null);
+    const [pageRenderedHeight, setPageRenderedHeight] = useState<number | null>(null);
+    const [originalPageViewport, setOriginalPageViewport] = useState<pdfjs.PageViewport | null>(null);
+    
+    // Calculate responsive scale based on container width
+    const calculateScale = useCallback(() => {
+        if (!containerRef?.current || !originalPageViewport) return 1;
+        
+        const containerWidth = containerRef.current.offsetWidth - 40; // Account for padding
+        const maxWidth = Math.min(containerWidth, 800); // Max width cap
+        return maxWidth / originalPageViewport.width;
+    }, [containerRef, originalPageViewport]);
+
+    // Render PDF page with responsive scaling
+    useEffect(() => {
+        const renderPage = async () => {
+            if (!canvasRef.current || !pdfBytes || !pdfDocProxy) return;
+
+            try {
+                const page = await pdfDocProxy.getPage(pageNum);
+                const viewport = page.getViewport({ scale: 1 });
+                setOriginalPageViewport(viewport);
+
+                // Calculate responsive scale
+                const scale = containerRef?.current 
+                    ? Math.min((containerRef.current.offsetWidth - 40) / viewport.width, 800 / viewport.width)
+                    : 1;
+                
+                const scaledViewport = page.getViewport({ scale });
+
+                const canvas = canvasRef.current;
+                const context = canvas.getContext('2d');
+                if (!context) return;
+
+                canvas.height = scaledViewport.height;
+                canvas.width = scaledViewport.width;
+
+                setPageRenderedWidth(canvas.width);
+                setPageRenderedHeight(canvas.height);
+
+                await page.render({
+                    canvasContext: context,
+                    viewport: scaledViewport,
+                }).promise;
+            } catch (error) {
+                console.error('Error rendering PDF page:', error);
+            }
+        };
+
+        renderPage();
+    }, [pdfBytes, pageNum, pdfDocProxy, containerRef]);
+
+    // Handle window resize for responsive behavior
+    useEffect(() => {
+        const handleResize = () => {
+            if (!canvasRef.current || !pdfBytes || !pdfDocProxy || !originalPageViewport) return;
+            
+            // Recalculate and re-render on resize
+            const renderPage = async () => {
+                try {
+                    const page = await pdfDocProxy.getPage(pageNum);
+                    const scale = containerRef?.current 
+                        ? Math.min((containerRef.current.offsetWidth - 40) / originalPageViewport.width, 800 / originalPageViewport.width)
+                        : 1;
+                    
+                    const scaledViewport = page.getViewport({ scale });
+                    const canvas = canvasRef.current!;
+                    const context = canvas.getContext('2d')!;
+
+                    canvas.height = scaledViewport.height;
+                    canvas.width = scaledViewport.width;
+
+                    setPageRenderedWidth(canvas.width);
+                    setPageRenderedHeight(canvas.height);
+
+                    await page.render({
+                        canvasContext: context,
+                        viewport: scaledViewport,
+                    }).promise;
+                } catch (error) {
+                    console.error('Error re-rendering PDF page:', error);
+                }
+            };
+
+            renderPage();
+        };
+
+        const debouncedResize = debounce(handleResize, 150);
+        window.addEventListener('resize', debouncedResize);
+        
+        return () => window.removeEventListener('resize', debouncedResize);
+    }, [pdfBytes, pageNum, pdfDocProxy, originalPageViewport, containerRef]);
+
+    // Calculate signature overlay positions relative to current scale
+    const getResponsiveOverlayStyle = useCallback((
+        category: 'Petugas' | 'Penerima',
+        field: SignatureField,
+        canvasWidth: number,
+        canvasHeight: number,
+        originalViewport: pdfjs.PageViewport | null
+    ): React.CSSProperties => {
+        if (!originalViewport || !canvasWidth || !canvasHeight) {
+            return { display: 'none' };
+        }
+
+        // Convert absolute PDF coordinates to relative percentages
+        const relativeX = field.pos_x / originalViewport.width;
+        const relativeY = field.pos_y / originalViewport.height;
+
+        // Calculate display positions based on current canvas size
+        const displayX = relativeX * canvasWidth;
+        const displayY = relativeY * canvasHeight;
+
+        // Signature dimensions (adjustable based on scale)
+        const currentScale = canvasWidth / originalViewport.width;
+        const signatureWidth = 100 * currentScale; // Base width 100 PDF points
+        const signatureHeight = 50 * currentScale; // Base height 50 PDF points
+
+        return {
+            position: 'absolute',
+            left: `${displayX}px`,
+            top: `${displayY}px`,
+            width: `${signatureWidth}px`,
+            height: `${signatureHeight}px`,
+            zIndex: 10,
+            border: `2px dashed ${category === 'Petugas' ? '#3b82f6' : '#10b981'}`,
+            borderRadius: '4px',
+            backgroundImage: `url(${
+                category === 'Petugas' ? petugasSignatureImageUrl : penerimaSignatureDataUrl
+            })`,
+            backgroundSize: 'contain',
+            backgroundRepeat: 'no-repeat',
+            backgroundPosition: 'center',
+            backgroundColor: 'rgba(255, 255, 255, 0.9)',
+            boxShadow: '0 2px 4px rgba(0, 0, 0, 0.1)',
+            transition: 'all 0.2s ease-in-out',
+        };
+    }, [petugasSignatureImageUrl, penerimaSignatureDataUrl]);
+
+    // Render signature overlays
+    const renderSignatureOverlays = useCallback(() => {
+        if (!signatureFieldsJson || !originalPageViewport || !pageRenderedWidth || !pageRenderedHeight) {
+            return null;
+        }
+
+        try {
+            const fields: SignatureField[] = JSON.parse(signatureFieldsJson);
+            const pageFields = fields.filter(field => field.page_signature === pageNum);
+
+            return pageFields.map((field) => {
+                const hasSignature = field.category === 'Petugas' 
+                    ? petugasSignatureImageUrl 
+                    : penerimaSignatureDataUrl;
+
+                if (!hasSignature) return null;
+
+                const style = getResponsiveOverlayStyle(
+                    field.category,
+                    field,
+                    pageRenderedWidth,
+                    pageRenderedHeight,
+                    originalPageViewport
+                );
+
+                return (
+                    <div
+                        key={`${field.category}-${field.page_signature}`}
+                        style={style}
+                        className="signature-overlay"
+                        title={`Tanda tangan ${field.category}`}
+                    >
+                        {/* Optional: Add category label */}
+                        <div 
+                            className={`absolute -top-6 left-0 text-xs px-2 py-1 rounded text-white font-medium ${
+                                field.category === 'Petugas' ? 'bg-blue-500' : 'bg-green-500'
+                            }`}
+                        >
+                            {field.category}
+                        </div>
+                    </div>
+                );
+            });
+        } catch (error) {
+            console.error('Error parsing signature fields:', error);
+            return null;
+        }
+    }, [
+        signatureFieldsJson,
+        originalPageViewport,
+        pageRenderedWidth,
+        pageRenderedHeight,
+        pageNum,
+        getResponsiveOverlayStyle,
+    ]);
+
+    return (
+        <div className="relative mx-auto border border-gray-300 dark:border-gray-700 rounded-lg shadow-md bg-white dark:bg-gray-700 overflow-hidden">
+            <canvas 
+                ref={canvasRef} 
+                className="max-w-full h-auto block" 
+                style={{ display: 'block' }}
+            />
+            {renderSignatureOverlays()}
+        </div>
+    );
+};
+
+// Utility function for debouncing
+function debounce<T extends (...args: any[]) => any>(
+    func: T,
+    wait: number
+): (...args: Parameters<T>) => void {
+    let timeout: NodeJS.Timeout;
+    return (...args: Parameters<T>) => {
+        clearTimeout(timeout);
+        timeout = setTimeout(() => func(...args), wait);
+    };
+}
+
+
 
 // Set worker source for PDF.js
 pdfjs.GlobalWorkerOptions.workerSrc = '/pdf.worker.min.mjs';
@@ -69,149 +317,6 @@ interface PdfPageRendererProps {
     pdfDocProxy: PDFDocumentProxy | null;
     pageWidth: number | null; // Tambahkan prop untuk lebar halaman yang dirender
 }
-
-const PdfPageRenderer: React.FC<PdfPageRendererProps> = ({
-    pageNum,
-    pdfBytes,
-    petugasSignatureImageUrl,
-    penerimaSignatureDataUrl,
-    signatureFieldsJson,
-    pdfDocProxy,
-    pageWidth, // Gunakan prop lebar halaman
-}) => {
-    const canvasRef = useRef<HTMLCanvasElement>(null);
-    const [pageRenderedWidth, setPageRenderedWidth] = useState<number | null>(null);
-    const [pageRenderedHeight, setPageRenderedHeight] = useState<number | null>(null);
-
-
-    useEffect(() => {
-        const renderPage = async () => {
-            if (!canvasRef.current || !pdfBytes) return;
-
-            const pdf = await pdfjs.getDocument(new Uint8Array(pdfBytes)).promise;
-            const page = await pdf.getPage(pageNum);
-
-            // Tentukan skala berdasarkan lebar yang diinginkan
-            const viewport = page.getViewport({ scale: 1 });
-            const desiredWidth = pageWidth || 800; // Gunakan prop pageWidth atau default ke 800
-            const scale = desiredWidth / viewport.width;
-            const scaledViewport = page.getViewport({ scale });
-
-            const canvas = canvasRef.current;
-            const context = canvas.getContext('2d');
-            if (!context) return;
-
-            canvas.height = scaledViewport.height;
-            canvas.width = scaledViewport.width;
-
-            setPageRenderedWidth(canvas.width);
-            setPageRenderedHeight(canvas.height);
-
-
-            await page.render({
-                canvasContext: context,
-                viewport: scaledViewport,
-            }).promise;
-        };
-
-        renderPage();
-    }, [pdfBytes, pageNum, pageWidth]);
-
-
-    const getOverlayStyle = useCallback(
-        (
-            category: 'Petugas' | 'Penerima',
-            field: SignatureField,
-            canvasWidth: number,
-            canvasHeight: number,
-            originalPageViewport: pdfjs.PageViewport | null
-        ): React.CSSProperties => {
-            if (!originalPageViewport) return { display: 'none' };
-
-            const pdfX = field.pos_x;
-            const pdfY = field.pos_y; // Posisi Y dihitung dari bawah PDF
-
-            // Ukuran default tanda tangan dalam poin PDF (ini bisa disesuaikan)
-            const signatureWidthPdfPoints = 100;
-            const signatureHeightPdfPoints = 50; // Asumsi tinggi proporsional, atau sesuaikan jika ada ukuran tetap
-
-            const scaleFactor = canvasWidth / originalPageViewport.width;
-
-            const displayX = pdfX * scaleFactor;
-            const displayY = pdfY * scaleFactor;
-
-
-            const displayWidth = signatureWidthPdfPoints * scaleFactor;
-            const displayHeight = signatureHeightPdfPoints * scaleFactor;
-
-
-            return {
-                position: 'absolute',
-                left: `${displayX}px`,
-                top: `${displayY}px`,
-                zIndex: 10,
-                width: `${displayWidth}px`,
-                height: `${displayHeight}px`,
-                border: `1px dashed ${category === 'Petugas' ? 'blue' : 'green'}`,
-                backgroundImage: `url(${category === 'Petugas'
-                    ? petugasSignatureImageUrl
-                    : penerimaSignatureDataUrl
-                    })`,
-                backgroundSize: 'contain',
-                backgroundRepeat: 'no-repeat',
-                backgroundPosition: 'center',
-            };
-        },
-        [petugasSignatureImageUrl, penerimaSignatureDataUrl]
-    );
-
-    const [petugasStyle, setPetugasStyle] = useState<React.CSSProperties>({ display: 'none' });
-    const [penerimaStyle, setPenerimaStyle] = useState<React.CSSProperties>({ display: 'none' });
-
-    useEffect(() => {
-        const updateStyles = async () => {
-            if (!signatureFieldsJson || !pdfDocProxy || !canvasRef.current || !pageRenderedWidth || !pageRenderedHeight) return;
-
-            try {
-                const fields: SignatureField[] = JSON.parse(signatureFieldsJson);
-                const page = await pdfDocProxy.getPage(pageNum);
-                const originalPageViewport = page.getViewport({ scale: 1 }); // Viewport asli untuk perhitungan koordinat
-
-                const petugasField = fields.find((f) => f.category === 'Petugas' && f.page_signature === pageNum);
-                if (petugasField && petugasSignatureImageUrl) {
-                    const style = getOverlayStyle('Petugas', petugasField, pageRenderedWidth, pageRenderedHeight, originalPageViewport);
-                    setPetugasStyle(style);
-                } else {
-                    setPetugasStyle({ display: 'none' });
-                }
-
-                const penerimaField = fields.find((f) => f.category === 'Penerima' && f.page_signature === pageNum);
-                if (penerimaField && penerimaSignatureDataUrl) {
-                    const style = getOverlayStyle('Penerima', penerimaField, pageRenderedWidth, pageRenderedHeight, originalPageViewport);
-                    setPenerimaStyle(style);
-                } else {
-                    setPenerimaStyle({ display: 'none' });
-                }
-
-            } catch (e) {
-                console.error('Error parsing signature_fields or getting page:', e);
-                setPetugasStyle({ display: 'none' });
-                setPenerimaStyle({ display: 'none' });
-            }
-        };
-
-        updateStyles();
-    }, [signatureFieldsJson, pdfDocProxy, pageNum, pageRenderedWidth, pageRenderedHeight, getOverlayStyle, petugasSignatureImageUrl, penerimaSignatureDataUrl]);
-
-
-    return (
-        <div className="relative mx-auto border border-gray-300 dark:border-gray-700 rounded-lg shadow-md bg-white dark:bg-gray-700">
-            <canvas ref={canvasRef} className="max-w-full h-auto" />
-            {petugasSignatureImageUrl && <div style={petugasStyle} className="absolute bg-no-repeat bg-center bg-contain" />}
-            {penerimaSignatureDataUrl && <div style={penerimaStyle} className="absolute bg-no-repeat bg-center bg-contain" />}
-        </div>
-    );
-};
 
 
 const SignSessionPage: React.FC = () => {

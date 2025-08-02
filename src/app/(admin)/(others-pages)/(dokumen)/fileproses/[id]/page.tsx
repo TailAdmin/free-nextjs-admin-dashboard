@@ -1,4 +1,5 @@
-"use client";
+"use client"
+
 import React, { useEffect, useState, useCallback } from "react";
 import { useAuthStore } from "@/lib/stores/useAuthStore";
 import { fetchDocById, fetchSignerDelegations } from "@/lib/services/pdfTemplateService";

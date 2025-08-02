@@ -1,5 +1,6 @@
 // src/components/documents/ProcessPdfEditor.tsx
-"use client";
+"use client"
+
 import React, { useRef, useState, useEffect, useCallback } from "react";
 import { toast } from "sonner";
 import { Document, Page, pdfjs } from "react-pdf";
@@ -23,6 +24,7 @@ export default function ProcessPdfEditor({
     initialSignatureFields,
 }: ProcessPdfEditorProps) {
     const pdfContainerRef = useRef<HTMLDivElement>(null);
+    const pageRef = useRef<HTMLDivElement>(null);
     const [signatureFieldsLocal, setSignatureFieldsLocal] = useState<SignatureField[]>([]);
     const { token } = useAuthStore();
     const [pdfLoading, setPdfLoading] = useState<boolean>(true);
@@ -30,47 +32,69 @@ export default function ProcessPdfEditor({
     const [pageScale, setPageScale] = useState<number>(1);
     const [currentPage, setCurrentPage] = useState<number>(1);
     const [containerWidth, setContainerWidth] = useState<number>(0);
+    const [originalPageWidth, setOriginalPageWidth] = useState<number>(794); // A4 width at 96dpi
 
-    const [displayPositions, setDisplayPositions] = useState<Map<string, { x: number; y: number; page: number }>>(new Map());
+    // Store relative positions (0-1 range) for responsive behavior
+    const [relativePositions, setRelativePositions] = useState<Map<string, { 
+        x: number; 
+        y: number; 
+        page: number;
+        relativeX: number;
+        relativeY: number;
+    }>>(new Map());
 
     const calculateScale = useCallback(() => {
         if (pdfContainerRef.current) {
             const container = pdfContainerRef.current;
-            const width = container.offsetWidth - 20;
-            setContainerWidth(width);
-            const scale = width / 794; // A4 width in pixels at 96dpi
+            const availableWidth = container.offsetWidth - 40; // Account for padding
+            const maxWidth = Math.min(availableWidth, 800); // Set reasonable max width
+            setContainerWidth(maxWidth);
+            
+            const scale = maxWidth / originalPageWidth;
             setPageScale(scale);
             return scale;
         }
         return 1;
-    }, []);
+    }, [originalPageWidth]);
 
+    // Handle window resize with debouncing
     useEffect(() => {
-        const handleResize = () => {
+        const debouncedResize = debounce(() => {
             calculateScale();
-        };
+        }, 150);
 
-        window.addEventListener('resize', handleResize);
+        window.addEventListener('resize', debouncedResize);
         calculateScale();
 
         return () => {
-            window.removeEventListener('resize', handleResize);
+            window.removeEventListener('resize', debouncedResize);
         };
     }, [calculateScale]);
 
+    // Update display positions when scale changes
     useEffect(() => {
-        const updatedDisplayPositions = new Map<string, { x: number; y: number; page: number }>();
+        const updatedRelativePositions = new Map();
         
         signatureFieldsLocal.forEach(field => {
-            updatedDisplayPositions.set(field.category, {
-                x: field.pos_x * pageScale,
-                y: field.pos_y * pageScale,
-                page: field.page_signature
+            // Calculate relative positions (0-1 range)
+            const relativeX = field.pos_x / originalPageWidth;
+            const relativeY = field.pos_y / (originalPageWidth * 1.414); // A4 aspect ratio
+            
+            // Calculate display positions based on current scale
+            const displayX = relativeX * containerWidth;
+            const displayY = relativeY * (containerWidth * 1.414);
+            
+            updatedRelativePositions.set(field.category, {
+                x: displayX,
+                y: displayY,
+                page: field.page_signature,
+                relativeX,
+                relativeY
             });
         });
 
-        setDisplayPositions(updatedDisplayPositions);
-    }, [pageScale, signatureFieldsLocal]);
+        setRelativePositions(updatedRelativePositions);
+    }, [pageScale, signatureFieldsLocal, containerWidth, originalPageWidth]);
 
     useEffect(() => {
         if (JSON.stringify(initialSignatureFields) !== JSON.stringify(signatureFieldsLocal)) {
@@ -85,6 +109,15 @@ export default function ProcessPdfEditor({
         calculateScale();
     }, [calculateScale]);
 
+    const onPageLoadSuccess = useCallback((page: any) => {
+        // Get actual page dimensions
+        const pageWidth = page.originalWidth || 794;
+        const pageHeight = page.originalHeight || pageWidth * 1.414;
+        
+        setOriginalPageWidth(pageWidth);
+        calculateScale();
+    }, [calculateScale]);
+
     const onDocumentLoadError = useCallback((error: any) => {
         console.error("Error loading PDF:", error);
         toast.error("Gagal memuat pratinjau PDF.");
@@ -92,11 +125,22 @@ export default function ProcessPdfEditor({
     }, []);
 
     const handleClick = (e: React.MouseEvent<HTMLDivElement>) => {
-        const rect = e.currentTarget.getBoundingClientRect();
+        if (!pageRef.current) return;
+        
+        const rect = pageRef.current.getBoundingClientRect();
         if (!rect) return;
 
-        const x = (e.clientX - rect.left) / pageScale;
-        const y = (e.clientY - rect.top) / pageScale;
+        // Get click position relative to the page
+        const clickX = e.clientX - rect.left;
+        const clickY = e.clientY - rect.top;
+
+        // Convert to relative coordinates (0-1 range)
+        const relativeX = clickX / rect.width;
+        const relativeY = clickY / rect.height;
+
+        // Convert relative coordinates to PDF coordinates
+        const pdfX = Math.round(relativeX * originalPageWidth);
+        const pdfY = Math.round(relativeY * (originalPageWidth * 1.414));
 
         let updatedFields = [...signatureFieldsLocal];
         let targetCategory: "Petugas" | "Penerima" | null = null;
@@ -111,8 +155,8 @@ export default function ProcessPdfEditor({
             updatedFields = updatedFields.filter(f => f.category !== targetCategory);
             updatedFields.push({
                 category: targetCategory,
-                pos_x: Math.round(x),
-                pos_y: Math.round(y),
+                pos_x: pdfX,
+                pos_y: pdfY,
                 page_signature: currentPage
             });
 
@@ -128,7 +172,7 @@ export default function ProcessPdfEditor({
     const handleReset = () => {
         setSignatureFieldsLocal([]);
         onSignatureFieldsChange([]);
-        setDisplayPositions(new Map());
+        setRelativePositions(new Map());
         toast.info("Semua posisi tanda tangan telah direset.");
     };
 
@@ -157,7 +201,9 @@ export default function ProcessPdfEditor({
 
     return (
         <div className="space-y-6">
-            <h3 className="text-lg font-semibold text-gray-800 dark:text-gray-200">Letakkan Tanda Tangan</h3>
+            <h3 className="text-lg font-semibold text-gray-800 dark:text-gray-200">
+                Letakkan Tanda Tangan
+            </h3>
             <p className="text-sm text-gray-600 dark:text-gray-400">
                 Klik pada area PDF untuk menentukan posisi tanda tangan.
             </p>
@@ -181,28 +227,43 @@ export default function ProcessPdfEditor({
                         onLoadError={onDocumentLoadError}
                         loading=""
                     >
-                        <div className="relative cursor-pointer" onClick={handleClick}>
+                        <div 
+                            ref={pageRef}
+                            className="relative cursor-crosshair" 
+                            onClick={handleClick}
+                        >
                             <Page
                                 pageNumber={currentPage}
                                 width={containerWidth}
                                 renderTextLayer={false}
                                 renderAnnotationLayer={false}
+                                onLoadSuccess={onPageLoadSuccess}
                             />
 
-                            {Array.from(displayPositions.entries()).map(([category, pos]) => (
+                            {/* Responsive signature position indicators */}
+                            {Array.from(relativePositions.entries()).map(([category, pos]) => (
                                 pos.page === currentPage && (
                                     <div
                                         key={category}
-                                        className={`absolute flex items-center space-x-1 text-white text-xs font-semibold px-2 py-1 rounded shadow z-10 ${
-                                            category === "Petugas" ? "bg-red-500" : "bg-green-600"
+                                        className={`absolute flex items-center space-x-1 text-white text-xs font-semibold px-2 py-1 rounded shadow-lg z-10 transition-all duration-200 ${
+                                            category === "Petugas" ? "bg-red-500 hover:bg-red-600" : "bg-green-600 hover:bg-green-700"
                                         }`}
                                         style={{
                                             left: `${pos.x}px`,
                                             top: `${pos.y}px`,
-                                            transform: 'translate(-50%, -50%)'
+                                            transform: 'translate(-50%, -50%)',
+                                            cursor: 'pointer'
+                                        }}
+                                        title={`${category} - Klik untuk menghapus`}
+                                        onClick={(e) => {
+                                            e.stopPropagation();
+                                            const updatedFields = signatureFieldsLocal.filter(f => f.category !== category);
+                                            setSignatureFieldsLocal(updatedFields);
+                                            onSignatureFieldsChange(updatedFields);
+                                            toast.info(`Posisi ${category} telah dihapus.`);
                                         }}
                                     >
-                                        <span className="w-2 h-2 rounded-full bg-white"></span>
+                                        <span className="w-2 h-2 rounded-full bg-white animate-pulse"></span>
                                         <span>{category}</span>
                                     </div>
                                 )
@@ -242,7 +303,7 @@ export default function ProcessPdfEditor({
             )}
 
             <div className="text-center text-sm text-gray-500 dark:text-gray-400 mt-2">
-                Hanya halaman yang sedang dilihat yang ditampilkan.
+                Responsive pada semua ukuran layar desktop. Posisi tanda tangan akan menyesuaikan otomatis.
             </div>
 
             {/* Action Buttons */}
@@ -256,7 +317,7 @@ export default function ProcessPdfEditor({
                             : 'bg-gray-300 text-gray-500 cursor-not-allowed'
                     }`}
                 >
-                    Simpan Posisi
+                    Simpan Posisi ({signatureFieldsLocal.length}/2)
                 </button>
                 <button
                     onClick={handleReset}
@@ -265,6 +326,29 @@ export default function ProcessPdfEditor({
                     Reset
                 </button>
             </div>
+
+            {/* Status indicator */}
+            {signatureFieldsLocal.length > 0 && (
+                <div className="text-center text-sm text-gray-600 dark:text-gray-400">
+                    {signatureFieldsLocal.map(field => (
+                        <span key={field.category} className="inline-block mx-2">
+                            ✅ {field.category} (Hal. {field.page_signature})
+                        </span>
+                    ))}
+                </div>
+            )}
         </div>
     );
+}
+
+// Utility function for debouncing resize events
+function debounce<T extends (...args: any[]) => any>(
+    func: T,
+    wait: number
+): (...args: Parameters<T>) => void {
+    let timeout: NodeJS.Timeout;
+    return (...args: Parameters<T>) => {
+        clearTimeout(timeout);
+        timeout = setTimeout(() => func(...args), wait);
+    };
 }
