@@ -8,21 +8,21 @@ export const saveUserSignature = async (
     token: string
 ): Promise<SignatureResponse> => {
     
-    const response = await apiClient.get(`/signatures/user/`)
-    return response.data
-    // const response = await fetch(`${API_URL}/signatures/user/`, {
-    //     method: "POST",
-    //     headers: {
-    //         Authorization: `Bearer ${token}`,
-    //     },
-    //     body: payload,
-    // });
+    // const response = await apiClient.post(`/signatures/user/`,payload)
+    // return response.data
+    const response = await fetch(`${API_URL}/signatures/user/`, {
+        method: "POST",
+        headers: {
+            Authorization: `Bearer ${token}`,
+        },
+        body: payload,
+    });
 
-    // if (!response.ok) {
-    //     throw new Error("Gagal menyimpan tanda tangan");
-    // }
+    if (!response.ok) {
+        throw new Error("Gagal menyimpan tanda tangan");
+    }
 
-    // return await response.json();
+    return await response.json();
 };
 
 export const getUserSignature = async (userId: number, token: string) => {
