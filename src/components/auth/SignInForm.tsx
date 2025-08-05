@@ -132,7 +132,7 @@ export default function SignInForm() {
 
                 <div className="flex items-center justify-between">
                     <a
-                        href="#"
+                        href="/forgot-password/"
                         onClick={(e) => { e.preventDefault(); openForgotModal(); }}
                         className="text-sm text-indigo-600 hover:text-indigo-500"
                     >
