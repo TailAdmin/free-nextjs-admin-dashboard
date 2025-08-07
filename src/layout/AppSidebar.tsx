@@ -27,7 +27,10 @@ const navItems: NavItem[] = [
   {
     icon: <GridIcon />,
     name: "App",
-    subItems: [{ name: "Tanda Tangan", path: "/", pro: false }],
+    subItems: [
+      { name: "Statistik", path: "/statistics", pro: false },
+      { name: "Tanda Tangan", path: "/", pro: false }
+    ],
   },
   {
     icon: <UserCircleIcon />,
