@@ -14,7 +14,7 @@ import {
     LineElement,
     Filler,
 } from 'chart.js';
-import { Bar, Line } from 'react-chartjs-2'; // Removed unused Pie, Doughnut
+import { Bar, Line } from 'react-chartjs-2';
 import apiClient from "@/lib/axiosConfig";
 import { useDocumentStore } from "@/lib/stores/useDocumentStore";
 import { useAuthStore } from "@/lib/stores/useAuthStore";
@@ -32,6 +32,53 @@ ChartJS.register(
     LineElement,
     Filler,
 );
+
+import { toast } from "sonner";
+
+
+// Toast component
+interface ToastProps {
+    message: string;
+    type: 'success' | 'error' | 'warning' | 'info';
+    onClose: () => void;
+}
+
+const Toast: React.FC<ToastProps> = ({ message, type, onClose }) => {
+    const bgColor = {
+        success: 'bg-green-500',
+        error: 'bg-red-500',
+        warning: 'bg-yellow-500',
+        info: 'bg-blue-500'
+    }[type];
+
+    const icon = {
+        success: '✅',
+        error: '❌',
+        warning: '⚠️',
+        info: 'ℹ️'
+    }[type];
+
+    useEffect(() => {
+        const timer = setTimeout(() => {
+            onClose();
+        }, 5000);
+
+        return () => clearTimeout(timer);
+    }, [onClose]);
+
+    return (
+        <div className={`fixed top-4 right-4 ${bgColor} text-white px-6 py-3 rounded-lg shadow-lg z-50 flex items-center space-x-2 animate-slide-in-right max-w-md`}>
+            <span className="text-lg">{icon}</span>
+            <span className="text-sm font-medium">{message}</span>
+            <button
+                onClick={onClose}
+                className="ml-4 text-white hover:text-gray-200 text-lg font-bold"
+            >
+                ×
+            </button>
+        </div>
+    );
+};
 
 interface StatCardProps {
     title: string;
@@ -95,13 +142,19 @@ interface ChartVisibilityState {
     templatesList: boolean;
 }
 
+interface ToastMessage {
+    id: number;
+    message: string;
+    type: 'success' | 'error' | 'warning' | 'info';
+}
+
 export default function SignatureStatisticsPage() {
     const { token } = useAuthStore();
     
     const [selectedType, setSelectedType] = useState<string>('');
     const [isLoading, setIsLoading] = useState(true);
     const [isDataLoading, setIsDataLoading] = useState(false);
-    const [apiError, setApiError] = useState<string>(''); // Added API error state
+    const [toasts, setToasts] = useState<ToastMessage[]>([]);
     
     // Statistics data
     const [seriesData, setSeriesData] = useState<any>(null);
@@ -121,6 +174,10 @@ export default function SignatureStatisticsPage() {
 
     const [chartVisibility, setChartVisibility] = useState<ChartVisibilityState>(defaultChartVisibility);
     const [isManageModalOpen, setIsManageModalOpen] = useState(false);
+    const [isTemplateFilterModalOpen, setIsTemplateFilterModalOpen] = useState(false);
+    
+    // Template filter settings
+    const [visibleTemplates, setVisibleTemplates] = useState<{[key: string]: boolean}>({});
     
     const {
         templates,
@@ -130,17 +187,67 @@ export default function SignatureStatisticsPage() {
         deleteTemplate,
     } = useDocumentStore();
 
-    // Fetch statistics data - made into useCallback to avoid dependency issues
+    // Toast functions
+    const addToast = useCallback((message: string, type: 'success' | 'error' | 'warning' | 'info') => {
+        const id = Date.now();
+        setToasts(prev => [...prev, { id, message, type }]);
+    }, []);
+
+    const removeToast = useCallback((id: number) => {
+        setToasts(prev => prev.filter(toast => toast.id !== id));
+    }, []);
+
+    // Load template filter settings from localStorage
+    useEffect(() => {
+        const saved = localStorage.getItem('templateFilterSettings');
+        if (saved) {
+            try {
+                setVisibleTemplates(JSON.parse(saved));
+            } catch (err) {
+                console.error('Error parsing template filter settings:', err);
+                toast.error('Gagal memuat pengaturan filter template');
+            }
+        }
+    }, [addToast]);
+
+    // Save template filter settings to localStorage
+    const saveTemplateFilterSettings = useCallback((settings: {[key: string]: boolean}) => {
+        try {
+            localStorage.setItem('templateFilterSettings', JSON.stringify(settings));
+            setVisibleTemplates(settings);
+            toast.success('Pengaturan filter template berhasil disimpan');
+        } catch (err) {
+            console.error('Error saving template filter settings:', err);
+            toast.error('Gagal menyimpan pengaturan filter template');
+        }
+    }, [addToast]);
+
+    // Initialize template visibility when templates load
+    useEffect(() => {
+        if (templates.length > 0 && Object.keys(visibleTemplates).length === 0) {
+            const initialSettings: {[key: string]: boolean} = {};
+            templates.forEach(template => {
+                initialSettings[template.id] = true; // Show all by default
+            });
+            setVisibleTemplates(initialSettings);
+        }
+    }, [templates, visibleTemplates]);
+
+    // Get filtered templates
+    const filteredTemplates = templates.filter(template => visibleTemplates[template.id] !== false);
+
+    // Fetch statistics data
     const fetchStatistics = useCallback(async (operation: string): Promise<ApiResponse | null> => {
         try {
             const response = await apiClient.get(`/signatures/statistics/${operation}/${selectedType}/`);
             return response.data;
-        } catch (err) {
+        } catch (err: any) {
             console.error(`Error fetching ${operation} statistics:`, err);
-            setApiError(`Failed to fetch : ${err.response.data.error}`);
+            const errorMessage = err?.response?.data?.error || `Gagal mengambil statistik ${operation}`;
+            toast.error(errorMessage);
             return null;
         }
-    }, [selectedType]); // Now depends on selectedType
+    }, [selectedType, addToast]);
 
     // Load templates on mount
     useEffect(() => {
@@ -148,18 +255,21 @@ export default function SignatureStatisticsPage() {
             if (typeof token === "string") {
                 try {
                     await fetchTemplates(token);
+                    toast.success('Template berhasil dimuat');
                 } catch (err) {
                     console.error('Error fetching templates:', err);
+                    toast.error('Gagal memuat template dokumen');
                 } finally {
-                    setIsLoading(false); // Fix: Set loading to false after templates load
+                    setIsLoading(false);
                 }
             } else {
                 setIsLoading(false);
+                toast.error('Token tidak valid');
             }
         };
         
         loadTemplates();
-    }, [token, fetchTemplates]);
+    }, [token, fetchTemplates, addToast]);
 
     const processSeriesData = useCallback((series: Array<{id: string, created_at: string}>) => {
         // Group data by month for chart display
@@ -216,7 +326,6 @@ export default function SignatureStatisticsPage() {
 
     const fetchAllStatistics = useCallback(async () => {
         setIsDataLoading(true);
-        setApiError(''); // Clear previous errors
         
         try {
             // Fetch all statistics concurrently
@@ -228,48 +337,61 @@ export default function SignatureStatisticsPage() {
                 fetchStatistics('mode')
             ]);
 
+            let hasData = false;
+
             // Process series data for chart
             if (seriesRes?.result?.series) {
                 const chartData = processSeriesData(seriesRes.result.series);
                 setSeriesData(chartData);
                 setDocumentTypeName(seriesRes.document_type_name);
+                hasData = true;
             }
 
             // Process sum data
             if (sumRes?.result?.sum !== undefined) {
                 setSumData(sumRes.result.sum);
+                hasData = true;
             }
 
             // Process average series data for chart
             if (averageSeriesRes?.result?.average_series) {
                 const chartData = processAverageSeriesData(averageSeriesRes.result.average_series);
                 setAverageSeriesData(chartData);
+                hasData = true;
             }
 
             // Process median data
             if (medianRes?.result?.median !== undefined) {
                 setMedianData(medianRes.result.median);
+                hasData = true;
             }
 
             // Process mode data
             if (modeRes?.result?.mode !== undefined) {
                 setModeData(modeRes.result.mode);
+                hasData = true;
+            }
+
+            if (hasData) {
+                toast.success('Statistik berhasil dimuat');
+            } else {
+                toast.warning('Tidak ada data statistik untuk jenis dokumen ini');
             }
 
         } catch (err) {
             console.error('Error fetching all statistics:', err);
-            setApiError(`Failed to fetch statistics data : ${err.response.data.error}`);
+            toast.error('Gagal mengambil data statistik');
         } finally {
             setIsDataLoading(false);
         }
-    }, [fetchStatistics, processSeriesData, processAverageSeriesData]); // Added all dependencies
+    }, [fetchStatistics, processSeriesData, processAverageSeriesData, addToast]);
 
     // Fetch statistics data when document type changes
     useEffect(() => {
         if (selectedType) {
             fetchAllStatistics();
         }
-    }, [selectedType, fetchAllStatistics]); // Fixed: Added fetchAllStatistics dependency
+    }, [selectedType, fetchAllStatistics]);
 
     const chartOptions = {
         responsive: true,
@@ -339,10 +461,30 @@ export default function SignatureStatisticsPage() {
 
     return (
         <div className="p-6">
+            {/* Toast notifications */}
+            <div className="fixed top-4 right-4 space-y-2 z-50">
+                {toasts.map((toast) => (
+                    <Toast
+                        key={toast.id}
+                        message={toast.message}
+                        type={toast.type}
+                        onClose={() => removeToast(toast.id)}
+                    />
+                ))}
+            </div>
+
             <div className="flex justify-between items-center mb-6">
                 <h1 className="text-3xl font-bold text-gray-900 dark:text-white">Statistik Tanda Tangan Digital</h1>
                 
                 <div className="flex items-center space-x-4">
+                    <button
+                        onClick={() => setIsTemplateFilterModalOpen(true)}
+                        className="bg-purple-600 hover:bg-purple-700 text-white px-4 py-2 rounded-md font-medium transition-colors flex items-center space-x-2"
+                    >
+                        <span>🔍</span>
+                        <span>Filter Template</span>
+                    </button>
+                    
                     <button
                         onClick={() => setIsManageModalOpen(true)}
                         className="bg-gray-600 hover:bg-gray-700 text-white px-4 py-2 rounded-md font-medium transition-colors flex items-center space-x-2"
@@ -357,7 +499,7 @@ export default function SignatureStatisticsPage() {
                         className="bg-white dark:bg-gray-800 border border-gray-300 dark:border-gray-600 rounded-md px-4 py-2 text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-blue-500"
                     >
                         <option value="">Pilih Jenis Dokumen</option>
-                        {templates.map((type) => (
+                        {filteredTemplates.map((type) => (
                             <option key={type.id} value={type.id}>
                                 {type.name}
                             </option>
@@ -365,13 +507,6 @@ export default function SignatureStatisticsPage() {
                     </select>
                 </div>
             </div>
-
-            {/* Show API errors */}
-            {(error || apiError) && (
-                <div className="bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded mb-6">
-                    {apiError}
-                </div>
-            )}
 
             {documentTypeName && (
                 <div className="mb-6">
@@ -480,7 +615,7 @@ export default function SignatureStatisticsPage() {
                 <div className="bg-white dark:bg-gray-800 rounded-lg shadow-md p-6 border border-gray-200 dark:border-gray-700 relative">
                     <div className="flex justify-between items-center mb-4">
                         <h2 className="text-xl font-semibold text-gray-900 dark:text-white">
-                            Jenis Dokumen Tersedia
+                            Jenis Dokumen Tersedia ({filteredTemplates.length} dari {templates.length})
                         </h2>
                         <button
                             onClick={() => toggleChartVisibility('templatesList')}
@@ -491,7 +626,7 @@ export default function SignatureStatisticsPage() {
                         </button>
                     </div>
                     <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-                        {templates.map((type) => (
+                        {filteredTemplates.map((type) => (
                             <div
                                 key={type.id}
                                 onClick={() => setSelectedType(type.id)}
@@ -512,6 +647,109 @@ export default function SignatureStatisticsPage() {
                                 </div>
                             </div>
                         ))}
+                    </div>
+                </div>
+            )}
+
+            {/* Template Filter Modal */}
+            {isTemplateFilterModalOpen && (
+                <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+                    <div className="bg-white dark:bg-gray-800 rounded-lg shadow-xl max-w-2xl w-full mx-4 max-h-[80vh] overflow-y-auto">
+                        <div className="p-6">
+                            <div className="flex justify-between items-center mb-6">
+                                <h2 className="text-xl font-semibold text-gray-900 dark:text-white">
+                                    Filter Template Dokumen
+                                </h2>
+                                <button
+                                    onClick={() => setIsTemplateFilterModalOpen(false)}
+                                    className="text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-200 p-1 rounded transition-colors"
+                                >
+                                    ✕
+                                </button>
+                            </div>
+
+                            <p className="text-sm text-gray-600 dark:text-gray-400 mb-4">
+                                Pilih template mana yang ingin ditampilkan di dropdown dan daftar template.
+                            </p>
+
+                            <div className="space-y-3 max-h-96 overflow-y-auto">
+                                {templates.map((template) => (
+                                    <div
+                                        key={template.id}
+                                        className="flex items-center justify-between p-3 bg-gray-50 dark:bg-gray-700 rounded-lg"
+                                    >
+                                        <div className="flex-1">
+                                            <h3 className="font-medium text-gray-900 dark:text-white">{template.name}</h3>
+                                            <p className="text-sm text-gray-600 dark:text-gray-400">ID: {template.id}</p>
+                                        </div>
+                                        <button
+                                            onClick={() => {
+                                                const newSettings = {
+                                                    ...visibleTemplates,
+                                                    [template.id]: !visibleTemplates[template.id]
+                                                };
+                                                setVisibleTemplates(newSettings);
+                                            }}
+                                            className={`relative inline-flex h-6 w-11 items-center rounded-full transition-colors ${
+                                                visibleTemplates[template.id] !== false ? 'bg-blue-600' : 'bg-gray-300 dark:bg-gray-600'
+                                            }`}
+                                        >
+                                            <span
+                                                className={`inline-block h-4 w-4 transform rounded-full bg-white transition-transform ${
+                                                    visibleTemplates[template.id] !== false ? 'translate-x-6' : 'translate-x-1'
+                                                }`}
+                                            />
+                                        </button>
+                                    </div>
+                                ))}
+                            </div>
+
+                            <div className="flex justify-between mt-6 space-x-3">
+                                <div className="flex space-x-2">
+                                    <button
+                                        onClick={() => {
+                                            const allVisible: {[key: string]: boolean} = {};
+                                            templates.forEach(template => {
+                                                allVisible[template.id] = true;
+                                            });
+                                            setVisibleTemplates(allVisible);
+                                        }}
+                                        className="px-4 py-2 bg-green-600 text-white rounded-md hover:bg-green-700 transition-colors text-sm"
+                                    >
+                                        Tampilkan Semua
+                                    </button>
+                                    <button
+                                        onClick={() => {
+                                            const allHidden: {[key: string]: boolean} = {};
+                                            templates.forEach(template => {
+                                                allHidden[template.id] = false;
+                                            });
+                                            setVisibleTemplates(allHidden);
+                                        }}
+                                        className="px-4 py-2 bg-gray-600 text-white rounded-md hover:bg-gray-700 transition-colors text-sm"
+                                    >
+                                        Sembunyikan Semua
+                                    </button>
+                                </div>
+                                <div className="flex space-x-3">
+                                    <button
+                                        onClick={() => setIsTemplateFilterModalOpen(false)}
+                                        className="px-4 py-2 text-gray-600 dark:text-gray-400 hover:text-gray-800 dark:hover:text-gray-200 transition-colors"
+                                    >
+                                        Batal
+                                    </button>
+                                    <button
+                                        onClick={() => {
+                                            saveTemplateFilterSettings(visibleTemplates);
+                                            setIsTemplateFilterModalOpen(false);
+                                        }}
+                                        className="px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 transition-colors"
+                                    >
+                                        Simpan
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
                     </div>
                 </div>
             )}
@@ -622,6 +860,7 @@ export default function SignatureStatisticsPage() {
                                     onClick={() => {
                                         setChartVisibility(defaultChartVisibility);
                                         setIsManageModalOpen(false);
+                                        toast.info('Tampilan dashboard telah direset');
                                     }}
                                     className="px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 transition-colors"
                                 >
@@ -632,6 +871,22 @@ export default function SignatureStatisticsPage() {
                     </div>
                 </div>
             )}
+
+            <style jsx>{`
+                @keyframes slide-in-right {
+                    0% {
+                        transform: translateX(100%);
+                        opacity: 0;
+                    }
+                    100% {
+                        transform: translateX(0);
+                        opacity: 1;
+                    }
+                }
+                .animate-slide-in-right {
+                    animation: slide-in-right 0.3s ease-out;
+                }
+            `}</style>
         </div>
     );
 }
