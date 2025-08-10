@@ -17,7 +17,6 @@ export default function AdminLayout({
   const router = useRouter();
   const { isExpanded, isHovered, isMobileOpen } = useSidebar();
 
-
   const isAuthenticated = useAuthStore((state) => state.isAuthenticated);
   const token = useAuthStore((state) => state.token); 
 
@@ -33,23 +32,39 @@ export default function AdminLayout({
     return <LoadingSpinner isFullScreen />; 
   }
 
-  // Layout utama
+  // Alternative margin-based approach with proper width calculation
   const mainContentMargin = isMobileOpen
     ? "ml-0"
     : isExpanded || isHovered
       ? "lg:ml-[290px]"
       : "lg:ml-[90px]";
 
+  const mainContentWidth = isMobileOpen
+    ? "w-full"
+    : isExpanded || isHovered
+      ? "lg:w-[calc(100vw-290px)]"
+      : "lg:w-[calc(100vw-90px)]";
+
   return (
-    <div className="min-h-screen xl:flex">
+    <div className="min-h-screen w-full overflow-x-hidden">
       {/* Sidebar */}
       <AppSidebar />
       <Backdrop />
 
       {/* Main Content */}
-      <div className={`flex-1 transition-all duration-300 ease-in-out ${mainContentMargin}`}>
+      <div className={`
+        transition-all duration-300 ease-in-out 
+        ${mainContentMargin} 
+        ${mainContentWidth} 
+        w-full
+        overflow-x-hidden
+      `}>
         <AppHeader />
-        <div className="p-4 mx-auto max-w-[--breakpoint-2xl] md:p-6">{children}</div>
+        <main className="overflow-x-hidden">
+          <div className="p-4 mx-auto max-w-[--breakpoint-2xl] md:p-6">
+            {children}
+          </div>
+        </main>
       </div>
     </div>
   );
