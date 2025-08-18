@@ -25,6 +25,7 @@
     "axios": "^1.9.0",
     "chart.js": "^4.5.0",
     "dayjs": "^1.11.13",
+    "fabric": "^6.7.1",
     "flatpickr": "^4.6.13",
     "next": "15.2.3",
     "nextjs-progressbar": "^0.0.16",

@@ -1,6 +1,7 @@
 "use client"
 
-import React, { useEffect, useState, useCallback } from "react";
+import React, { useEffect, useState, useCallback, useRef } from "react";
+import { fabric } from 'fabric'; // Import Fabric.js
 import { useAuthStore } from "@/lib/stores/useAuthStore";
 import { fetchDocById, fetchSignerDelegations } from "@/lib/services/pdfTemplateService";
 import { DocTemplateResponse, ProcessStartResponse, SignatureField, SignerDelegation } from "@/types/pdfTemplate.types";
@@ -42,10 +43,118 @@ export default function Page({ params }: { params: { id: string } }) {
     const [isPreviewModalOpen, setIsPreviewModalOpen] = useState(false);
     const [confirmSignatureUrl, setConfirmSignatureUrl] = useState<string | null>(null);
 
+    // Fabric.js related state
+    const canvasRef = useRef<HTMLCanvasElement>(null);
+    const [fabricCanvas, setFabricCanvas] = useState<fabric.Canvas | null>(null);
+    const [isDrawingMode, setIsDrawingMode] = useState(false);
+    const [canvasVisible, setCanvasVisible] = useState(false);
+
     const router = useRouter();
 
     const API_URL = process.env.NEXT_PUBLIC_API_BASE_URL || "https://tanah3.darius.my.id/api/v1";
     const CLIENT_FRONTEND_BASE_URL = process.env.NEXT_PUBLIC_CLIENT_FRONTEND_URL;
+
+    // Initialize Fabric.js canvas
+    useEffect(() => {
+        if (canvasRef.current && !fabricCanvas) {
+            const canvas = new fabric.Canvas(canvasRef.current, {
+                width: 800,
+                height: 600,
+                backgroundColor: 'white',
+                selection: true
+            });
+
+            // Configure drawing brush
+            canvas.freeDrawingBrush.width = 2;
+            canvas.freeDrawingBrush.color = '#000000';
+
+            setFabricCanvas(canvas);
+
+            return () => {
+                canvas.dispose();
+            };
+        }
+    }, [canvasRef, fabricCanvas]);
+
+    // Fabric.js utility functions
+    const toggleDrawingMode = useCallback(() => {
+        if (fabricCanvas) {
+            const newMode = !isDrawingMode;
+            fabricCanvas.isDrawingMode = newMode;
+            setIsDrawingMode(newMode);
+            fabricCanvas.selection = !newMode;
+        }
+    }, [fabricCanvas, isDrawingMode]);
+
+    const clearCanvas = useCallback(() => {
+        if (fabricCanvas) {
+            fabricCanvas.clear();
+            fabricCanvas.backgroundColor = 'white';
+            fabricCanvas.renderAll();
+        }
+    }, [fabricCanvas]);
+
+    const addSignatureBox = useCallback((x: number = 100, y: number = 100) => {
+        if (fabricCanvas) {
+            const rect = new fabric.Rect({
+                left: x,
+                top: y,
+                width: 150,
+                height: 50,
+                fill: 'transparent',
+                stroke: '#ff0000',
+                strokeWidth: 2,
+                strokeDashArray: [5, 5],
+                selectable: true,
+                hasControls: true,
+                hasBorders: true
+            });
+
+            const text = new fabric.Text('Signature Field', {
+                left: x + 10,
+                top: y + 15,
+                fontSize: 12,
+                fill: '#ff0000',
+                selectable: false
+            });
+
+            const group = new fabric.Group([rect, text], {
+                left: x,
+                top: y,
+                selectable: true,
+                hasControls: true,
+                hasBorders: true
+            });
+
+            fabricCanvas.add(group);
+            fabricCanvas.renderAll();
+        }
+    }, [fabricCanvas]);
+
+    const exportCanvasAsImage = useCallback(() => {
+        if (fabricCanvas) {
+            return fabricCanvas.toDataURL({
+                format: 'png',
+                quality: 1,
+                multiplier: 1
+            });
+        }
+        return null;
+    }, [fabricCanvas]);
+
+    const getCanvasObjects = useCallback(() => {
+        if (fabricCanvas) {
+            return fabricCanvas.getObjects().map((obj, index) => ({
+                id: index,
+                type: obj.type,
+                left: obj.left || 0,
+                top: obj.top || 0,
+                width: obj.width || 0,
+                height: obj.height || 0
+            }));
+        }
+        return [];
+    }, [fabricCanvas]);
 
     useEffect(() => {
         const fetchInitialDocData = async () => {
@@ -105,12 +214,21 @@ export default function Page({ params }: { params: { id: string } }) {
         }
     }, [API_URL, token]);
 
-
     const handleProcess = async () => {
         if (!doc || !doc.id || !selectedSigner || signatureFields.length < 2 || !pdfRenderURL || !signee_name) {
             toast.warning("Lengkapi data sebelum proses. Pastikan nama penerima, petugas, 2 posisi tanda tangan, dan file PDF tersedia.");
             return;
         }
+
+        // Export canvas data if canvas is being used
+        let canvasData = null;
+        if (fabricCanvas && canvasVisible) {
+            canvasData = {
+                image: exportCanvasAsImage(),
+                objects: getCanvasObjects()
+            };
+        }
+
         let pdfFileToSend: File | Blob | null = null;
         let fileName: string = "";
         if (localUploadedFileURL) {
@@ -141,6 +259,12 @@ export default function Page({ params }: { params: { id: string } }) {
         formData.append("template_id", doc.id);
         formData.append("primary_signature", selectedSigner);
         formData.append("signee_name", signee_name);
+        
+        // Add canvas data if available
+        if (canvasData) {
+            formData.append("canvas_data", JSON.stringify(canvasData));
+        }
+
         try {
             toast.info("Memulai proses tanda tangan...");
             const res = await fetch(`${API_URL}/signatures/process/start/`, {
@@ -353,7 +477,6 @@ export default function Page({ params }: { params: { id: string } }) {
         }
     };
 
-
     const handleFinalizeProcess = async () => {
         if (!sessionId || !doc?.id || !selectedSigner || !signee_name) {
             toast.warning("Data tidak lengkap untuk menyelesaikan proses.");
@@ -400,7 +523,6 @@ export default function Page({ params }: { params: { id: string } }) {
         }
     };
 
-
     if (loading || !doc) {
         return (
             <div className="flex justify-center items-center h-full text-gray-500 min-h-screen">
@@ -424,15 +546,62 @@ export default function Page({ params }: { params: { id: string } }) {
                     {showDropzone ? (
                         <DropzoneComponent onDrop={handleFileUpload} />
                     ) : (
-                        <button
-                            type="button"
-                            onClick={() => setShowDropzone(true)}
-                            className="bg-blue-500 hover:bg-blue-600 text-white font-bold py-1 px-3 rounded text-xs"
-                        >
-                            Ganti File PDF
-                        </button>
+                        <div className="flex gap-2 mb-3">
+                            <button
+                                type="button"
+                                onClick={() => setShowDropzone(true)}
+                                className="bg-blue-500 hover:bg-blue-600 text-white font-bold py-1 px-3 rounded text-xs"
+                            >
+                                Ganti File PDF
+                            </button>
+                            <button
+                                type="button"
+                                onClick={() => setCanvasVisible(!canvasVisible)}
+                                className="bg-purple-500 hover:bg-purple-600 text-white font-bold py-1 px-3 rounded text-xs"
+                            >
+                                {canvasVisible ? 'Sembunyikan Canvas' : 'Tampilkan Canvas'}
+                            </button>
+                        </div>
                     )}
                 </div>
+
+                {/* Fabric.js Canvas Controls */}
+                {canvasVisible && (
+                    <div className="mb-3 p-3 bg-gray-50 dark:bg-gray-800 rounded-lg border">
+                        <div className="flex gap-2 mb-3">
+                            <button
+                                onClick={toggleDrawingMode}
+                                className={`py-1 px-3 rounded text-xs font-medium ${
+                                    isDrawingMode 
+                                        ? 'bg-red-500 hover:bg-red-600 text-white' 
+                                        : 'bg-green-500 hover:bg-green-600 text-white'
+                                }`}
+                            >
+                                {isDrawingMode ? 'Stop Drawing' : 'Start Drawing'}
+                            </button>
+                            <button
+                                onClick={() => addSignatureBox()}
+                                className="bg-blue-500 hover:bg-blue-600 text-white py-1 px-3 rounded text-xs font-medium"
+                            >
+                                Add Signature Box
+                            </button>
+                            <button
+                                onClick={clearCanvas}
+                                className="bg-red-500 hover:bg-red-600 text-white py-1 px-3 rounded text-xs font-medium"
+                            >
+                                Clear Canvas
+                            </button>
+                        </div>
+                        <div className="border border-gray-300 dark:border-gray-600 rounded">
+                            <canvas
+                                ref={canvasRef}
+                                className="border-0"
+                                style={{ maxWidth: '100%', height: 'auto' }}
+                            />
+                        </div>
+                    </div>
+                )}
+
                 {docForPdfEditor.example_file ? (
                     <ProcessPdfEditor
                         key={pdfRenderURL || "initial-editor"}

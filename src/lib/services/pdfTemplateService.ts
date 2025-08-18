@@ -89,7 +89,7 @@ export const updateDocWithSignatures = async (
     //     throw new Error("Gagal memperbarui dokumen");
     // }
 
-    return await apiClient.post(`/signatures/doc-templates/${id}/`, { signature_fields: signatureFields })
+    return await apiClient.patch(`/signatures/doc-templates/${id}/`, { signature_fields: signatureFields })
 };
 
 export const deletePdfTemplate = async (id: string, token: string): Promise<void> => { 
