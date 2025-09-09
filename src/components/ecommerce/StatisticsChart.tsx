@@ -17,7 +17,7 @@ export default function StatisticsChart() {
       position: "top",
       horizontalAlign: "left",
     },
-    colors: ["#465FFF", "#9CB9FF"], // Define line colors
+    colors: ["#465FFF", "#10B981"], // Define line colors
     chart: {
       fontFamily: "Outfit, sans-serif",
       height: 310,
@@ -62,10 +62,17 @@ export default function StatisticsChart() {
       enabled: false, // Disable data labels
     },
     tooltip: {
-      enabled: true, // Enable tooltip
+      enabled: true,
       x: {
-        format: "dd MMM yyyy", // Format for x-axis tooltip
+        format: "MMM yyyy",
       },
+      y: {
+        formatter: function (value, { seriesIndex }) {
+          return seriesIndex === 0 
+            ? `$${value.toLocaleString()}` 
+            : `${value} Jobs`;
+        }
+      }
     },
     xaxis: {
       type: "category", // Category-based x-axis
@@ -111,12 +118,14 @@ export default function StatisticsChart() {
 
   const series = [
     {
-      name: "Sales",
-      data: [180, 190, 170, 160, 175, 165, 170, 205, 230, 210, 240, 235],
+      name: "Monthly Revenue ($)",
+      data: [
+        4500, 5200, 3800, 6500, 5500, 4800, 6000, 7200, 8500, 9000, 9500, 11000,
+      ],
     },
     {
-      name: "Revenue",
-      data: [40, 30, 50, 40, 55, 40, 70, 100, 110, 120, 150, 140],
+      name: "Active Jobs",
+      data: [35, 42, 30, 55, 45, 40, 52, 60, 70, 75, 80, 90],
     },
   ];
   return (
@@ -124,10 +133,10 @@ export default function StatisticsChart() {
       <div className="flex flex-col gap-5 mb-6 sm:flex-row sm:justify-between">
         <div className="w-full">
           <h3 className="text-lg font-semibold text-gray-800 dark:text-white/90">
-            Statistics
+            Service Performance
           </h3>
-          <p className="mt-1 text-gray-500 text-theme-sm dark:text-gray-400">
-            Target you’ve set for each month
+          <p className="mt-1 text-sm text-gray-500 dark:text-gray-400">
+            Revenue and active jobs overview
           </p>
         </div>
         <div className="flex items-start w-full gap-3 sm:justify-end">

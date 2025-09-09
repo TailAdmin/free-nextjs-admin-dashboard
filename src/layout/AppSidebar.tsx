@@ -5,17 +5,20 @@ import Image from "next/image";
 import { usePathname } from "next/navigation";
 import { useSidebar } from "../context/SidebarContext";
 import {
-  BoxCubeIcon,
-  CalenderIcon,
   ChevronDownIcon,
+  ChevronUpIcon,
   GridIcon,
-  HorizontaLDots,
+  UserCircleIcon,
   ListIcon,
+  TableIcon,
   PageIcon,
   PieChartIcon,
-  PlugInIcon,
-  TableIcon,
-  UserCircleIcon,
+  UserIcon,
+  CalenderIcon,
+  LockIcon,
+  DollarLineIcon,
+  HorizontaLDots,
+  TaskIcon,
 } from "../icons/index";
 import SidebarWidget from "./SidebarWidget";
 
@@ -28,38 +31,61 @@ type NavItem = {
 
 const navItems: NavItem[] = [
   {
-    icon: <GridIcon />,
+    icon: <GridIcon className="w-5 h-5" />,
     name: "Dashboard",
     path: "/",
   },
   {
-    icon: <UserCircleIcon />,
+    icon: <UserCircleIcon className="w-5 h-5" />,
     name: "My Profile",
-    path: "/profile",
+    subItems: [
+      { name: "View Profile", path: "/profile" },
+      { name: "Edit Profile", path: "/profile/edit" },
+      { name: "Availability", path: "/profile/availability" },
+      { name: "Documents", path: "/profile/documents" }
+    ]
   },
   {
-    icon: <ListIcon />,
+    icon: <ListIcon className="w-5 h-5" />,
     name: "Job Opportunities",
-    path: "/jobs",
+    subItems: [
+      { name: "Available Jobs", path: "/jobs/available" },
+      { name: "My Applications", path: "/jobs/applications" },
+      { name: "Saved Jobs", path: "/jobs/saved" },
+      { name: "Job Alerts", path: "/jobs/alerts" }
+    ]
   },
   {
-    icon: <TableIcon />,
+    icon: <LockIcon className="w-5 h-5" />,
     name: "Unlock History",
-    path: "/unlock-history",
+    subItems: [
+      { name: "Recent Unlocks", path: "/unlocks/recent" },
+      { name: "Scheduled Unlocks", path: "/unlocks/scheduled" },
+      { name: "Cancelled Unlocks", path: "/unlocks/cancelled" }
+    ]
   },
   {
-    icon: <PieChartIcon />,
+    icon: <DollarLineIcon className="w-5 h-5" />,
     name: "Payment History",
-    path: "/payments",
+    subItems: [
+      { name: "Transactions", path: "/payments/transactions" },
+      { name: "Payouts", path: "/payments/payouts" },
+      { name: "Tax Documents", path: "/payments/tax" }
+    ]
   },
   {
-    icon: <PageIcon />,
+    icon: <TaskIcon className="w-5 h-5" />,
     name: "Settings",
-    path: "/settings",
-  },
+    subItems: [
+      { name: "Account Settings", path: "/settings/account" },
+      { name: "Notification Preferences", path: "/settings/notifications" },
+      { name: "Privacy & Security", path: "/settings/privacy" },
+      { name: "Help & Support", path: "/settings/support" }
+    ]
+  }
 ];
 
-// Keep the othersItems array but empty since we don't need additional sections
+// Keep the othersItems array for potential future use
 const othersItems: NavItem[] = [];
 
 const AppSidebar: React.FC = () => {

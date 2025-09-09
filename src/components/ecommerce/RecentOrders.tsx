@@ -7,76 +7,116 @@ import {
 } from "../ui/table";
 import Badge from "../ui/badge/Badge";
 import Image from "next/image";
+import { UserIcon, CalenderIcon, TimeIcon } from "@/icons";
 
-// Define the TypeScript interface for the table rows
-interface Product {
-  id: number; // Unique identifier for each product
-  name: string; // Product name
-  variants: string; // Number of variants (e.g., "1 Variant", "2 Variants")
-  category: string; // Category of the product
-  price: string; // Price of the product (as a string with currency symbol)
-  // status: string; // Status of the product
-  image: string; // URL or path to the product image
-  status: "Delivered" | "Pending" | "Canceled"; // Status of the product
+// Simple home icon component
+const HomeIcon = (props: React.SVGProps<SVGSVGElement>) => (
+  <svg
+    xmlns="http://www.w3.org/2000/svg"
+    width="16"
+    height="16"
+    viewBox="0 0 24 24"
+    fill="none"
+    stroke="currentColor"
+    strokeWidth="2"
+    strokeLinecap="round"
+    strokeLinejoin="round"
+    {...props}
+  >
+    <path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z" />
+    <polyline points="9 22 9 12 15 12 15 22" />
+  </svg>
+);
+
+// Define the TypeScript interface for the job requests
+interface JobRequest {
+  id: number;
+  jobTitle: string;
+  customer: string;
+  location: string;
+  date: string;
+  time: string;
+  status: "Completed" | "In Progress" | "Scheduled" | "Cancelled";
+  paymentStatus: "Paid" | "Pending" | "Refunded";
+  maidAssigned: string;
 }
 
 // Define the table data using the interface
-const tableData: Product[] = [
+const jobRequests: JobRequest[] = [
   {
     id: 1,
-    name: "MacBook Pro 13”",
-    variants: "2 Variants",
-    category: "Laptop",
-    price: "$2399.00",
-    status: "Delivered",
-    image: "/images/product/product-01.jpg", // Replace with actual image URL
+    jobTitle: "Deep Cleaning - 3 Bedroom Apartment",
+    customer: "Sarah Johnson",
+    location: "123 Main St, Apt 4B",
+    date: "2023-06-15",
+    time: "10:00 AM",
+    status: "Completed",
+    paymentStatus: "Paid",
+    maidAssigned: "Maria Garcia"
   },
   {
     id: 2,
-    name: "Apple Watch Ultra",
-    variants: "1 Variant",
-    category: "Watch",
-    price: "$879.00",
-    status: "Pending",
-    image: "/images/product/product-02.jpg", // Replace with actual image URL
+    jobTitle: "Regular Cleaning - Office Space",
+    customer: "TechStart Inc.",
+    location: "456 Business Ave",
+    date: "2023-06-16",
+    time: "2:00 PM",
+    status: "In Progress",
+    paymentStatus: "Pending",
+    maidAssigned: "James Wilson"
   },
   {
     id: 3,
-    name: "iPhone 15 Pro Max",
-    variants: "2 Variants",
-    category: "SmartPhone",
-    price: "$1869.00",
-    status: "Delivered",
-    image: "/images/product/product-03.jpg", // Replace with actual image URL
+    jobTitle: "Move-Out Cleaning - 2 Bedroom",
+    customer: "Michael Brown",
+    location: "789 Oak Lane",
+    date: "2023-06-17",
+    time: "9:00 AM",
+    status: "Scheduled",
+    paymentStatus: "Pending",
+    maidAssigned: "Emily Chen"
   },
   {
     id: 4,
-    name: "iPad Pro 3rd Gen",
-    variants: "2 Variants",
-    category: "Electronics",
-    price: "$1699.00",
-    status: "Canceled",
-    image: "/images/product/product-04.jpg", // Replace with actual image URL
+    jobTitle: "Post-Construction Cleaning",
+    customer: "Dream Homes LLC",
+    location: "321 Renovation Rd",
+    date: "2023-06-18",
+    time: "11:00 AM",
+    status: "Scheduled",
+    paymentStatus: "Paid",
+    maidAssigned: "Robert Taylor"
   },
   {
     id: 5,
-    name: "AirPods Pro 2nd Gen",
-    variants: "1 Variant",
-    category: "Accessories",
-    price: "$240.00",
-    status: "Delivered",
-    image: "/images/product/product-05.jpg", // Replace with actual image URL
+    jobTitle: "Weekly Cleaning - Studio",
+    customer: "Alex Turner",
+    location: "159 Studio St, Unit 7",
+    date: "2023-06-14",
+    time: "1:00 PM",
+    status: "Cancelled",
+    paymentStatus: "Refunded",
+    maidAssigned: "Jessica Lee"
   },
 ];
 
 export default function RecentOrders() {
+  // Format date to be more readable
+  const formatDate = (dateString: string) => {
+    const options: Intl.DateTimeFormatOptions = { year: 'numeric', month: 'short', day: 'numeric' };
+    return new Date(dateString).toLocaleDateString('en-US', options);
+  };
+
   return (
     <div className="overflow-hidden rounded-2xl border border-gray-200 bg-white px-4 pb-3 pt-4 dark:border-gray-800 dark:bg-white/[0.03] sm:px-6">
       <div className="flex flex-col gap-2 mb-4 sm:flex-row sm:items-center sm:justify-between">
         <div>
           <h3 className="text-lg font-semibold text-gray-800 dark:text-white/90">
-            Recent Orders
+            Recent Job Requests
           </h3>
+          <p className="text-sm text-gray-500 dark:text-gray-400">
+            Latest job requests and their status
+          </p>
         </div>
 
         <div className="flex items-center gap-3">
@@ -119,7 +159,7 @@ export default function RecentOrders() {
             Filter
           </button>
           <button className="inline-flex items-center gap-2 rounded-lg border border-gray-300 bg-white px-4 py-2.5 text-theme-sm font-medium text-gray-700 shadow-theme-xs hover:bg-gray-50 hover:text-gray-800 dark:border-gray-700 dark:bg-gray-800 dark:text-gray-400 dark:hover:bg-white/[0.03] dark:hover:text-gray-200">
-            See all
+            View All Jobs
           </button>
         </div>
       </div>
@@ -132,19 +172,19 @@ export default function RecentOrders() {
                 isHeader
                 className="py-3 font-medium text-gray-500 text-start text-theme-xs dark:text-gray-400"
               >
-                Products
+                Job Details
               </TableCell>
               <TableCell
                 isHeader
                 className="py-3 font-medium text-gray-500 text-start text-theme-xs dark:text-gray-400"
               >
-                Category
+                Customer
               </TableCell>
               <TableCell
                 isHeader
                 className="py-3 font-medium text-gray-500 text-start text-theme-xs dark:text-gray-400"
               >
-                Price
+                Maid Assigned
               </TableCell>
               <TableCell
                 isHeader
@@ -152,53 +192,86 @@ export default function RecentOrders() {
               >
                 Status
               </TableCell>
+              <TableCell
+                isHeader
+                className="py-3 font-medium text-gray-500 text-start text-theme-xs dark:text-gray-400"
+              >
+                Payment
+              </TableCell>
             </TableRow>
           </TableHeader>
 
           {/* Table Body */}
-
           <TableBody className="divide-y divide-gray-100 dark:divide-gray-800">
-            {tableData.map((product) => (
-              <TableRow key={product.id} className="">
-                <TableCell className="py-3">
-                  <div className="flex items-center gap-3">
-                    <div className="h-[50px] w-[50px] overflow-hidden rounded-md">
-                      <Image
-                        width={50}
-                        height={50}
-                        src={product.image}
-                        className="h-[50px] w-[50px]"
-                        alt={product.name}
-                      />
-                    </div>
-                    <div>
-                      <p className="font-medium text-gray-800 text-theme-sm dark:text-white/90">
-                        {product.name}
-                      </p>
-                      <span className="text-gray-500 text-theme-xs dark:text-gray-400">
-                        {product.variants}
+            {jobRequests.map((job) => (
+              <TableRow key={job.id} className="hover:bg-gray-50 dark:hover:bg-gray-800/50">
+                <TableCell className="py-4">
+                  <div>
+                    <p className="font-medium text-gray-800 text-theme-sm dark:text-white/90">
+                      {job.jobTitle}
+                    </p>
+                    <div className="flex items-center mt-1 text-gray-500 text-theme-xs dark:text-gray-400">
+                      <HomeIcon className="w-3.5 h-3.5 mr-1.5" />
+                      <span className="truncate max-w-[180px]" title={job.location}>
+                        {job.location}
                       </span>
+                    </div>
+                    <div className="flex items-center mt-1 text-gray-500 text-theme-xs dark:text-gray-400">
+                      <CalenderIcon className="w-4 h-4 text-gray-500" />
+                      <span>{new Date(job.date).toLocaleDateString()}</span>
+                      <TimeIcon className="w-4 h-4 text-gray-500 ml-2" />
+                      <span>{job.time}</span>
                     </div>
                   </div>
                 </TableCell>
-                <TableCell className="py-3 text-gray-500 text-theme-sm dark:text-gray-400">
-                  {product.price}
+                <TableCell className="py-4">
+                  <div className="flex items-center">
+                    <div className="flex items-center justify-center w-8 h-8 mr-2 rounded-full bg-gray-100 dark:bg-gray-700">
+                      <UserIcon className="w-4 h-4 text-gray-500 dark:text-gray-300" />
+                    </div>
+                    <span className="text-gray-700 text-theme-sm dark:text-gray-200">
+                      {job.customer}
+                    </span>
+                  </div>
                 </TableCell>
-                <TableCell className="py-3 text-gray-500 text-theme-sm dark:text-gray-400">
-                  {product.category}
+                <TableCell className="py-4">
+                  <div className="flex items-center">
+                    <div className="flex items-center justify-center w-8 h-8 mr-2 rounded-full bg-blue-50 dark:bg-blue-900/30">
+                      <UserIcon className="w-4 h-4 text-blue-500 dark:text-blue-300" />
+                    </div>
+                    <span className="text-gray-700 text-theme-sm dark:text-gray-200">
+                      {job.maidAssigned}
+                    </span>
+                  </div>
                 </TableCell>
-                <TableCell className="py-3 text-gray-500 text-theme-sm dark:text-gray-400">
+                <TableCell className="py-4">
                   <Badge
                     size="sm"
                     color={
-                      product.status === "Delivered"
+                      job.status === "Completed"
                         ? "success"
-                        : product.status === "Pending"
+                        : job.status === "In Progress"
+                        ? "info"
+                        : job.status === "Scheduled"
                         ? "warning"
                         : "error"
                     }
                   >
-                    {product.status}
+                    {job.status}
+                  </Badge>
+                </TableCell>
+                <TableCell className="py-4">
+                  <Badge
+                    size="sm"
+                    color={
+                      job.paymentStatus === "Paid"
+                        ? "success"
+                        : job.paymentStatus === "Pending"
+                        ? "warning"
+                        : "error"
+                    }
+                  >
+                    {job.paymentStatus}
                   </Badge>
                 </TableCell>
               </TableRow>

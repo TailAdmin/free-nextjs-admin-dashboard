@@ -1,7 +1,7 @@
 "use client";
 import Image from "next/image";
 
-import CountryMap from "./CountryMap";
+// import CountryMap from "./CountryMap"; // Temporarily disabled due to loading issues
 import { useState } from "react";
 import { MoreDotIcon } from "@/icons";
 import { Dropdown } from "../ui/dropdown/Dropdown";
@@ -31,7 +31,12 @@ export default function DemographicCard() {
         </div>
 
         <div className="relative inline-block">
-          <button onClick={toggleDropdown} className="dropdown-toggle">
+          <button 
+            onClick={toggleDropdown} 
+            className="dropdown-toggle"
+            aria-label="More options"
+            title="More options"
+          >
             <MoreDotIcon className="text-gray-400 hover:text-gray-700 dark:hover:text-gray-300" />
           </button>
           <Dropdown
@@ -59,7 +64,9 @@ export default function DemographicCard() {
           id="mapOne"
           className="mapOne map-btn -mx-4 -my-6 h-[212px] w-[252px] 2xsm:w-[307px] xsm:w-[358px] sm:-mx-6 md:w-[668px] lg:w-[634px] xl:w-[393px] 2xl:w-[554px]"
         >
-          <CountryMap />
+          <div className="flex items-center justify-center h-full text-gray-500">
+            Map loading...
+          </div>
         </div>
       </div>
 

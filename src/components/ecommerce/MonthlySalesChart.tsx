@@ -13,7 +13,7 @@ const ReactApexChart = dynamic(() => import("react-apexcharts"), {
 
 export default function MonthlySalesChart() {
   const options: ApexOptions = {
-    colors: ["#465fff"],
+    colors: ["#465fff", "#10B981"],
     chart: {
       fontFamily: "Outfit, sans-serif",
       type: "bar",
@@ -87,14 +87,20 @@ export default function MonthlySalesChart() {
         show: false,
       },
       y: {
-        formatter: (val: number) => `${val}`,
+        formatter: (val: number, { seriesIndex }) => {
+          return seriesIndex === 0 ? `${val} Jobs Posted` : `${val} Jobs Completed`;
+        },
       },
     },
   };
   const series = [
     {
-      name: "Sales",
-      data: [168, 385, 201, 298, 187, 195, 291, 110, 215, 390, 280, 112],
+      name: "Jobs Posted",
+      data: [45, 52, 38, 65, 55, 48, 60, 42, 58, 70, 65, 50],
+    },
+    {
+      name: "Jobs Completed",
+      data: [35, 42, 30, 55, 45, 40, 52, 35, 48, 60, 55, 42],
     },
   ];
   const [isOpen, setIsOpen] = useState(false);
@@ -111,11 +117,16 @@ export default function MonthlySalesChart() {
     <div className="overflow-hidden rounded-2xl border border-gray-200 bg-white px-5 pt-5 dark:border-gray-800 dark:bg-white/[0.03] sm:px-6 sm:pt-6">
       <div className="flex items-center justify-between">
         <h3 className="text-lg font-semibold text-gray-800 dark:text-white/90">
-          Monthly Sales
+          Monthly Job Activity
         </h3>
 
         <div className="relative inline-block">
-          <button onClick={toggleDropdown} className="dropdown-toggle">
+          <button 
+            onClick={toggleDropdown} 
+            className="dropdown-toggle"
+            aria-label="More options"
+            title="More options"
+          >
             <MoreDotIcon className="text-gray-400 hover:text-gray-700 dark:hover:text-gray-300" />
           </button>
           <Dropdown
