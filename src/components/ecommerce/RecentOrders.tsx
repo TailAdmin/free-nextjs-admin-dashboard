@@ -1,3 +1,5 @@
+'use client';
+
 import {
   Table,
   TableBody,
@@ -163,121 +165,124 @@ export default function RecentOrders() {
           </button>
         </div>
       </div>
-      <div className="max-w-full overflow-x-auto">
-        <Table>
-          {/* Table Header */}
-          <TableHeader className="border-gray-100 dark:border-gray-800 border-y">
-            <TableRow>
-              <TableCell
-                isHeader
-                className="py-3 font-medium text-gray-500 text-start text-theme-xs dark:text-gray-400"
-              >
-                Job Details
-              </TableCell>
-              <TableCell
-                isHeader
-                className="py-3 font-medium text-gray-500 text-start text-theme-xs dark:text-gray-400"
-              >
-                Customer
-              </TableCell>
-              <TableCell
-                isHeader
-                className="py-3 font-medium text-gray-500 text-start text-theme-xs dark:text-gray-400"
-              >
-                Maid Assigned
-              </TableCell>
-              <TableCell
-                isHeader
-                className="py-3 font-medium text-gray-500 text-start text-theme-xs dark:text-gray-400"
-              >
-                Status
-              </TableCell>
-              <TableCell
-                isHeader
-                className="py-3 font-medium text-gray-500 text-start text-theme-xs dark:text-gray-400"
-              >
-                Payment
-              </TableCell>
-            </TableRow>
-          </TableHeader>
+      <div className="mt-6 -mx-4 sm:-mx-6 md:mx-0">
+        <div className="inline-block min-w-full align-middle">
+          <div className="overflow-x-auto rounded-lg border border-gray-200 dark:border-gray-800">
+            <Table className="min-w-full divide-y divide-gray-200 dark:divide-gray-800">
+              {/* Table Header */}
+              <TableHeader className="border-gray-100 dark:border-gray-800 border-y">
+                <TableRow>
+                  <TableCell
+                    isHeader
+                    className="py-3 font-medium text-gray-500 text-start text-theme-xs dark:text-gray-400"
+                  >
+                    Job Details
+                  </TableCell>
+                  <TableCell
+                    isHeader
+                    className="py-3 font-medium text-gray-500 text-start text-theme-xs dark:text-gray-400"
+                  >
+                    Customer
+                  </TableCell>
+                  <TableCell
+                    isHeader
+                    className="py-3 font-medium text-gray-500 text-start text-theme-xs dark:text-gray-400"
+                  >
+                    Maid Assigned
+                  </TableCell>
+                  <TableCell
+                    isHeader
+                    className="py-3 font-medium text-gray-500 text-start text-theme-xs dark:text-gray-400"
+                  >
+                    Status
+                  </TableCell>
+                  <TableCell
+                    isHeader
+                    className="py-3 font-medium text-gray-500 text-start text-theme-xs dark:text-gray-400"
+                  >
+                    Payment
+                  </TableCell>
+                </TableRow>
+              </TableHeader>
 
-          {/* Table Body */}
-          <TableBody className="divide-y divide-gray-100 dark:divide-gray-800">
-            {jobRequests.map((job) => (
-              <TableRow key={job.id} className="hover:bg-gray-50 dark:hover:bg-gray-800/50">
-                <TableCell className="py-4">
-                  <div>
-                    <p className="font-medium text-gray-800 text-theme-sm dark:text-white/90">
-                      {job.jobTitle}
-                    </p>
-                    <div className="flex items-center mt-1 text-gray-500 text-theme-xs dark:text-gray-400">
-                      <HomeIcon className="w-3.5 h-3.5 mr-1.5" />
-                      <span className="truncate max-w-[180px]" title={job.location}>
-                        {job.location}
-                      </span>
-                    </div>
-                    <div className="flex items-center mt-1 text-gray-500 text-theme-xs dark:text-gray-400">
-                      <CalenderIcon className="w-4 h-4 text-gray-500" />
-                      <span>{new Date(job.date).toLocaleDateString()}</span>
-                      <TimeIcon className="w-4 h-4 text-gray-500 ml-2" />
-                      <span>{job.time}</span>
-                    </div>
-                  </div>
-                </TableCell>
-                <TableCell className="py-4">
-                  <div className="flex items-center">
-                    <div className="flex items-center justify-center w-8 h-8 mr-2 rounded-full bg-gray-100 dark:bg-gray-700">
-                      <UserIcon className="w-4 h-4 text-gray-500 dark:text-gray-300" />
-                    </div>
-                    <span className="text-gray-700 text-theme-sm dark:text-gray-200">
-                      {job.customer}
-                    </span>
-                  </div>
-                </TableCell>
-                <TableCell className="py-4">
-                  <div className="flex items-center">
-                    <div className="flex items-center justify-center w-8 h-8 mr-2 rounded-full bg-blue-50 dark:bg-blue-900/30">
-                      <UserIcon className="w-4 h-4 text-blue-500 dark:text-blue-300" />
-                    </div>
-                    <span className="text-gray-700 text-theme-sm dark:text-gray-200">
-                      {job.maidAssigned}
-                    </span>
-                  </div>
-                </TableCell>
-                <TableCell className="py-4">
-                  <Badge
-                    size="sm"
-                    color={
-                      job.status === "Completed"
-                        ? "success"
-                        : job.status === "In Progress"
-                        ? "info"
-                        : job.status === "Scheduled"
-                        ? "warning"
-                        : "error"
-                    }
-                  >
-                    {job.status}
-                  </Badge>
-                </TableCell>
-                <TableCell className="py-4">
-                  <Badge
-                    size="sm"
-                    color={
-                      job.paymentStatus === "Paid"
-                        ? "success"
-                        : job.paymentStatus === "Pending"
-                        ? "warning"
-                        : "error"
-                    }
-                  >
-                    {job.paymentStatus}
-                  </Badge>
-                </TableCell>
-              </TableRow>
-            ))}
-          </TableBody>
-        </Table>
+              {/* Table Body */}
+              <TableBody className="divide-y divide-gray-100 dark:divide-gray-800">
+                {jobRequests.map((job) => (
+                  <TableRow key={job.id} className="hover:bg-gray-50 dark:hover:bg-gray-800/50">
+                    <TableCell className="whitespace-nowrap px-3 py-4 text-sm sm:px-6">
+                      <div className="flex items-center">
+                        <div className="h-8 w-8 flex-shrink-0 sm:h-10 sm:w-10">
+                          <HomeIcon className="h-full w-full text-gray-400" />
+                        </div>
+                        <div className="ml-2 sm:ml-4">
+                          <div className="text-sm font-medium text-gray-900 dark:text-white line-clamp-1">
+                            {job.jobTitle}
+                          </div>
+                          <div className="text-xs text-gray-500 dark:text-gray-400 sm:text-sm">
+                            {job.customer}
+                          </div>
+                        </div>
+                      </div>
+                    </TableCell>
+                    <TableCell className="whitespace-nowrap px-3 py-4 text-xs text-gray-500 dark:text-gray-400 sm:text-sm">
+                      <span className="line-clamp-2">{job.location}</span>
+                    </TableCell>
+                    <TableCell className="whitespace-nowrap px-3 py-4">
+                      <div className="flex items-center text-xs text-gray-500 dark:text-gray-400 sm:text-sm">
+                        <CalenderIcon className="mr-1 h-3.5 w-3.5 flex-shrink-0 sm:h-4 sm:w-4" />
+                        <span className="whitespace-nowrap">{formatDate(job.date)}</span>
+                      </div>
+                      <div className="mt-1 flex items-center text-xs text-gray-500 dark:text-gray-400 sm:text-sm">
+                        <TimeIcon className="mr-1 h-3.5 w-3.5 flex-shrink-0 sm:h-4 sm:w-4" />
+                        <span className="whitespace-nowrap">{job.time}</span>
+                      </div>
+                    </TableCell>
+                    <TableCell className="whitespace-nowrap px-3 py-4">
+                      <Badge
+                        color={
+                          job.status === 'Completed' ? 'success' :
+                          job.status === 'In Progress' ? 'info' :
+                          job.status === 'Scheduled' ? 'warning' : 'error'
+                        }
+                        variant="light"
+                        size="sm"
+                        className="text-xs sm:text-sm capitalize"
+                      >
+                        {job.status}
+                      </Badge>
+                    </TableCell>
+                    <TableCell className="whitespace-nowrap px-3 py-4 text-xs text-gray-500 dark:text-gray-400 sm:text-sm">
+                      <span className="line-clamp-2">{job.maidAssigned}</span>
+                    </TableCell>
+                    <TableCell className="whitespace-nowrap px-3 py-4 text-right text-xs font-medium sm:text-sm">
+                      <a 
+                        href="#" 
+                        className="text-brand-500 hover:text-brand-700 dark:text-brand-400 dark:hover:text-brand-300"
+                        onClick={(e) => e.preventDefault()}
+                      >
+                        View
+                      </a>
+                    </TableCell>
+                    <TableCell className="whitespace-nowrap px-3 py-4">
+                      <Badge
+                        size="sm"
+                        color={
+                          job.paymentStatus === "Paid"
+                            ? "success"
+                            : job.paymentStatus === "Pending"
+                            ? "warning"
+                            : "error"
+                        }
+                      >
+                        {job.paymentStatus}
+                      </Badge>
+                    </TableCell>
+                  </TableRow>
+                ))}
+              </TableBody>
+            </Table>
+          </div>
+        </div>
       </div>
     </div>
   );

@@ -17,17 +17,35 @@ export default function MonthlySalesChart() {
     chart: {
       fontFamily: "Outfit, sans-serif",
       type: "bar",
-      height: 180,
+      height: '100%',
       toolbar: {
         show: false,
+      },
+      zoom: {
+        enabled: false
+      },
+      animations: {
+        enabled: true,
+        speed: 800,
+        animateGradually: {
+          enabled: true,
+          delay: 150
+        },
+        dynamicAnimation: {
+          enabled: true,
+          speed: 350
+        }
       },
     },
     plotOptions: {
       bar: {
         horizontal: false,
-        columnWidth: "39%",
+        columnWidth: '45%',
         borderRadius: 5,
-        borderRadiusApplication: "end",
+        borderRadiusApplication: 'end',
+        dataLabels: {
+          position: 'top',
+        },
       },
     },
     dataLabels: {
@@ -35,63 +53,149 @@ export default function MonthlySalesChart() {
     },
     stroke: {
       show: true,
-      width: 4,
-      colors: ["transparent"],
+      width: 2,
+      colors: ['transparent'],
     },
     xaxis: {
       categories: [
-        "Jan",
-        "Feb",
-        "Mar",
-        "Apr",
-        "May",
-        "Jun",
-        "Jul",
-        "Aug",
-        "Sep",
-        "Oct",
-        "Nov",
-        "Dec",
+        'Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun',
+        'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'
       ],
+      labels: {
+        style: {
+          fontSize: '12px',
+          fontFamily: 'Outfit, sans-serif',
+        },
+      },
       axisBorder: {
         show: false,
       },
       axisTicks: {
         show: false,
       },
-    },
-    legend: {
-      show: true,
-      position: "top",
-      horizontalAlign: "left",
-      fontFamily: "Outfit",
+      tooltip: {
+        enabled: false,
+      },
     },
     yaxis: {
+      labels: {
+        style: {
+          fontSize: '12px',
+          fontFamily: 'Outfit, sans-serif',
+        },
+        formatter: (value) => {
+          return value.toFixed(0);
+        },
+      },
       title: {
-        text: undefined,
+        text: 'Jobs',
+        style: {
+          fontSize: '12px',
+          fontWeight: 500,
+          fontFamily: 'Outfit, sans-serif',
+        },
+      },
+    },
+    legend: {
+      position: 'top',
+      horizontalAlign: 'left',
+      offsetY: -5,
+      fontSize: '13px',
+      fontFamily: 'Outfit, sans-serif',
+      markers: {
+        size: 5,
+        strokeWidth: 0,
+      },
+      itemMargin: {
+        horizontal: 15,
+        vertical: 5,
       },
     },
     grid: {
+      borderColor: '#f1f1f1',
+      strokeDashArray: 3,
+      xaxis: {
+        lines: {
+          show: false,
+        },
+      },
       yaxis: {
         lines: {
           show: true,
         },
       },
+      padding: {
+        top: 0,
+        right: 0,
+        bottom: 0,
+        left: 0,
+      },
     },
     fill: {
       opacity: 1,
     },
-
     tooltip: {
+      enabled: true,
+      shared: true,
+      intersect: false,
       x: {
-        show: false,
+        show: true,
+        formatter: (val) => `${val}`,
       },
       y: {
         formatter: (val: number, { seriesIndex }) => {
           return seriesIndex === 0 ? `${val} Jobs Posted` : `${val} Jobs Completed`;
         },
       },
+      style: {
+        fontSize: '12px',
+        fontFamily: 'Outfit, sans-serif',
+      },
+      marker: {
+        show: true,
+      },
     },
+    responsive: [
+      {
+        breakpoint: 1024,
+        options: {
+          chart: {
+            height: 300,
+          },
+        },
+      },
+      {
+        breakpoint: 768,
+        options: {
+          chart: {
+            height: 250,
+          },
+          plotOptions: {
+            bar: {
+              columnWidth: '55%',
+            },
+          },
+        },
+      },
+      {
+        breakpoint: 480,
+        options: {
+          chart: {
+            height: 200,
+          },
+          legend: {
+            position: 'bottom',
+            horizontalAlign: 'center',
+            fontSize: '12px',
+          },
+          plotOptions: {
+            bar: {
+              columnWidth: '60%',
+            },
+          },
+        },
+      },
+    ],
   };
   const series = [
     {
@@ -150,15 +254,14 @@ export default function MonthlySalesChart() {
         </div>
       </div>
 
-      <div className="max-w-full overflow-x-auto custom-scrollbar">
-        <div className="-ml-5 min-w-[650px] xl:min-w-full pl-2">
-          <ReactApexChart
-            options={options}
-            series={series}
-            type="bar"
-            height={180}
-          />
-        </div>
+      <div className="relative w-full h-[250px] sm:h-[280px] md:h-[220px] lg:h-[240px] xl:h-[220px]">
+        <ReactApexChart
+          options={options}
+          series={series}
+          type="bar"
+          height="100%"
+          width="100%"
+        />
       </div>
     </div>
   );

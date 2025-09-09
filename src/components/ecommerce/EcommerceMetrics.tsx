@@ -43,36 +43,45 @@ const metrics = [
     value: "$2,450",
     change: "+3.7%",
     changeType: 'increase',
-    icon: <DollarLineIcon className="w-6 h-6 text-gray-800 dark:text-white/90" />,
+    icon: <DollarLineIcon />,
     iconBg: "bg-amber-100 dark:bg-amber-900/30"
   }
 ];
 
-export const EcommerceMetrics = () => {
+export const EcommerceMetrics: React.FC = () => {
   return (
-    <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-4 md:gap-6">
+    <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-4">
       {metrics.map((metric) => (
-        <div 
-          key={metric.id} 
-          className="rounded-2xl border border-gray-200 bg-white p-5 dark:border-gray-800 dark:bg-white/[0.03] md:p-6 hover:shadow-sm transition-shadow duration-200"
+        <div
+          key={metric.id}
+          className="rounded-2xl border border-gray-200 bg-white p-4 transition-all duration-200 hover:shadow-sm dark:border-gray-800 dark:bg-white/[0.03] dark:hover:border-gray-700"
         >
-          <div className={`flex items-center justify-center w-12 h-12 ${metric.iconBg} rounded-xl`}>
-            {metric.icon}
-          </div>
-
-          <div className="flex items-end justify-between mt-5">
-            <div>
-              <span className="text-sm text-gray-500 dark:text-gray-400">
-                {metric.title}
-              </span>
-              <h4 className="mt-1 font-bold text-gray-800 text-title-sm dark:text-white/90">
-                {metric.value}
-              </h4>
+          <div className="flex items-start justify-between">
+            <div className="flex h-10 w-10 items-center justify-center rounded-full sm:h-12 sm:w-12">
+              <div 
+                className={`${metric.iconBg} flex h-10 w-10 items-center justify-center rounded-full transition-all duration-200 sm:h-12 sm:w-12`}
+              >
+                {React.cloneElement(metric.icon, {
+                  className: "w-5 h-5 sm:w-6 sm:h-6 text-gray-800 dark:text-white/90"
+                })}
+              </div>
             </div>
-            <Badge color={metric.changeType === 'increase' ? 'success' : 'error'}>
-              {metric.changeType === 'increase' ? <ArrowUpIcon /> : <ArrowUpIcon className="transform rotate-180" />}
+            <Badge
+              color={metric.changeType === 'increase' ? 'success' : 'error'}
+              variant="light"
+              className="flex items-center gap-1 text-xs sm:text-sm"
+            >
               {metric.change}
+              <ArrowUpIcon className="h-3 w-3" />
             </Badge>
+          </div>
+          <div className="mt-3 sm:mt-4">
+            <p className="text-xs font-medium text-gray-500 dark:text-gray-400 sm:text-sm">
+              {metric.title}
+            </p>
+            <p className="mt-1 text-xl font-semibold text-gray-900 dark:text-white sm:text-2xl">
+              {metric.value}
+            </p>
           </div>
         </div>
       ))}

@@ -15,26 +15,32 @@ export const metadata: Metadata = {
 
 export default function Ecommerce() {
   return (
-    <div className="grid grid-cols-12 gap-4 md:gap-6">
-      <div className="col-span-12 space-y-6 xl:col-span-7">
+    <div className="grid grid-cols-12 gap-4 px-4 sm:px-6 md:gap-6">
+      {/* Main Content Area */}
+      <div className="col-span-12 space-y-6 lg:col-span-8 xl:col-span-7">
+        {/* Stats Cards - Only one instance of EcommerceMetrics */}
         <EcommerceMetrics />
 
-        <MonthlySalesChart />
+        {/* Charts */}
+        <div className="space-y-6">
+          <MonthlySalesChart />
+          <StatisticsChart />
+        </div>
+
+        {/* Recent Orders - Hidden on mobile, shown on lg+ */}
+        <div className="hidden lg:block">
+          <RecentOrders />
+        </div>
       </div>
 
-      <div className="col-span-12 xl:col-span-5">
+      {/* Sidebar - Hidden on mobile, visible on lg+ */}
+      <div className="col-span-12 space-y-6 lg:col-span-4 xl:col-span-5">
         <MonthlyTarget />
-      </div>
-
-      <div className="col-span-12">
-        <StatisticsChart />
-      </div>
-
-      <div className="col-span-12 xl:col-span-5">
         <DemographicCard />
       </div>
 
-      <div className="col-span-12 xl:col-span-7">
+      {/* Recent Orders - Only shown on mobile */}
+      <div className="col-span-12 lg:hidden">
         <RecentOrders />
       </div>
     </div>

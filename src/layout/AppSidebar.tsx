@@ -89,7 +89,27 @@ const navItems: NavItem[] = [
 const othersItems: NavItem[] = [];
 
 const AppSidebar: React.FC = () => {
-  const { isExpanded, isMobileOpen, isHovered, setIsHovered } = useSidebar();
+  const { isExpanded, isMobileOpen, isHovered, setIsHovered, isSidebarOpen, toggleSidebar, closeSidebar } = useSidebar();
+  const [isMobile, setIsMobile] = useState(false);
+
+  // Check if mobile view
+  useEffect(() => {
+    const handleResize = () => {
+      setIsMobile(window.innerWidth < 1024);
+      if (window.innerWidth >= 1024) {
+        closeSidebar();
+      }
+    };
+
+    // Set initial value
+    handleResize();
+    
+    // Add event listener
+    window.addEventListener('resize', handleResize);
+    
+    // Clean up
+    return () => window.removeEventListener('resize', handleResize);
+  }, [closeSidebar]);
   const pathname = usePathname();
 
   const renderMenuItems = (
@@ -163,19 +183,18 @@ const AppSidebar: React.FC = () => {
               ref={(el) => {
                 subMenuRefs.current[`${menuType}-${index}`] = el;
               }}
-              className="overflow-hidden transition-all duration-300"
-              style={{
-                height:
-                  openSubmenu?.type === menuType && openSubmenu?.index === index
-                    ? `${subMenuHeight[`${menuType}-${index}`]}px`
-                    : "0px",
-              }}
+              className={`overflow-hidden transition-all duration-300 ${
+                openSubmenu?.type === menuType && openSubmenu?.index === index
+                  ? 'max-h-[1000px]'
+                  : 'max-h-0'
+              }`}
             >
               <ul className="mt-2 space-y-1 ml-9">
                 {nav.subItems.map((subItem) => (
                   <li key={subItem.name}>
                     <Link
                       href={subItem.path}
+                      onClick={handleLinkClick}
                       className={`menu-dropdown-item ${
                         isActive(subItem.path)
                           ? "menu-dropdown-item-active"
@@ -218,17 +237,27 @@ const AppSidebar: React.FC = () => {
     </ul>
   );
 
+  // Track open submenu state
   const [openSubmenu, setOpenSubmenu] = useState<{
     type: "main" | "others";
     index: number;
   } | null>(null);
+  
+  // Close sidebar when clicking on a link on mobile
+  const handleLinkClick = useCallback(() => {
+    if (isMobile) {
+      closeSidebar();
+    }
+  }, [isMobile, closeSidebar]);
   const [subMenuHeight, setSubMenuHeight] = useState<Record<string, number>>(
     {}
   );
   const subMenuRefs = useRef<Record<string, HTMLDivElement | null>>({});
 
-  // const isActive = (path: string) => path === pathname;
-   const isActive = useCallback((path: string) => path === pathname, [pathname]);
+  // Check if the current path is active
+  const isActive = useCallback((path: string) => {
+    return path === pathname || pathname.startsWith(`${path}/`);
+  }, [pathname]);
 
   useEffect(() => {
     // Check if the current path matches any submenu item
@@ -282,20 +311,69 @@ const AppSidebar: React.FC = () => {
     });
   };
 
-  return (
+  // Backdrop for mobile
+  const Backdrop = () => (
+    <div
+      className={`fixed inset-0 z-40 bg-black bg-opacity-50 transition-opacity lg:hidden ${
+        isSidebarOpen ? 'opacity-100' : 'pointer-events-none opacity-0'
+      }`}
+      onClick={closeSidebar}
+      aria-hidden="true"
+    />
+  );
+
+  // Mobile menu button component
+  const MobileMenuButton = () => (
+    <button
+      onClick={toggleSidebar}
+      className="fixed left-4 top-4 z-50 flex h-10 w-10 items-center justify-center rounded-lg bg-white p-2 shadow-md transition-colors hover:bg-gray-100 focus:outline-none focus:ring-2 focus:ring-brand-500 focus:ring-offset-2 dark:bg-gray-800 dark:text-white dark:hover:bg-gray-700 lg:hidden"
+      aria-label={isSidebarOpen ? 'Close navigation menu' : 'Open navigation menu'}
+      aria-expanded={isSidebarOpen ? 'true' : 'false'}
+      aria-controls="sidebar-navigation"
+    >
+      <svg
+        className="h-6 w-6 text-gray-600 dark:text-gray-300"
+        fill="none"
+        viewBox="0 0 24 24"
+        stroke="currentColor"
+      >
+        {isSidebarOpen ? (
+          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+        ) : (
+          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 6h16M4 12h16M4 18h16" />
+        )}
+      </svg>
+    </button>
+  );
+
+  const sidebarRef = useRef<HTMLDivElement | null>(null);
+
+const handleMouseEnter = () => {
+  if (!isExpanded && !isMobile) {
+    setIsHovered(true);
+  }
+};
+
+const handleMouseLeave = () => {
+  if (!isMobile) {
+    setIsHovered(false);
+  }
+};
+
+return (
+  <>
+    <MobileMenuButton />
+    <Backdrop />
     <aside
-      className={`fixed mt-16 flex flex-col lg:mt-0 top-0 px-5 left-0 bg-white dark:bg-gray-900 dark:border-gray-800 text-gray-900 h-screen transition-all duration-300 ease-in-out z-50 border-r border-gray-200 
-        ${
-          isExpanded || isMobileOpen
-            ? "w-[290px]"
-            : isHovered
-            ? "w-[290px]"
-            : "w-[90px]"
-        }
-        ${isMobileOpen ? "translate-x-0" : "-translate-x-full"}
-        lg:translate-x-0`}
-      onMouseEnter={() => !isExpanded && setIsHovered(true)}
-      onMouseLeave={() => setIsHovered(false)}
+      ref={sidebarRef}
+      id="sidebar-navigation"
+      className={`fixed left-0 top-0 z-40 flex h-screen flex-col justify-between border-r border-gray-200 bg-white px-4 py-6 transition-all duration-300 dark:border-gray-800 dark:bg-gray-900 ${
+        isExpanded || isHovered ? "w-72" : "w-20"
+      } ${isMobileOpen ? "translate-x-0" : "-translate-x-full"} lg:translate-x-0`}
+      onMouseEnter={handleMouseEnter}
+      onMouseLeave={handleMouseLeave}
+      role="navigation"
+      aria-label="Main navigation"
     >
       <div
         className={`py-8 flex  ${
@@ -370,7 +448,8 @@ const AppSidebar: React.FC = () => {
         </nav>
         {isExpanded || isHovered || isMobileOpen ? <SidebarWidget /> : null}
       </div>
-    </aside>
+      </aside>
+    </>
   );
 };
 

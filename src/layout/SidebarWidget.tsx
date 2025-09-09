@@ -44,16 +44,16 @@ export default function SidebarWidget() {
   ];
 
   return (
-    <div className="mx-auto mb-10 w-full max-w-60 rounded-2xl bg-gray-50 px-4 py-5 dark:bg-white/[0.03]">
+    <div className="mx-auto w-full rounded-2xl bg-gray-50 p-4 dark:bg-white/[0.03] lg:max-w-60 lg:px-4 lg:py-5">
       <h3 className="mb-4 text-sm font-medium text-gray-900 dark:text-white">
         Quick Stats
       </h3>
       
-      <div className="space-y-4">
+      <div className="grid grid-cols-2 gap-4 sm:grid-cols-4 lg:grid-cols-1 lg:gap-4">
         {stats.map((stat) => (
-          <div key={stat.id} className="flex items-start justify-between">
+          <div key={stat.id} className="flex items-start justify-between rounded-lg bg-white p-3 shadow-sm dark:bg-gray-800 lg:bg-transparent lg:p-0 lg:shadow-none dark:lg:bg-transparent">
             <div className="flex items-center space-x-2">
-              <div className="p-1.5 rounded-lg bg-white dark:bg-gray-800 shadow-sm">
+              <div className="rounded-lg bg-white p-1.5 shadow-sm dark:bg-gray-800 lg:bg-white/50 dark:lg:bg-gray-800/50">
                 {stat.icon}
               </div>
               <div className="text-left">
@@ -74,12 +74,27 @@ export default function SidebarWidget() {
         ))}
       </div>
       
-      <div className="mt-6 space-y-2">
-        <button className="w-full px-3 py-2 text-sm font-medium text-white bg-brand-500 rounded-lg hover:bg-brand-600 transition-colors">
-          Add New Maid Profile
+      <div className="mt-6 grid grid-cols-1 gap-3 sm:grid-cols-2 lg:grid-cols-1">
+        <button 
+          className="w-full rounded-lg bg-brand-500 px-3 py-2 text-sm font-medium text-white transition-colors hover:bg-brand-600 focus:outline-none focus:ring-2 focus:ring-brand-500 focus:ring-offset-2 dark:focus:ring-offset-gray-900"
+        >
+          <span className="flex items-center justify-center gap-2">
+            <svg className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 6v6m0 0v6m0-6h6m-6 0H6" />
+            </svg>
+            <span>Add Maid</span>
+            <span className="hidden sm:inline lg:hidden">Profile</span>
+          </span>
         </button>
-        <button className="w-full px-3 py-2 text-sm font-medium text-brand-600 bg-brand-50 dark:bg-brand-500/10 rounded-lg hover:bg-brand-100 dark:hover:bg-brand-500/20 transition-colors">
-          Post New Job
+        <button 
+          className="w-full rounded-lg bg-brand-50 px-3 py-2 text-sm font-medium text-brand-600 transition-colors hover:bg-brand-100 focus:outline-none focus:ring-2 focus:ring-brand-500 focus:ring-offset-2 dark:bg-brand-500/10 dark:text-brand-400 dark:hover:bg-brand-500/20 dark:focus:ring-offset-gray-900"
+        >
+          <span className="flex items-center justify-center gap-2">
+            <svg className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 6v6m0 0v6m0-6h6m-6 0H6" />
+            </svg>
+            <span>Post Job</span>
+          </span>
         </button>
       </div>
     </div>
