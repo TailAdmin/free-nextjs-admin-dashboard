@@ -1,6 +1,7 @@
 "use client";
 import React, { useState, useRef, useEffect } from "react";
 import { useModal } from "../../hooks/useModal";
+import { useProfile } from "../../context/ProfileContext";
 import { Modal } from "../ui/modal";
 import Button from "../ui/button/Button";
 import Input from "../form/input/InputField";
@@ -46,9 +47,36 @@ const SKILLS_OPTIONS = [
 
 export default function UserMetaCard() {
   const { isOpen, openModal, closeModal } = useModal();
-  const [profileImage, setProfileImage] = useState("/images/user/owner.jpg");
-  const [previewImage, setPreviewImage] = useState("");
+  const { profileImage, setProfileImage } = useProfile();
   const fileInputRef = useRef<HTMLInputElement>(null);
+  const modalFileInputRef = useRef<HTMLInputElement>(null);
+  
+  // Handle image file selection (used by both card and modal)
+  const handleImageUpload = (e: React.ChangeEvent<HTMLInputElement>, isModal = false) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+    
+    if (!file.type.startsWith('image/')) {
+      alert('Please select a valid image file');
+      return;
+    }
+    
+    const reader = new FileReader();
+    reader.onloadend = () => {
+      const imageUrl = reader.result as string;
+      setProfileImage(imageUrl);
+      
+      // Update form data with the new image
+      if (formData) {
+        setFormData(prev => ({
+          ...prev,
+          profileImage: imageUrl
+        }));
+      }
+    };
+    
+    reader.readAsDataURL(file);
+  };
   const [formData, setFormData] = useState({
     fullName: "Musharof Chowdhury",
     age: "",
@@ -69,7 +97,13 @@ export default function UserMetaCard() {
     if (file) {
       const reader = new FileReader();
       reader.onloadend = () => {
-        setPreviewImage(reader.result as string);
+        const result = reader.result as string;
+        setPreviewImage(result);
+        // Update the profile image in the form data
+        setFormData(prev => ({
+          ...prev,
+          profileImage: result
+        }));
       };
       reader.readAsDataURL(file);
     }
@@ -101,12 +135,7 @@ export default function UserMetaCard() {
 
   const handleSave = (e: React.MouseEvent<HTMLButtonElement>) => {
     e.preventDefault();
-    // Save the preview image if a new one was selected
-    if (previewImage) {
-      setProfileImage(previewImage);
-      setPreviewImage("");
-    }
-    // Here you would typically send the data to your backend
+    // Save the form data
     console.log("Saving changes...", formData);
     closeModal();
   };
@@ -119,17 +148,27 @@ export default function UserMetaCard() {
               <Image
                 width={80}
                 height={80}
-                src={previewImage || profileImage}
+                src={profileImage}
                 alt="Profile"
                 className="object-cover w-full h-full"
+                priority
               />
               <label 
                 className="absolute inset-0 flex items-center justify-center bg-black bg-opacity-50 opacity-0 group-hover:opacity-100 transition-opacity cursor-pointer"
-                htmlFor="profile-upload"
                 title="Change profile photo"
+                htmlFor="profile-photo-upload"
               >
                 <span className="text-white text-xs text-center p-1">Change Photo</span>
               </label>
+              <input
+                id="profile-photo-upload"
+                type="file"
+                ref={fileInputRef}
+                className="hidden"
+                accept="image/*"
+                onChange={handleImageUpload}
+                aria-label="Upload profile photo"
+              />
             </div>
             <div className="order-3 xl:order-2">
               <h4 className="mb-2 text-lg font-semibold text-center text-gray-800 dark:text-white/90 xl:text-left">
@@ -266,7 +305,7 @@ export default function UserMetaCard() {
                     <Image
                       width={128}
                       height={128}
-                      src={previewImage || profileImage}
+                      src={profileImage}
                       alt="Profile"
                       className="object-cover w-full h-full"
                     />
@@ -283,10 +322,10 @@ export default function UserMetaCard() {
                     <input
                       id="profile-upload"
                       type="file"
-                      ref={fileInputRef}
+                      ref={modalFileInputRef}
                       className="hidden"
                       accept="image/*"
-                      onChange={handleImageChange}
+                      onChange={(e) => handleImageUpload(e, true)}
                       aria-label="Upload profile photo"
                     />
                   </label>
