@@ -38,12 +38,7 @@ const navItems: NavItem[] = [
   {
     icon: <UserCircleIcon className="w-5 h-5" />,
     name: "My Profile",
-    subItems: [
-      { name: "View Profile", path: "/profile" },
-      { name: "Edit Profile", path: "/profile/edit" },
-      { name: "Availability", path: "/profile/availability" },
-      { name: "Documents", path: "/profile/documents" }
-    ]
+    path: "/profile"
   },
   {
     icon: <ListIcon className="w-5 h-5" />,
