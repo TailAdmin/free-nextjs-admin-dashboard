@@ -8,10 +8,16 @@ import Label from "../form/Label";
 
 export default function UserInfoCard() {
   const { isOpen, openModal, closeModal } = useModal();
+  const [personalInfoVisible, setPersonalInfoVisible] = React.useState(true);
+  
   const handleSave = () => {
     // Handle save logic here
     console.log("Saving changes...");
     closeModal();
+  };
+  
+  const togglePersonalInfoVisibility = () => {
+    setPersonalInfoVisible(!personalInfoVisible);
   };
   return (
     <div className="p-5 border border-gray-200 rounded-2xl dark:border-gray-800 lg:p-6">
@@ -141,9 +147,34 @@ export default function UserInfoCard() {
                 </div>
               </div>
               <div className="mt-7">
-                <h5 className="mb-5 text-lg font-medium text-gray-800 dark:text-white/90 lg:mb-6">
-                  Personal Information
-                </h5>
+                <div className="flex items-center justify-between mb-5">
+                  <h5 className="text-lg font-medium text-gray-800 dark:text-white/90">
+                    Personal Information
+                  </h5>
+                  <div className="flex items-center gap-2">
+                    <span className="text-sm text-gray-600 dark:text-gray-400">
+                      {personalInfoVisible ? 'Visible' : 'Hidden'}
+                    </span>
+                    <button
+                      type="button"
+                      onClick={togglePersonalInfoVisibility}
+                      className={`relative inline-flex h-5 w-9 flex-shrink-0 cursor-pointer rounded-full border-2 border-transparent transition-colors duration-200 ease-in-out focus:outline-none focus:ring-2 focus:ring-primary focus:ring-offset-1 ${!personalInfoVisible ? 'bg-primary' : 'bg-gray-200 dark:bg-gray-700'}`}
+                      role="switch"
+                      aria-checked={!personalInfoVisible}
+                    >
+                      <span className="sr-only">Toggle personal information visibility</span>
+                      <span
+                        aria-hidden="true"
+                        className={`pointer-events-none inline-block h-4 w-4 transform rounded-full bg-white shadow ring-0 transition duration-200 ease-in-out ${!personalInfoVisible ? 'translate-x-4' : 'translate-x-0'}`}
+                      />
+                    </button>
+                  </div>
+                </div>
+                <p className="mb-5 text-sm text-gray-500 dark:text-gray-400">
+                  {personalInfoVisible 
+                    ? 'Your personal information is visible to employers.' 
+                    : 'Your personal information is hidden from employers.'}
+                </p>
 
                 <div className="grid grid-cols-1 gap-x-6 gap-y-5 lg:grid-cols-2">
                   <div className="col-span-2 lg:col-span-1">
