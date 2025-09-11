@@ -12,7 +12,7 @@ type InputChangeEvent = React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement
 
 export default function UserMetaCard() {
   const { isOpen, openModal, closeModal } = useModal();
-  const { profileImage, setProfileImage } = useProfile();
+  const { profileImage, setProfileImage, userName, setUserName } = useProfile();
   const fileInputRef = useRef<HTMLInputElement>(null);
   const modalFileInputRef = useRef<HTMLInputElement>(null);
   const [previewImage, setPreviewImage] = useState<string>('');
@@ -52,7 +52,7 @@ export default function UserMetaCard() {
   }
 
   const [formData, setFormData] = useState<FormData>(() => ({
-    fullName: "Musharof Chowdhury",
+    fullName: userName,
     bio: "Professional Housemaid",
     location: "Arizona, United States",
     profileImage: profileImage || ""
@@ -105,8 +105,10 @@ export default function UserMetaCard() {
         setProfileImage(formData.profileImage);
       }
       
+      // Update the user name in context
+      setUserName(formData.fullName);
+      
       // In a real app, you would save to Supabase here
-      // For now, we'll just log the data and update the UI
       console.log('Saving profile data:', {
         ...formData,
         isProfileHidden
@@ -133,14 +135,14 @@ export default function UserMetaCard() {
       <div className="p-5 border border-gray-200 rounded-2xl dark:border-gray-800 lg:p-6">
         <div className="flex flex-col gap-5 xl:flex-row xl:items-start xl:justify-between">
           <div className="flex flex-col items-center w-full gap-4 xl:flex-row">
-            <div className="relative w-20 h-20 overflow-hidden border border-gray-200 rounded-full dark:border-gray-800 group">
-              <div className="relative group">
+            <div className="relative w-11 h-11 overflow-hidden border-2 border-gray-200 rounded-full dark:border-gray-700 group hover:border-primary transition-colors">
+              <div className="relative w-full h-full">
                 <Image
-                  width={200}
-                  height={200}
+                  width={44}
+                  height={44}
                   src={formData.profileImage || profileImage || '/images/avatar/avatar-1.png'}
                   alt="Profile"
-                  className="h-40 w-40 rounded-full border-4 border-white object-cover shadow-theme-sm dark:border-gray-900"
+                  className="w-full h-full object-cover"
                 />
                 <div className="absolute inset-0 flex items-center justify-center rounded-full bg-black/50 opacity-0 group-hover:opacity-100 transition-opacity">
                   <svg className="w-8 h-8 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
