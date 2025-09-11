@@ -105,15 +105,22 @@ export default function MaidProfileCard() {
     }
   };
 
+  const { setUserName } = useProfile();
+
   const handleSave = (e: React.FormEvent) => {
     e.preventDefault();
     setIsSaving(true);
+    
+    // Update the user's full name in the context
+    const fullName = `${formData.firstName} ${formData.lastName}`.trim();
+    setUserName(fullName);
+    
     // Simulate API call
     setTimeout(() => {
       // Update view mode fields
       setFormData(prev => ({
         ...prev,
-        fullName: `${prev.firstName} ${prev.lastName}`.trim(),
+        fullName,
         location: `${prev.cityState}, ${prev.country}`
       }));
       setIsSaving(false);
