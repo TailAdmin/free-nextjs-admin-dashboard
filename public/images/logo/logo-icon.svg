@@ -1,5 +1,8 @@
+<?xml version="1.0" encoding="utf-8"?>
 <svg width="32" height="32" viewBox="0 0 32 32" fill="none" xmlns="http://www.w3.org/2000/svg">
-<path d="M0 8.42105C0 3.77023 3.77023 0 8.42105 0H23.5789C28.2298 0 32 3.77023 32 8.42105V23.5789C32 28.2298 28.2298 32 23.5789 32H8.42105C3.77023 32 0 28.2298 0 23.5789V8.42105Z" fill="#465FFF"/>
+  <rect width="32" height="32" rx="4" fill="#4F46E5"/>
+  <text x="6" y="22" font-family="Arial, sans-serif" font-size="14" font-weight="bold" fill="white">CM</text>
+</svg>
 <g filter="url(#filter0_d_1884_16361)">
 <path d="M8.42383 8.42152C8.42383 7.49135 9.17787 6.7373 10.108 6.7373C11.0382 6.7373 11.7922 7.49135 11.7922 8.42152V23.5794C11.7922 24.5096 11.0382 25.2636 10.108 25.2636C9.17787 25.2636 8.42383 24.5096 8.42383 23.5794V8.42152Z" fill="white"/>
 </g>

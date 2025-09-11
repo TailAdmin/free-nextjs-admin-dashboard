@@ -118,18 +118,9 @@ const AppSidebar: React.FC = () => {
         }`}
       >
         {/* Logo */}
-        <div className="flex items-center h-16 px-4 border-b border-gray-200 dark:border-gray-800">
-          <Link href="/" className="flex items-center space-x-2">
-            <Image
-              src="/images/logo/logo-icon.svg"
-              alt="CityMaid"
-              width={32}
-              height={32}
-              className="w-8 h-8"
-            />
-            <span className="text-xl font-semibold text-gray-900 dark:text-white">
-              Maid Dashboard
-            </span>
+        <div className="flex items-center justify-center h-16 px-4 border-b border-gray-200 dark:border-gray-800">
+          <Link href="/" className="text-xl font-semibold text-gray-900 dark:text-white">
+            CityMaid
           </Link>
         </div>
 
