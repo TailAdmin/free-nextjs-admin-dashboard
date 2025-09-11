@@ -1,7 +1,8 @@
 {
-  "name": "free-nextjs-admin-dashboard",
-  "version": "2.0.2",
+  "name": "citymaid-admin-dashboard",
+  "version": "1.0.0",
   "private": true,
+  "description": "CityMaid - Modern Admin Dashboard for Cleaning Services",
   "scripts": {
     "dev": "next dev",
     "build": "next build",
