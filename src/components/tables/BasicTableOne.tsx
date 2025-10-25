@@ -8,6 +8,7 @@ import {
 } from "../ui/table";
 
 import Badge from "../ui/badge/Badge";
+import Badge2 from "@/components/ui/badge/Badge2";
 import Image from "next/image";
 
 interface Order {
@@ -213,7 +214,20 @@ export default function BasicTableOne() {
                     </Badge>
                   </TableCell>
                   <TableCell className="px-4 py-3 text-gray-500 text-theme-sm dark:text-gray-400">
-                    {order.budget}
+                    <Badge2
+                      size="sm"
+                      variant="light"
+                      color={
+                        order.status === "Active"
+                          ? "success"
+                          : order.status === "Pending"
+                          ? "warning"
+                          : "error"
+                      }
+                      title={order.budget}
+                    >
+                      {order.budget}
+                    </Badge2>
                   </TableCell>
                 </TableRow>
               ))}
