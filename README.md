@@ -12,7 +12,7 @@ TailAdmin utilizes the powerful features of **Next.js 15** and common features o
 
 TailAdmin provides essential UI components and layouts for building feature-rich, data-driven admin dashboards and control panels. It's built on:
 
-- Next.js 15.x
+- Next.js 16.x
 - React 19
 - TypeScript
 - Tailwind CSS V4
@@ -96,6 +96,10 @@ All components are built with React and styled using Tailwind CSS for easy custo
 To learn more about pro version features and pricing, visit our [pricing page](https://tailadmin.com/pricing).
 
 ## Changelog
+
+### Version 2.1.0 - [November 15, 2025]
+- Updated to Next.js 16.x
+- Fixed all reported minor bugs
 
 ### Version 2.0.2 - [March 25, 2025]
 
