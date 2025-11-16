@@ -3,12 +3,14 @@ import React, { useState } from 'react';
 import ComponentCard from '../../common/ComponentCard';
 import Label from '../Label';
 import Input from '../input/InputField';
+import Input2 from '@/components/form/input/InputField2';
 import Select from '../Select';
 import { ChevronDownIcon, EyeCloseIcon, EyeIcon, TimeIcon } from '../../../icons';
 import DatePicker from '@/components/form/date-picker';
 
 export default function DefaultInputs() {
   const [showPassword, setShowPassword] = useState(false);
+  const [inputVal, setInputVal] = useState("");
   const options = [
     { value: "marketing", label: "Marketing" },
     { value: "template", label: "Template" },
@@ -26,7 +28,13 @@ export default function DefaultInputs() {
         </div>
         <div>
           <Label>Input with Placeholder</Label>
-          <Input type="text" placeholder="info@gmail.com" />
+          <Input2
+            type="text"
+            placeholder="info@gmail.com"
+            value={inputVal}
+            onChange={(evt) => setInputVal(evt.target.value)}
+          />
+          <Label className="mt-4 font-light">Input value: {inputVal}</Label>
         </div>
         <div>
           <Label>Select Input</Label>
