@@ -6,10 +6,35 @@ import Button from "@/components/ui/button/Button";
 import { ChevronLeftIcon, EyeCloseIcon, EyeIcon } from "@/icons";
 import Link from "next/link";
 import React, { useState } from "react";
+import { signIn } from "next-auth/react";
+import { useRouter } from "next/navigation";
 
 export default function SignInForm() {
+  const router = useRouter();
   const [showPassword, setShowPassword] = useState(false);
   const [isChecked, setIsChecked] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+
+  async function handleSubmit(event: React.FormEvent<HTMLFormElement>) {
+    try {
+      event.preventDefault();
+      const formData = new FormData(event.currentTarget);
+      const response = await signIn("credentials", {
+        ...Object.fromEntries(formData),
+        redirect: false,
+      });
+
+      if (response?.error) {
+        setError("Invalid credentials");
+        return;
+      }
+
+      router.push("/dashboard");
+      router.refresh();
+    } catch {
+      setError("An error occurred during login");
+    }
+  }
   return (
     <div className="flex flex-col flex-1 lg:w-1/2 w-full">
       <div className="w-full max-w-md sm:pt-10 mx-auto mb-5">
@@ -84,13 +109,13 @@ export default function SignInForm() {
                 </span>
               </div>
             </div>
-            <form>
+            <form onSubmit={handleSubmit}>
               <div className="space-y-6">
                 <div>
                   <Label>
                     Email <span className="text-error-500">*</span>{" "}
                   </Label>
-                  <Input placeholder="info@gmail.com" type="email" />
+                  <Input placeholder="info@gmail.com" type="email" name="email" />
                 </div>
                 <div>
                   <Label>
@@ -100,6 +125,7 @@ export default function SignInForm() {
                     <Input
                       type={showPassword ? "text" : "password"}
                       placeholder="Enter your password"
+                      name="password"
                     />
                     <span
                       onClick={() => setShowPassword(!showPassword)}
@@ -126,11 +152,14 @@ export default function SignInForm() {
                   >
                     Forgot password?
                   </Link>
-                </div>
                 <div>
-                  <Button className="w-full" size="sm">
+                  {error && (
+                    <div className="mb-4 text-sm text-center text-error-500">{error}</div>
+                  )}
+                  <Button className="w-full" size="sm" >
                     Sign in
                   </Button>
+                </div>
                 </div>
               </div>
             </form>

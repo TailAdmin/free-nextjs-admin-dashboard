@@ -5,10 +5,37 @@ import Label from "@/components/form/Label";
 import { ChevronLeftIcon, EyeCloseIcon, EyeIcon } from "@/icons";
 import Link from "next/link";
 import React, { useState } from "react";
+import { useRouter } from "next/navigation";
+import { signIn } from "next-auth/react";
 
 export default function SignUpForm() {
+  const router = useRouter();
   const [showPassword, setShowPassword] = useState(false);
   const [isChecked, setIsChecked] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+
+  async function handleSubmit(event: React.FormEvent<HTMLFormElement>) {
+    try {
+      event.preventDefault();
+      const formData = new FormData(event.currentTarget);
+      
+      const signInResult = await signIn("credentials", {
+        ...Object.fromEntries(formData),
+        redirect: false,
+      });
+
+      if (signInResult?.error) {
+        console.log("Sign-in error:", signInResult.error);
+        setError("Failed to sign in after registration");
+        return;
+      }
+
+      router.push("/");
+      router.refresh();
+    } catch (error) {
+      setError(error instanceof Error ? error.message : "Registration failed");
+    }
+  }
   return (
     <div className="flex flex-col flex-1 lg:w-1/2 w-full overflow-y-auto no-scrollbar">
       <div className="w-full max-w-md sm:pt-10 mx-auto mb-5">
@@ -83,33 +110,22 @@ export default function SignUpForm() {
                 </span>
               </div>
             </div>
-            <form>
+            <form onSubmit={handleSubmit}>
               <div className="space-y-5">
-                <div className="grid grid-cols-1 gap-5 sm:grid-cols-2">
+                <div className="grid grid-cols-1 gap-5 ">
                   {/* <!-- First Name --> */}
-                  <div className="sm:col-span-1">
+                  <div className="col-span-1">
                     <Label>
-                      First Name<span className="text-error-500">*</span>
+                      Name<span className="text-error-500">*</span>
                     </Label>
                     <Input
                       type="text"
                       id="fname"
-                      name="fname"
-                      placeholder="Enter your first name"
+                      name="name"
+                      placeholder="Enter your name"
                     />
                   </div>
-                  {/* <!-- Last Name --> */}
-                  <div className="sm:col-span-1">
-                    <Label>
-                      Last Name<span className="text-error-500">*</span>
-                    </Label>
-                    <Input
-                      type="text"
-                      id="lname"
-                      name="lname"
-                      placeholder="Enter your last name"
-                    />
-                  </div>
+              
                 </div>
                 {/* <!-- Email --> */}
                 <div>
@@ -132,6 +148,7 @@ export default function SignUpForm() {
                     <Input
                       placeholder="Enter your password"
                       type={showPassword ? "text" : "password"}
+                      name="password"
                     />
                     <span
                       onClick={() => setShowPassword(!showPassword)}
@@ -162,12 +179,15 @@ export default function SignUpForm() {
                       Privacy Policy
                     </span>
                   </p>
-                </div>
                 {/* <!-- Button --> */}
                 <div>
-                  <button className="flex items-center justify-center w-full px-4 py-3 text-sm font-medium text-white transition rounded-lg bg-brand-500 shadow-theme-xs hover:bg-brand-600">
+                  {error && (
+                    <div className="mb-4 text-sm text-center text-error-500">{error}</div>
+                  )}
+                  <button type="submit" className="flex items-center justify-center w-full px-4 py-3 text-sm font-medium text-white transition rounded-lg bg-brand-500 shadow-theme-xs hover:bg-brand-600">
                     Sign Up
                   </button>
+                </div>
                 </div>
               </div>
             </form>
