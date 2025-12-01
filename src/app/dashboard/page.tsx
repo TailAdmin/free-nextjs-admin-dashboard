@@ -4,6 +4,7 @@ import StatisticsChart from "@/components/ecommerce/StatisticsChart";
 import RecentOrders from "@/components/ecommerce/RecentOrders";
 import ProductsView from "@/components/products/ProductsView";
 import { getProducts } from "@/actions/product";
+import { getOrders } from "@/actions/orders";
 
 export const metadata: Metadata = {
   title:
@@ -13,6 +14,7 @@ export const metadata: Metadata = {
 
 export default async function Ecommerce() {
     const products = await getProducts();
+    const orders = await getOrders();
   
   return (
     <div className="grid grid-cols-12 gap-4 md:gap-6">
@@ -29,7 +31,7 @@ export default async function Ecommerce() {
       </div>
 
       <div className="col-span-12">
-        <RecentOrders />
+        <RecentOrders orders={orders} />
       </div>
     </div>
   );
