@@ -80,7 +80,7 @@ export default function ExpandableInput({ placeholder, onChange, value, classNam
                     onClick={() => setIsOpen(true)}
                     ariaLabel='Search'
                   >
-                    <Search className='h-5 w-5' />
+                    <Search className='size-4' />
                   </Button>
                 </div>
               ) : (
@@ -88,7 +88,7 @@ export default function ExpandableInput({ placeholder, onChange, value, classNam
                   <Button onClick={() => {
                       setIsOpen(false);
                   }} ariaLabel='Back'>
-                    <ArrowLeft className='h-5 w-5' />
+                    <ArrowLeft className='size-4' />
                   </Button>
                   <div className='relative w-full '>
                     <input

@@ -53,10 +53,12 @@ export default function ProductTable() {
   });
 
   if(isPending){
-    return <GeneralCardLoading title={true} className={`h-[570px]`} >
+    return <GeneralCardLoading title={true} className={`h-[570px] relative`} >
       <section className="flex flex-col h-full justify-between gap-4">
         <div className="animate-pulse bg-foreground/10 h-[100cqh] min-h-[120px] !aspect-autow-full rounded-md"/>        
-        <PaginationSkeleton />
+        <div className="absolute left-1/2 bottom-8 md:bottom-0 transform md:relative -translate-x-1/2 md:self-end md:flex md:justify-end md:w-full">
+          <PaginationSkeleton />
+        </div>
       </section>
       </GeneralCardLoading>
   }
@@ -138,7 +140,7 @@ export default function ProductTable() {
             <Popover>
               <PopoverTrigger asChild>
                 <Button variant="outline" size="icon">
-                  <FilterIcon className="size-4"/>
+                  <FilterIcon className="size-4 text-zinc-500"/>
                 </Button>
               </PopoverTrigger>
               <PopoverContent align="end" className="flex flex-col gap-3 p-2">

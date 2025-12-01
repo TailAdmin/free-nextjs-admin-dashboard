@@ -34,7 +34,7 @@ export default function AddProductDialog({className}: {className?: string}) {
   return (
      <Dialog onOpenChange={setIsModalOpen} open={isModalOpen}>
             <DialogTrigger asChild>
-              <Button className={className} size="icon" onClick={() => setIsModalOpen(true)}><PlusIcon className="size-5"/></Button>
+              <Button className={className} size="icon" onClick={() => setIsModalOpen(true)}><PlusIcon className="size-4"/></Button>
             </DialogTrigger>
             <DialogContent>
               <DialogHeader className="sr-only">
