@@ -14,6 +14,7 @@ import GeneralCardLoading from "../ui/general/GeneralCardLoading";
 import { GeneralErrorContent } from "../ui/general/GeneralErrorContent";
 import Pagination from "../tables/Pagination";
 import { useState } from "react";
+import { PaginationSkeleton } from "../ui/general/PaginationSkeleton";
 
 export default function ProductTable() {
   const [page, setPage] = useState(1);
@@ -25,15 +26,20 @@ export default function ProductTable() {
   });
 
   if(isPending){
-    return <GeneralCardLoading />;
+    return <GeneralCardLoading title={true} className="h-[570px]" >
+      <section className="flex flex-col h-full justify-between gap-4">
+        <div className="animate-pulse bg-foreground/10 h-[100cqh] min-h-[120px] !aspect-autow-full rounded-md"/>        
+        <PaginationSkeleton />
+      </section>
+      </GeneralCardLoading>
   }
 
   if(error){
-    return <GeneralErrorContent />
+    return <GeneralErrorContent className="h-[570px]" />
   }
 
   return (
-    <div className="overflow-hidden rounded-2xl border border-gray-200 bg-white px-4 pb-3 pt-4 dark:border-gray-800 dark:bg-white/[0.03] sm:px-6">
+    <div className="overflow-hidden flex flex-col rounded-2xl h-[570px] border border-gray-200 bg-white px-4 py-4 dark:border-gray-800 dark:bg-white/[0.03] sm:px-6">
       <div className="flex flex-col gap-2 mb-4 sm:flex-row sm:items-center sm:justify-between">
         <div className="flex items-center w-full justify-between">
           <h3 className="text-lg font-semibold text-gray-800 dark:text-white/90">
@@ -43,9 +49,9 @@ export default function ProductTable() {
          
         </div>
       </div>
-      <div className="max-w-full overflow-x-auto min-h-fit">
+      <div className="max-w-full flex-1 flex flex-col justify-between overflow-x-auto ">
         
-        <Table className="min-h-40">
+        <Table className="h-full">
           {/* Table Header */}
           <TableHeader className="border-gray-100 dark:border-gray-800 border-y">
             <TableRow>
@@ -140,7 +146,7 @@ export default function ProductTable() {
             }
           </TableBody>
         </Table>
-        <div className="mt-4 flex justify-end">
+        <div className="flex justify-start md:justify-end">
             <Pagination
               currentPage={page}
               totalPages={data ? data.totalPages : 10}
@@ -148,8 +154,7 @@ export default function ProductTable() {
                 setPage(newPage);
               }}
             />
-   
-          </div>
+        </div>
             
       </div>
     </div>

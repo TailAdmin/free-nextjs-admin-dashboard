@@ -18,9 +18,9 @@ export default async function Ecommerce() {
       <div className="col-span-12">
         <ProductTable />
       </div>
+      
       <div className="col-span-12 space-y-6">
         <EcommerceMetrics />
-
       </div>
 
       <div className="col-span-12">
