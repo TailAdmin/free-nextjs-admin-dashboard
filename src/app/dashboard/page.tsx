@@ -1,10 +1,7 @@
 import type { Metadata } from "next";
 import { EcommerceMetrics } from "@/components/ecommerce/EcommerceMetrics";
-import MonthlyTarget from "@/components/ecommerce/MonthlyTarget";
-import MonthlySalesChart from "@/components/ecommerce/MonthlySalesChart";
 import StatisticsChart from "@/components/ecommerce/StatisticsChart";
 import RecentOrders from "@/components/ecommerce/RecentOrders";
-import DemographicCard from "@/components/ecommerce/DemographicCard";
 import ProductsView from "@/components/products/ProductsView";
 import { getProducts } from "@/actions/product";
 
@@ -22,25 +19,16 @@ export default async function Ecommerce() {
       <div className="col-span-12">
       <ProductsView products={products} />
       </div>
-      <div className="col-span-12 space-y-6 xl:col-span-7">
+      <div className="col-span-12 space-y-6">
         <EcommerceMetrics />
 
-        <MonthlySalesChart />
-      </div>
-
-      <div className="col-span-12 xl:col-span-5">
-        <MonthlyTarget />
       </div>
 
       <div className="col-span-12">
         <StatisticsChart />
       </div>
 
-      <div className="col-span-12 xl:col-span-5">
-        <DemographicCard />
-      </div>
-
-      <div className="col-span-12 xl:col-span-7">
+      <div className="col-span-12">
         <RecentOrders />
       </div>
     </div>
