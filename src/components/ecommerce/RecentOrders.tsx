@@ -115,13 +115,15 @@ export default function RecentOrders({ orders }: { orders: Order[] }) {
                 <TableCell className="py-3">
                   <div className="flex items-center gap-3">
                     <div className="h-[50px] w-[50px] overflow-hidden rounded-md">
-                      {/* <Image
+                    
+                        <Image
                         width={50}
                         height={50}
-                        // src={product.image}
-                        className="h-[50px] w-[50px]"
-                        alt={product.name}
-                      /> */}
+                          src={product.image}
+                          className="h-[50px] w-[50px] object-cover"
+                          alt={product.producto}
+                        />
+
                     </div>
                     <div>
                       <p className="font-medium text-gray-800 text-theme-sm dark:text-white/90">

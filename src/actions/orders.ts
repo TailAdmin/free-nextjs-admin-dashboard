@@ -11,6 +11,7 @@ export type Order = {
     categoria: string;
     precio: number;
     status: string;
+    image: string;
 };
 
 export async function getOrders() {
@@ -40,7 +41,16 @@ export async function getOrders() {
           },
         },
         include: {
-          producto: true,
+          producto: {
+            include: {
+              images: {
+                where: {
+                  orden: 0,
+                },
+                take: 1,
+              },
+            },
+          },
         },
       },
     },
@@ -53,6 +63,7 @@ export async function getOrders() {
       categoria: p.producto.categoria ?? "N/A",
       precio: order.total.toNumber(),
       status: order.status,
+      image: p.producto.images[0]?.url || "",
     }))
   );
 }
