@@ -1,20 +1,18 @@
 "use client";
 
 import { useSidebar } from "@/context/SidebarContext";
-import { useTheme } from "@/context/ThemeContext";
 import AppHeader from "@/layout/AppHeader";
 import AppSidebar from "@/layout/AppSidebar";
 import Backdrop from "@/layout/Backdrop";
 import React from "react";
-import { Toaster } from "sonner";
 
-export default function AdminLayout({
+export default function AdminDashboardLayout({
   children,
 }: {
   children: React.ReactNode;
 }) {
   const { isExpanded, isHovered, isMobileOpen } = useSidebar();
-  const { theme } = useTheme();
+
   // Dynamic class for main content margin based on sidebar state
   const mainContentMargin = isMobileOpen
     ? "ml-0"
@@ -35,8 +33,6 @@ export default function AdminLayout({
         <AppHeader />
         {/* Page Content */}
         <div className="p-4 mx-auto max-w-(--breakpoint-2xl) md:p-6">{children}</div>
-        <Toaster theme={theme} position='top-right' richColors />
-        
       </div>
     </div>
   );

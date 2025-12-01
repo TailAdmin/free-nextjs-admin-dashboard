@@ -6,12 +6,9 @@ import { useSidebar } from "@/context/SidebarContext";
 import Image from "next/image";
 import Link from "next/link";
 import React, { useState ,useEffect,useRef} from "react";
-import { useSession, signOut } from "next-auth/react";
 
 const AppHeader: React.FC = () => {
   const [isApplicationMenuOpen, setApplicationMenuOpen] = useState(false);
-  const { data: session } = useSession();
-
   const { isMobileOpen, toggleSidebar, toggleMobileSidebar } = useSidebar();
 
   const handleToggle = () => {
@@ -43,7 +40,7 @@ const AppHeader: React.FC = () => {
   }, []);
 
   return (
-    <header className="sticky top-0 flex w-full bg-white border-gray-200 z-99999 dark:border-gray-800 dark:bg-gray-900 lg:border-b">
+    <header className="sticky top-0 flex w-full bg-white border-gray-200 z-50 dark:border-gray-800 dark:bg-gray-900 lg:border-b">
       <div className="flex flex-col items-center justify-between grow lg:flex-row lg:px-6">
         <div className="flex items-center justify-between w-full gap-2 px-3 py-3 border-b border-gray-200 dark:border-gray-800 sm:gap-4 lg:justify-normal lg:border-b-0 lg:px-0 lg:py-4">
           <button
@@ -171,34 +168,9 @@ const AppHeader: React.FC = () => {
             {/* <!-- Notification Menu Area --> */}
           </div>
 
-           {session ? (
-            <>
-              <Link 
-                href="/posts/new" 
-                className="bg-blue-500 text-white px-4 py-2 rounded-lg hover:bg-blue-600 transition"
-              >
-                New Post
-              </Link>
-              <div className="flex items-center space-x-4">
-                <div className="text-sm text-gray-500">
-                  {session.user?.name && <div>{session.user.name}</div>}
-                  <div>{session.user?.email}</div>
-                </div>
-                <button
-                  onClick={() => signOut()}
-                  className="bg-red-500 text-white px-4 py-2 rounded-lg hover:bg-red-600 transition"
-                >
-                  Sign Out
-                </button>
-              </div>
-            </>
-          ) : (
-            <Link href="/signin" className="bg-blue-500 text-white px-4 py-2 rounded-lg hover:bg-blue-600 transition">
-              Sign In
-            </Link>
-          )}
+     
           {/* <!-- User Area --> */}
-          {/* <UserDropdown />  */}
+          <UserDropdown /> 
     
         </div>
       </div>
