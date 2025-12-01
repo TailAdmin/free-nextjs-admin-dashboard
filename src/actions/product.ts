@@ -3,7 +3,6 @@
 import prisma from "@/prisma/prisma";
 import { getServerSession } from "next-auth";
 import { authOptions } from "@/auth";
-import { revalidatePath } from "next/cache";
 
 export type Product = {
    id: number;
@@ -28,16 +27,23 @@ export type Product = {
     pedidoProductosCount?: number;
 };
 
-export async function getProducts() {
+export async function getProducts({page, pageSize = 5}:{page?:number, pageSize?: number}): Promise<{products: Product[], totalPages: number}> {
   const session = await getServerSession(authOptions);
   if (!session?.user?.id) {
-    return [];
+    return {products: [], totalPages: 0};
   }
+  const totalPages = await prisma.product.count({
+    where: {
+      sellerId: Number(session.user.id),
+    },
+  });
 
   const products = await prisma.product.findMany({
     where: {
       sellerId: Number(session.user.id),
     },
+    take: pageSize,
+    skip: page ? (page - 1) * pageSize : 0,
     include:{
       _count:{
         select:{
@@ -55,7 +61,7 @@ export async function getProducts() {
     pedidoProductosCount: product._count.pedidoProductos,
   }));
 
-  return formattedProducts;
+  return {products: formattedProducts, totalPages: Math.ceil(totalPages / pageSize)};
 }
 
 export async function createProduct(formData: FormData) {
@@ -90,5 +96,4 @@ export async function createProduct(formData: FormData) {
     },
   });
 
-  revalidatePath("/dashboard/products");
 }
