@@ -27,33 +27,82 @@ export type Product = {
     pedidoProductosCount?: number;
 };
 
-export async function getProducts({page, pageSize = 5}:{page?:number, pageSize?: number}): Promise<{products: Product[], totalPages: number}> {
+export async function getUniqueBrands() {
   const session = await getServerSession(authOptions);
   if (!session?.user?.id) {
-    return {products: [], totalPages: 0};
+    return [];
   }
-  const totalPages = await prisma.product.count({
+  const brands = await prisma.product.findMany({
     where: {
       sellerId: Number(session.user.id),
     },
+    select: {
+      marca: true,
+    },
+    distinct: ['marca'],
+  });
+  return brands.map((b) => b.marca).filter((brand) => brand !== null && brand !== "");
+}
+
+export async function getProducts({
+  page,
+  pageSize = 5,
+  search = "",
+  brand = "",
+  status = "",
+}: {
+  page?: number;
+  pageSize?: number;
+  search?: string;
+  brand?: string;
+  status?: string;
+}): Promise<{ products: Product[]; totalPages: number }> {
+  const session = await getServerSession(authOptions);
+  if (!session?.user?.id) {
+    return { products: [], totalPages: 0 };
+  }
+
+  const where: any = {
+    sellerId: Number(session.user.id),
+  };
+
+  if (search) {
+    where.OR = [
+      { nombre: { contains: search, mode: "insensitive" } },
+      { sku: { contains: search, mode: "insensitive" } },
+    ];
+  }
+
+  if (brand && brand !== "all") {
+    where.marca = brand;
+  }
+
+  if (status && status !== "all") {
+    if (status === "active") {
+      where.estado = true;
+    } else if (status === "inactive") {
+      where.estado = false;
+    }
+  }
+
+  const totalPages = await prisma.product.count({
+    where,
   });
 
   const products = await prisma.product.findMany({
-    where: {
-      sellerId: Number(session.user.id),
-    },
+    where,
     take: pageSize,
     skip: page ? (page - 1) * pageSize : 0,
-    include:{
-      _count:{
-        select:{
-          pedidoProductos:true
-        }
+    include: {
+      _count: {
+        select: {
+          pedidoProductos: true,
+        },
       },
     },
     orderBy: {
-      id: 'asc'
-    }
+      id: "asc",
+    },
   });
   const formattedProducts = products.map((product) => ({
     ...product,
