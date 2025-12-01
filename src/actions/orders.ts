@@ -49,6 +49,7 @@ export async function getOrders() {
                 },
                 take: 1,
               },
+              category: true,
             },
           },
         },
@@ -60,7 +61,7 @@ export async function getOrders() {
     order.productos.map((p) => ({
       id: p.id,
       producto: p.producto.nombre,
-      categoria: p.producto.categoria ?? "N/A",
+      categoria: p.producto.category?.name ?? "N/A",
       precio: order.total.toNumber(),
       status: order.status,
       image: p.producto.images[0]?.url || "",
