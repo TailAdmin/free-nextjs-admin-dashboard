@@ -4,17 +4,15 @@ import { createProduct } from "@/actions/product";
 import Input from "../form/input/InputField";
 import Label from "../form/Label";
 import { Button } from "../ui/button";
-import { useMutation } from "@tanstack/react-query";
+import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { toast } from "sonner";
 import { Dialog, DialogClose, DialogContent, DialogTrigger, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from "../ui/dialog";
 import { useState } from "react";
-import { useRouter } from "next/navigation";
 
 
 export default function AddProductDialog() {
   const [isModalOpen, setIsModalOpen] = useState(false);
-    const router = useRouter();
-
+  const queryClient = useQueryClient();
  function handleSubmit(formData: FormData) {
       mutation.mutate(formData);
   }
@@ -23,8 +21,9 @@ export default function AddProductDialog() {
     mutationFn: (formData: FormData) => createProduct(formData),
     onSuccess: () => {
       toast.success("Producto creado exitosamente");
+      queryClient.invalidateQueries({ queryKey: ["products"] });
       setIsModalOpen(false);
-      router.refresh(); 
+      
     },
     onError: () => {
       toast.error("Error al crear el producto");

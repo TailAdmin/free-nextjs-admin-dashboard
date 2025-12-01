@@ -52,7 +52,7 @@ export async function getProducts({page, pageSize = 5}:{page?:number, pageSize?:
       },
     },
     orderBy: {
-      id: 'desc'
+      id: 'asc'
     }
   });
   const formattedProducts = products.map((product) => ({

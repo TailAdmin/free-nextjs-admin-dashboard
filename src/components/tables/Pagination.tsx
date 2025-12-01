@@ -13,6 +13,8 @@ const Pagination: React.FC<PaginationProps> = ({
     { length: Math.min(3, totalPages) },
     (_, i) => i + Math.max(currentPage - 1, 1)
   );
+  console.log("pagesAroundCurrent", pagesAroundCurrent);
+  console.log("totalPages", totalPages);
 
   return (
     <div className="flex items-center ">
@@ -28,6 +30,7 @@ const Pagination: React.FC<PaginationProps> = ({
         {pagesAroundCurrent.map((page) => (
           <button
             key={page}
+            disabled={page > totalPages}
             onClick={() => onPageChange(page)}
             className={`px-4 py-2 rounded ${
               currentPage === page
@@ -35,7 +38,7 @@ const Pagination: React.FC<PaginationProps> = ({
                 : "text-gray-700 dark:text-gray-400"
             } flex w-10 items-center justify-center h-10 rounded-lg text-sm font-medium hover:bg-blue-500/[0.08] hover:text-brand-500 dark:hover:text-brand-500`}
           >
-            {page}
+            {page > totalPages ? "..." : page}
           </button>
         ))}
         {currentPage < totalPages - 2 && <span className="px-2">...</span>}
