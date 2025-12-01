@@ -71,6 +71,8 @@ export async function createProduct(formData: FormData) {
   const marca = formData.get("marca") as string;
   const color = formData.get("color") as string;
   const sku = formData.get("sku") as string;
+  const idCategoryStr = formData.get("id_category") as string;
+  const idCategory = idCategoryStr ? parseInt(idCategoryStr) : null;
   
   const slug = nombre.toLowerCase().replace(/ /g, "-") + "-" + Date.now();
 
@@ -87,6 +89,7 @@ export async function createProduct(formData: FormData) {
       vendedor: session.user.name || "Unknown",
       sellerId: Number(session.user.id),
       estado: true,
+      id_category: idCategory,
     },
   });
 
