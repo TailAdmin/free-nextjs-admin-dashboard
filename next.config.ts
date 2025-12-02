@@ -27,6 +27,11 @@ const nextConfig: NextConfig = {
         protocol: 'https',
         hostname: 'correos-storage.emmanuelbayona.dev',
         pathname: '/**',
+      },
+      {
+        protocol: 'https',
+        hostname: 'res.cloudinary.com',
+        pathname: '/**',
       }
     ],
   },

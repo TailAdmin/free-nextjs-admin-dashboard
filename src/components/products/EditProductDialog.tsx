@@ -1,6 +1,6 @@
 "use client";
 
-import { createProduct } from "@/actions/product";
+import { updateProduct, Product } from "@/actions/product";
 import Label from "../form/Label";
 import { Button } from "../ui/button";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
@@ -8,7 +8,7 @@ import { toast } from "sonner";
 import { Dialog, DialogClose, DialogContent, DialogTrigger, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from "../ui/dialog";
 import { Drawer, DrawerClose, DrawerContent, DrawerDescription, DrawerFooter, DrawerHeader, DrawerTitle, DrawerTrigger } from "../ui/drawer";
 import { useState, useEffect } from "react";
-import { PlusIcon } from "lucide-react";
+import { PencilIcon } from "lucide-react";
 import { Input } from "../ui/input";
 import { Combobox } from "../ui/combobox";
 import ImageUpload from "./ImageUpload";
@@ -19,14 +19,16 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from ".
 
 type Category = { id: number; name: string };
 
-export default function AddProductDialog({className}: {className?: string}) {
+export default function EditProductDialog({ product, className }: { product: Product; className?: string }) {
   const [isModalOpen, setIsModalOpen] = useState(false);
   const isDesktop = useMediaQuery("(min-width: 768px)");
   const [categories, setCategories] = useState<Category[]>([]);
-  const [selectedCategory, setSelectedCategory] = useState<number | null>(null);
+  const [selectedCategory, setSelectedCategory] = useState<number | null>(product.id_category);
   const [images, setImages] = useState<File[]>([]);
-  const [color, setColor] = useState("#000000");
-  const [status, setStatus] = useState<string>("activo");
+  const [existingImages, setExistingImages] = useState(product.images);
+  const [deletedImageIds, setDeletedImageIds] = useState<number[]>([]);
+  const [color, setColor] = useState(product.color || "#000000");
+  const [status, setStatus] = useState<string>(product.real_status || "activo");
   const queryClient = useQueryClient();
 
   // Fetch categories on mount
@@ -43,8 +45,12 @@ export default function AddProductDialog({className}: {className?: string}) {
     };
     if (isModalOpen) {
         fetchCategories();
+        setExistingImages(product.images.sort((a, b) => a.orden - b.orden));
+        setDeletedImageIds([]);
+        setImages([]);
+        setStatus(product.real_status || "activo");
     }
-  }, [isModalOpen]);
+  }, [isModalOpen, product]);
 
  function handleSubmit(formData: FormData) {
       // Add selectedCategory to formData
@@ -59,6 +65,13 @@ export default function AddProductDialog({className}: {className?: string}) {
         formData.append("images", file);
       });
 
+      // Add deleted images
+      deletedImageIds.forEach(id => formData.append("deletedImageIds", id.toString()));
+
+      // Add image order
+      const imageOrder = existingImages.map((img, index) => ({ id: img.id, orden: index }));
+      formData.append("imageOrder", JSON.stringify(imageOrder));
+
       formData.set("color", color);
       formData.set("real_status", status);
 
@@ -66,41 +79,66 @@ export default function AddProductDialog({className}: {className?: string}) {
   }
 
   const mutation = useMutation({
-    mutationFn: (formData: FormData) => createProduct(formData),
+    mutationFn: (formData: FormData) => updateProduct(product.id, formData),
     onSuccess: () => {
-      toast.success("Producto creado exitosamente");
+      toast.success("Producto actualizado exitosamente");
       queryClient.invalidateQueries({ queryKey: ["products"] });
       setIsModalOpen(false);
-      setSelectedCategory(null);
       setImages([]);
-      setColor("#000000");
-      setStatus("activo");
+      setDeletedImageIds([]);
     },
     onError: () => {
-      toast.error("Error al crear el producto");
+      toast.error("Error al actualizar el producto");
     }
   });
+
+  const handleRemoveExisting = (id: number) => {
+      setExistingImages(prev => prev.filter(img => img.id !== id));
+      setDeletedImageIds(prev => [...prev, id]);
+  };
+
+  const handleMoveExisting = (index: number, direction: "left" | "right") => {
+      if (direction === "left" && index === 0) return;
+      if (direction === "right" && index === existingImages.length - 1) return;
+
+      const newImages = [...existingImages];
+      const targetIndex = direction === "left" ? index - 1 : index + 1;
+      
+      // Swap elements
+      [newImages[index], newImages[targetIndex]] = [newImages[targetIndex], newImages[index]];
+      
+      // Update orden based on new index
+      const reorderedImages = newImages.map((img, idx) => ({ ...img, orden: idx }));
+      
+      setExistingImages(reorderedImages);
+  };
 
   if (isDesktop) {
     return (
       <Dialog onOpenChange={setIsModalOpen} open={isModalOpen}>
         <DialogTrigger asChild>
-          <Button className={className} size="icon" onClick={() => setIsModalOpen(true)}><PlusIcon className="size-4"/></Button>
+          <Button variant="ghost" size="icon" className={className} onClick={() => setIsModalOpen(true)}>
+            <PencilIcon className="size-4 text-gray-500 hover:text-gray-800 dark:text-gray-400 dark:hover:text-white" />
+          </Button>
         </DialogTrigger>
         <DialogContent className="sm:max-w-[425px]">
           <DialogHeader>
-            <DialogTitle>Agregar producto</DialogTitle>
+            <DialogTitle>Editar producto</DialogTitle>
             <DialogDescription>
-              Agrega un nuevo producto a tu inventario.
+              Modifica los detalles del producto.
             </DialogDescription>
           </DialogHeader>
           <ProductForm 
+            product={product}
             handleSubmit={handleSubmit} 
             categories={categories} 
             selectedCategory={selectedCategory} 
             setSelectedCategory={setSelectedCategory} 
             images={images} 
-            setImages={setImages} 
+            setImages={setImages}
+            existingImages={existingImages}
+            onRemoveExisting={handleRemoveExisting}
+            onMoveExisting={handleMoveExisting}
             color={color}
             setColor={setColor}
             status={status}
@@ -116,23 +154,29 @@ export default function AddProductDialog({className}: {className?: string}) {
   return (
     <Drawer open={isModalOpen} onOpenChange={setIsModalOpen}>
       <DrawerTrigger asChild>
-        <Button className={className} size="icon" onClick={() => setIsModalOpen(true)}><PlusIcon className="size-4"/></Button>
+        <Button variant="ghost" size="icon" className={className} onClick={() => setIsModalOpen(true)}>
+            <PencilIcon className="size-4 text-gray-500 hover:text-gray-800 dark:text-gray-400 dark:hover:text-white" />
+        </Button>
       </DrawerTrigger>
       <DrawerContent className="!max-h-[90dvh] !h-[90dvh]">
         <DrawerHeader className="text-left">
-          <DrawerTitle>Agregar producto</DrawerTitle>
+          <DrawerTitle>Editar producto</DrawerTitle>
           <DrawerDescription>
-            Agrega un nuevo producto a tu inventario.
+            Modifica los detalles del producto.
           </DrawerDescription>
         </DrawerHeader>
         <div className="px-4">
           <ProductForm 
+            product={product}
             handleSubmit={handleSubmit} 
             categories={categories} 
             selectedCategory={selectedCategory} 
             setSelectedCategory={setSelectedCategory} 
             images={images} 
-            setImages={setImages} 
+            setImages={setImages}
+            existingImages={existingImages}
+            onRemoveExisting={handleRemoveExisting}
+            onMoveExisting={handleMoveExisting}
             color={color}
             setColor={setColor}
             status={status}
@@ -153,12 +197,16 @@ export default function AddProductDialog({className}: {className?: string}) {
 }
 
 function ProductForm({
+  product,
   handleSubmit,
   categories,
   selectedCategory,
   setSelectedCategory,
   images,
   setImages,
+  existingImages,
+  onRemoveExisting,
+  onMoveExisting,
   color,
   setColor,
   status,
@@ -167,12 +215,16 @@ function ProductForm({
   onCancel,
   className
 }: {
+  product: Product;
   handleSubmit: (formData: FormData) => void;
   categories: Category[];
   selectedCategory: number | null;
   setSelectedCategory: (id: number | null) => void;
   images: File[];
   setImages: (files: File[]) => void;
+  existingImages: { id: number; url: string; orden: number }[];
+  onRemoveExisting: (id: number) => void;
+  onMoveExisting: (index: number, direction: "left" | "right") => void;
   color: string;
   setColor: (color: string) => void;
   status: string;
@@ -185,7 +237,7 @@ function ProductForm({
     <form action={handleSubmit} className={cn("space-y-4", className)}>
       <div>
         <Label htmlFor="nombre">Nombre</Label>
-        <Input type="text" name="nombre" id="nombre" placeholder="Nombre del producto" />
+        <Input type="text" name="nombre" id="nombre" defaultValue={product.nombre} placeholder="Nombre del producto" />
       </div>
 
       <div>
@@ -200,24 +252,24 @@ function ProductForm({
 
       <div>
         <Label htmlFor="descripcion">Descripción</Label>
-        <Input type="text" name="descripcion" id="descripcion" placeholder="Descripción" />
+        <Input type="text" name="descripcion" id="descripcion" defaultValue={product.descripcion} placeholder="Descripción" />
       </div>
 
       <div className="grid grid-cols-2 gap-4">
         <div>
           <Label htmlFor="precio">Precio</Label>
-          <Input type="number" name="precio" id="precio" placeholder="0.00" step={0.01} />
+          <Input type="number" name="precio" id="precio" defaultValue={product.precio} placeholder="0.00" step={0.01} />
         </div>
         <div>
           <Label htmlFor="inventario">Inventario</Label>
-          <Input type="number" name="inventario" id="inventario" placeholder="0" />
+          <Input type="number" name="inventario" id="inventario" defaultValue={product.inventario} placeholder="0" />
         </div>
       </div>
 
       <div className="grid grid-cols-2 gap-4">
         <div>
           <Label htmlFor="marca">Marca</Label>
-          <Input type="text" name="marca" id="marca" placeholder="Marca" />
+          <Input type="text" name="marca" id="marca" defaultValue={product.marca} placeholder="Marca" />
         </div>
         <div>
           <Label htmlFor="color">Color</Label>
@@ -259,12 +311,18 @@ function ProductForm({
 
       <div>
         <Label htmlFor="sku">SKU</Label>
-        <Input type="text" name="sku" id="sku" placeholder="SKU" />
+        <Input type="text" name="sku" id="sku" defaultValue={product.sku} placeholder="SKU" />
       </div>
 
       <div>
         <Label>Imágenes</Label>
-        <ImageUpload value={images} onChange={setImages} />
+        <ImageUpload 
+            value={images} 
+            onChange={setImages} 
+            existingImages={existingImages}
+            onRemoveExisting={onRemoveExisting}
+            onMoveExisting={onMoveExisting}
+        />
       </div>
 
       <div className="flex justify-end gap-2 mt-6">
@@ -272,7 +330,7 @@ function ProductForm({
           Cancelar
         </Button>
         <Button size="sm" loading={mutation.isPending} disabled={mutation.isPending} className="w-full sm:w-auto">
-          {mutation.isPending ? "Guardando..." : "Guardar Producto"}
+          {mutation.isPending ? "Guardando..." : "Guardar Cambios"}
         </Button>
       </div>
     </form>

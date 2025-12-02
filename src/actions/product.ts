@@ -4,7 +4,7 @@ import prisma from "@/prisma/prisma";
 import { getServerSession } from "next-auth";
 import { authOptions } from "@/auth";
 import { s3Client, AWS_S3_BUCKET } from "@/lib/s3";
-import { PutObjectCommand } from "@aws-sdk/client-s3";
+import { DeleteObjectCommand, PutObjectCommand } from "@aws-sdk/client-s3";
 
 export type Product = {
    id: number;
@@ -34,6 +34,228 @@ export type Product = {
         orden: number;
     }[];
 };
+
+export async function updateProduct(id: number, formData: FormData) {
+  const session = await getServerSession(authOptions);
+  if (!session?.user?.id) {
+    throw new Error("Unauthorized");
+  }
+
+  const nombre = formData.get("nombre") as string;
+  const descripcion = formData.get("descripcion") as string;
+  const precio = parseFloat(formData.get("precio") as string);
+  const inventario = parseInt(formData.get("inventario") as string);
+  const marca = formData.get("marca") as string;
+  const color = formData.get("color") as string;
+  const sku = formData.get("sku") as string;
+  const idCategoryStr = formData.get("id_category") as string;
+  const idCategory = idCategoryStr ? parseInt(idCategoryStr) : null;
+  const real_status = formData.get("real_status") as "activo" | "inactivo" | "agotado" | "pausado" | null;
+
+  // Verify ownership
+  const existingProduct = await prisma.product.findUnique({
+    where: { id },
+  });
+
+  if (!existingProduct || existingProduct.sellerId !== Number(session.user.id)) {
+    throw new Error("Unauthorized or product not found");
+  }
+
+  await prisma.product.update({
+    where: { id },
+    data: {
+      nombre,
+      descripcion,
+      precio,
+      inventario,
+      marca,
+      color,
+      sku,
+      id_category: idCategory,
+      real_status: real_status,
+    },
+  });
+
+  // Handle deleted images
+  const deletedImageIds = formData.getAll("deletedImageIds").map(id => Number(id));
+  if (deletedImageIds.length > 0) {
+      const imagesToDelete = await prisma.productImage.findMany({
+          where: {
+              id: { in: deletedImageIds },
+              productId: id 
+          }
+      });
+
+      for (const image of imagesToDelete) {
+          const key = image.url.split("/").pop();
+          if (key) {
+              try {
+                  await s3Client.send(new DeleteObjectCommand({
+                      Bucket: AWS_S3_BUCKET,
+                      Key: key
+                  }));
+              } catch (e) {
+                  console.error("Error deleting from S3", e);
+              }
+          }
+      }
+
+      await prisma.productImage.deleteMany({
+          where: {
+              id: { in: deletedImageIds }
+          }
+      });
+  }
+
+  // Handle image reordering
+  const imageOrderStr = formData.get("imageOrder") as string;
+  if (imageOrderStr) {
+      const imageOrder = JSON.parse(imageOrderStr) as { id: number, orden: number }[];
+      for (const item of imageOrder) {
+          // Verify image belongs to product to prevent unauthorized updates
+          const img = await prisma.productImage.findFirst({ where: { id: item.id, productId: id }});
+          if (img) {
+             await prisma.productImage.update({
+                where: { id: item.id },
+                data: { orden: item.orden }
+            });
+          }
+      }
+  }
+
+  const images = formData.getAll("images") as File[];
+
+  if (images && images.length > 0) {
+    const imageData = [];
+
+    for (let index = 0; index < images.length; index++) {
+      const file = images[index];
+      if (file.size === 0) continue;
+
+      const buffer = Buffer.from(await file.arrayBuffer());
+      const fileName = `${existingProduct.slug}-${Date.now()}-${index}-${file.name.replace(/[^a-zA-Z0-9.-]/g, "")}`;
+      
+      await s3Client.send(
+        new PutObjectCommand({
+          Bucket: AWS_S3_BUCKET,
+          Key: fileName,
+          Body: buffer,
+          ContentType: file.type,
+        })
+      );
+
+      const url = process.env.NEXT_PUBLIC_R2_DOMAIN 
+        ? `${process.env.NEXT_PUBLIC_R2_DOMAIN}/${fileName}`
+        : `${process.env.AWS_S3_ENDPOINT}/${AWS_S3_BUCKET}/${fileName}`;
+
+      imageData.push({
+        url: url,
+        orden: index,
+        productId: id,
+      });
+    }
+
+    if (imageData.length > 0) {
+      await prisma.productImage.createMany({
+        data: imageData,
+      });
+    }
+  }
+}
+
+export async function deleteProduct(id: number) {
+  const session = await getServerSession(authOptions);
+  if (!session?.user?.id) {
+    throw new Error("Unauthorized");
+  }
+
+  // Verify ownership
+  const existingProduct = await prisma.product.findUnique({
+    where: { id },
+    include: { images: true },
+  });
+
+  if (!existingProduct || existingProduct.sellerId !== Number(session.user.id)) {
+    throw new Error("Unauthorized or product not found");
+  }
+
+  // Delete images from S3
+  for (const image of existingProduct.images) {
+    const key = image.url.split("/").pop();
+    if (key) {
+      try {
+        await s3Client.send(
+          new DeleteObjectCommand({
+            Bucket: AWS_S3_BUCKET,
+            Key: key,
+          })
+        );
+      } catch (error) {
+        console.error(`Failed to delete image ${key} from S3`, error);
+      }
+    }
+  }
+
+  await prisma.product.delete({
+    where: { id },
+  });
+}
+
+export async function deleteProductImage(imageId: number) {
+  const session = await getServerSession(authOptions);
+  if (!session?.user?.id) {
+    throw new Error("Unauthorized");
+  }
+
+  const image = await prisma.productImage.findUnique({
+    where: { id: imageId },
+    include: { product: true },
+  });
+
+  if (!image || image.product.sellerId !== Number(session.user.id)) {
+    throw new Error("Unauthorized or image not found");
+  }
+
+  // Delete from S3
+  const key = image.url.split("/").pop();
+  if (key) {
+    try {
+      await s3Client.send(
+        new DeleteObjectCommand({
+          Bucket: AWS_S3_BUCKET,
+          Key: key,
+        })
+      );
+    } catch (error) {
+      console.error(`Failed to delete image ${key} from S3`, error);
+    }
+  }
+
+  await prisma.productImage.delete({
+    where: { id: imageId },
+  });
+}
+
+export async function updateImageOrder(imageId: number, newOrder: number) {
+  const session = await getServerSession(authOptions);
+  if (!session?.user?.id) {
+    throw new Error("Unauthorized");
+  }
+
+  const image = await prisma.productImage.findUnique({
+    where: { id: imageId },
+    include: { product: true },
+  });
+
+  if (!image || image.product.sellerId !== Number(session.user.id)) {
+    throw new Error("Unauthorized or image not found");
+  }
+
+  await prisma.productImage.update({
+    where: { id: imageId },
+    data: { orden: newOrder },
+  });
+}
 
 export async function getUniqueBrands() {
   const session = await getServerSession(authOptions);
@@ -144,6 +366,7 @@ export async function createProduct(formData: FormData) {
   const sku = formData.get("sku") as string;
   const idCategoryStr = formData.get("id_category") as string;
   const idCategory = idCategoryStr ? parseInt(idCategoryStr) : null;
+  const real_status = formData.get("real_status") as "activo" | "inactivo" | "agotado" | "pausado" | null;
   
   const slug = nombre.toLowerCase().replace(/ /g, "-") + "-" + Date.now();
 
@@ -161,6 +384,7 @@ export async function createProduct(formData: FormData) {
       sellerId: Number(session.user.id),
       estado: true,
       id_category: idCategory,
+      real_status: real_status || "activo",
     },
   });
 

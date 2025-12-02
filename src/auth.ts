@@ -77,7 +77,7 @@ export const authOptions = {
       }
       return true;
     },
-    async jwt({ token, user, account }) {
+    async jwt({ token, user, account, trigger, session }) {
       if (account && user) {
         token.id = user.id;
         if (account.provider === "credentials") {
@@ -85,20 +85,36 @@ export const authOptions = {
         } else if (account.provider === "google") {
           const dbUser = await prisma.usuarios.findUnique({
             where: { correo: user.email! },
+            include: { profile: true },
           });
           if (dbUser) {
             token.role = dbUser.rol;
             token.id = String(dbUser.id);
+            if (dbUser.profile?.imagen) {
+              token.picture = dbUser.profile.imagen;
+            }
           }
         }
       } else if (token.email) {
         const dbUser = await prisma.usuarios.findUnique({
           where: { correo: token.email },
+          include: { profile: true },
         });
         if (dbUser) {
           token.role = dbUser.rol;
+          if (dbUser.profile?.imagen) {
+            token.picture = dbUser.profile.imagen;
+          }
+          if (dbUser.nombre || dbUser.apellido) {
+             token.name = `${dbUser.nombre || ""} ${dbUser.apellido || ""}`.trim();
+          }
         }
       }
+      
+      if (trigger === "update" && session) {
+        return { ...token, ...session.user };
+      }
+
       return token;
     },
     async session({ session, token }) {

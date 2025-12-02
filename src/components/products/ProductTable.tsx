@@ -24,6 +24,8 @@ import { Popover, PopoverContent, PopoverTrigger } from "../ui/popover";
 import { Button } from "../ui/button";
 import { FilterIcon } from "lucide-react";
 import Image from "next/image";
+import EditProductDialog from "./EditProductDialog";
+import DeleteProductDialog from "./DeleteProductDialog";
 
 const statusOptions = [
   { value: "all", label: "Todos los estados" },
@@ -51,6 +53,8 @@ export default function ProductTable() {
     queryKey: ["products", page, debouncedSearch, brand, status],
     queryFn: () => getProducts({ page, search: debouncedSearch, brand, status }),
     placeholderData: keepPreviousData,
+    refetchOnWindowFocus: false,
+
   });
 
   if(isPending){
@@ -244,10 +248,20 @@ export default function ProductTable() {
                 Estado
               </TableCell>
               <TableCell
+                className="py-3 font-medium text-gray-500 text-end text-theme-xs dark:text-gray-400"
+              >
+                Color
+              </TableCell>
+              <TableCell
                 
                 className="py-3 font-medium text-gray-500 text-end text-theme-xs dark:text-gray-400"
               >
                 Pedidos
+              </TableCell>
+              <TableCell
+                className="py-3 font-medium text-gray-500 text-end text-theme-xs dark:text-gray-400"
+              >
+                Acciones
               </TableCell>
             </TableRow>
           </TableHeader>
@@ -289,7 +303,7 @@ export default function ProductTable() {
                 <TableCell className="py-3 text-gray-500 text-center text-theme-sm dark:text-gray-400">
                   {product.inventario}
                 </TableCell>
-                <TableCell className="py-3 text-gray-500 text-center flex items-center justify-center text-theme-sm dark:text-gray-400">
+                <TableCell className="pt-7 text-gray-500 text-center flex items-center justify-center text-theme-sm dark:text-gray-400">
                   <Badge
                     size="sm"
                     color={product.estado ? "success" : "error"}
@@ -297,15 +311,24 @@ export default function ProductTable() {
                     {product.estado ? "Active" : "Inactive"}
                   </Badge>
                 </TableCell>
+                <TableCell className="py-3 pl-10 text-end text-gray-500 text-theme-sm dark:text-gray-400">
+                  <div className="w-full h-4 rounded-full" style={{ backgroundColor: product.color }} />
+                </TableCell>
                 <TableCell className="py-3 text-end text-gray-500 text-theme-sm dark:text-gray-400">
                   {product.pedidoProductosCount || 0}
+                </TableCell>
+                <TableCell className="py-3 text-end text-gray-500 text-theme-sm dark:text-gray-400">
+                  <div className="flex items-center justify-end gap-2">
+                    <EditProductDialog product={product} />
+                    <DeleteProductDialog productId={product.id} />
+                  </div>
                 </TableCell>
               </TableRow>
             ))} 
             {
               data?.products && data.products.length === 0 && (  
                 <TableRow>
-                  <TableCell className=" absolute top-1/2 bottom-1/2 inset-0 col-span-6 text-center text-gray-500 text-theme-sm dark:text-gray-400">
+                  <TableCell className=" absolute top-1/2 bottom-1/2 inset-0 col-span-7 text-center text-gray-500 text-theme-sm dark:text-gray-400">
                     Sin productos disponibles
                   </TableCell>
                 </TableRow>
