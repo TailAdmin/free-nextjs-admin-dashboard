@@ -7,9 +7,11 @@ import {
   DollarLineIcon,
   BoxCubeIcon,
 } from "@/icons";
+import NumberFlow from '@number-flow/react'
 
 import { getProducts } from "@/actions/product";
 import { keepPreviousData, useQuery } from "@tanstack/react-query";
+import { Loader2Icon } from "lucide-react";
 
 interface Product {
   id: number;
@@ -66,7 +68,12 @@ export const ProductsMetrics = () => {
   const products: Product[] = data?.products ?? [];
 
   const metrics: MetricItem[] = useMemo(() => {
-    if (!products.length) return [];
+    if (!products.length) return [
+      { id: 1, key: "activos", label: "Activos", value: 0 },
+      { id: 2, key: "pausados", label: "Pausados", value: 0 },
+      { id: 3, key: "vendidos", label: "Vendidos", value: 0 },
+      { id: 4, key: "sinStock", label: "Sin stock", value: 0 },
+    ];
 
     const activos = products.filter((p) => p.estado).length;
     const pausados = products.filter((p) => !p.estado).length;
@@ -80,8 +87,9 @@ export const ProductsMetrics = () => {
       { id: 4, key: "sinStock", label: "Sin stock", value: sinStock },
     ];
   }, [products]);
+  console.log("metrics", metrics);
 
-  if (isPending) return <p className="text-gray-500 dark:text-gray-400">Cargando métricas...</p>;
+  // if (isPending) return <p className="text-gray-500 dark:text-gray-400">Cargando métricas...</p>;
   if (error) return <p className="text-red-500">Error al cargar productos.</p>;
 
   return (
@@ -94,7 +102,7 @@ export const ProductsMetrics = () => {
           <div
             key={item.id}
             className="
-              relative rounded-2xl p-6 shadow-xl hover:shadow-2xl
+              relative rounded-2xl p-6 shadow-lg hover:shadow-xl
               transition-all duration-300 overflow-hidden border 
               bg-white border-slate-200
               dark:bg-white/3 dark:border-gray-800
@@ -106,9 +114,11 @@ export const ProductsMetrics = () => {
                   <p className="text-slate-600 dark:text-gray-400 text-sm mb-1">
                     {item.label}
                   </p>
-                  <p className="text-slate-900 dark:text-white/90 text-4xl font-semibold">
+                  <NumberFlow className="text-slate-900 dark:text-white/90 text-4xl font-semibold" value={item.value} />
+
+                  {/* <p className="text-slate-900 dark:text-white/90 text-4xl font-semibold">
                     {item.value}
-                  </p>
+                  </p> */}
                 </div>
                 <div
                   className={`
@@ -117,7 +127,7 @@ export const ProductsMetrics = () => {
                     flex items-center justify-center w-14 h-14
                   `}
                 >
-                  <Icon className="w-7 h-7 text-white" />
+                  {isPending ? <Loader2Icon className="w-7 h-7 text-white animate-spin" /> : <Icon className="w-7 h-7 pl-0.5 pt-0.5 text-white" />}
                 </div>
               </div>
               <div className="flex items-center justify-between">

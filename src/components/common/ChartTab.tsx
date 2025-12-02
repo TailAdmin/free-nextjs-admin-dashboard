@@ -1,42 +1,43 @@
-import React, { useState } from "react";
+import React from "react";
 
-const ChartTab: React.FC = () => {
-  const [selected, setSelected] = useState<
-    "optionOne" | "optionTwo" | "optionThree"
-  >("optionOne");
+interface ChartTabProps {
+  selected: "weekly" | "monthly" | "yearly";
+  onChange: (value: "weekly" | "monthly" | "yearly") => void;
+}
 
-  const getButtonClass = (option: "optionOne" | "optionTwo" | "optionThree") =>
+const ChartTab: React.FC<ChartTabProps> = ({ selected, onChange }) => {
+  const getButtonClass = (option: "weekly" | "monthly" | "yearly") =>
     selected === option
       ? "shadow-theme-xs text-gray-900 dark:text-white bg-white dark:bg-gray-800"
       : "text-gray-500 dark:text-gray-400";
 
   return (
-    <div className="flex items-center gap-0.5 rounded-lg bg-gray-100 p-0.5 dark:bg-gray-900">
+    <div className="flex w-full sm:w-fit items-center gap-0.5 rounded-lg bg-gray-100 p-0.5 dark:bg-gray-900">
       <button
-        onClick={() => setSelected("optionOne")}
+        onClick={() => onChange("weekly")}
         className={`px-3 py-2 font-medium w-full rounded-md text-theme-sm hover:text-gray-900   dark:hover:text-white ${getButtonClass(
-          "optionOne"
+          "weekly"
         )}`}
       >
-        Monthly
+        Semanal
       </button>
 
       <button
-        onClick={() => setSelected("optionTwo")}
+        onClick={() => onChange("monthly")}
         className={`px-3 py-2 font-medium w-full rounded-md text-theme-sm hover:text-gray-900   dark:hover:text-white ${getButtonClass(
-          "optionTwo"
+          "monthly"
         )}`}
       >
-        Quarterly
+        Mensual
       </button>
 
       <button
-        onClick={() => setSelected("optionThree")}
+        onClick={() => onChange("yearly")}
         className={`px-3 py-2 font-medium w-full rounded-md text-theme-sm hover:text-gray-900   dark:hover:text-white ${getButtonClass(
-          "optionThree"
+          "yearly"
         )}`}
       >
-        Annually
+        Anual
       </button>
     </div>
   );

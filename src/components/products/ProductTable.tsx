@@ -69,7 +69,7 @@ export default function ProductTable() {
   }
 
   return (
-    <div className={`overflow-hidden flex flex-col relative rounded-2xl h-[570px] border border-gray-200 bg-white px-4 py-4 dark:border-gray-800 dark:bg-white/[0.03] sm:px-6`} >
+    <div className={`overflow-hidden shadow-lg flex flex-col relative rounded-2xl h-[570px] border border-gray-200 bg-white px-4 py-4 dark:border-gray-800 dark:bg-white/[0.03] sm:px-6`} >
       <div className="flex flex-col gap-3">
         <div className="flex items-center w-full justify-between">      
           <h3 className="text-lg font-semibold text-gray-800 dark:text-white/90">
@@ -209,7 +209,7 @@ export default function ProductTable() {
       </div>
       <div className="max-w-full flex-1 flex flex-col overflow-hidden">
         <div className="flex-1 overflow-auto">
-        <Table className="h-full">
+        <Table className="h-full ">
           {/* Table Header */}
           <TableHeader className="border-gray-100 dark:border-gray-800 border-y">
             <TableRow>

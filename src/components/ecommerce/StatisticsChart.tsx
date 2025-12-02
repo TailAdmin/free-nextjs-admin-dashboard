@@ -1,16 +1,73 @@
 "use client";
-import React from "react";
+import React, { useEffect, useState } from "react";
 // import Chart from "react-apexcharts";
 import { ApexOptions } from "apexcharts";
 import ChartTab from "../common/ChartTab";
 import dynamic from "next/dynamic";
+import { getSalesData } from "@/actions/product";
+import {
+  Select,
+  SelectTrigger,
+  SelectValue,
+  SelectContent,
+  SelectItem,
+  SelectGroup,
+} from "../ui/select";
 
 // Dynamically import the ReactApexChart component
 const ReactApexChart = dynamic(() => import("react-apexcharts"), {
   ssr: false,
+
 });
 
 export default function StatisticsChart() {
+  const [period, setPeriod] = useState<"weekly" | "monthly" | "yearly">("yearly");
+  const [year, setYear] = useState(new Date().getFullYear());
+  const [month, setMonth] = useState(new Date().getMonth());
+
+  const [series, setSeries] = useState<{ name: string; data: number[] }[]>([
+    { name: "Ventas", data: [] },
+    { name: "Ingresos", data: [] },
+  ]);
+  const [categories, setCategories] = useState<string[]>([]);
+
+  const years = [
+    { value: (new Date().getFullYear() - 1).toString(), label: (new Date().getFullYear() - 1).toString() },
+    { value: new Date().getFullYear().toString(), label: new Date().getFullYear().toString() },
+    { value: (new Date().getFullYear() + 1).toString(), label: (new Date().getFullYear() + 1).toString() },
+  ];
+
+  const months = [
+    { value: "0", label: "Enero" },
+    { value: "1", label: "Febrero" },
+    { value: "2", label: "Marzo" },
+    { value: "3", label: "Abril" },
+    { value: "4", label: "Mayo" },
+    { value: "5", label: "Junio" },
+    { value: "6", label: "Julio" },
+    { value: "7", label: "Agosto" },
+    { value: "8", label: "Septiembre" },
+    { value: "9", label: "Octubre" },
+    { value: "10", label: "Noviembre" },
+    { value: "11", label: "Diciembre" },
+  ];
+
+  useEffect(() => {
+    async function fetchData() {
+      try {
+        const { sales, revenue, categories } = await getSalesData(period, year, month);
+        setSeries([
+          { name: "Ventas", data: sales },
+          { name: "Ingresos", data: revenue },
+        ]);
+        setCategories(categories);
+      } catch (error) {
+        console.error("Failed to fetch sales data", error);
+      }
+    }
+    fetchData();
+  }, [period, year, month]);
+
   const options: ApexOptions = {
     legend: {
       show: false, // Hide legend
@@ -68,21 +125,8 @@ export default function StatisticsChart() {
       },
     },
     xaxis: {
-      type: "category", // Category-based x-axis
-      categories: [
-        "Jan",
-        "Feb",
-        "Mar",
-        "Apr",
-        "May",
-        "Jun",
-        "Jul",
-        "Aug",
-        "Sep",
-        "Oct",
-        "Nov",
-        "Dec",
-      ],
+      type: period === "monthly" && categories.length > 0 && categories[0].includes("-") ? "datetime" : "category", // Category-based x-axis
+      categories: categories,
       axisBorder: {
         show: false, // Hide x-axis border
       },
@@ -91,6 +135,12 @@ export default function StatisticsChart() {
       },
       tooltip: {
         enabled: false, // Disable tooltip for x-axis points
+      },
+      labels: {
+        format: "dd MMM",
+        style: {
+          fontSize: "12px",
+        },
       },
     },
     yaxis: {
@@ -109,38 +159,72 @@ export default function StatisticsChart() {
     },
   };
 
-  const series = [
-    {
-      name: "Sales",
-      data: [180, 190, 170, 160, 175, 165, 170, 205, 230, 210, 240, 235],
-    },
-    {
-      name: "Revenue",
-      data: [40, 30, 50, 40, 55, 40, 70, 100, 110, 120, 150, 140],
-    },
-  ];
+
   return (
     <div className="rounded-2xl border border-gray-200 bg-white px-5 pb-5 pt-5 dark:border-gray-800 dark:bg-white/[0.03] sm:px-6 sm:pt-6">
       <div className="flex flex-col gap-5 mb-6 sm:flex-row sm:justify-between">
         <div className="w-full">
           <h3 className="text-lg font-semibold text-gray-800 dark:text-white/90">
-            Statistics
+            Estadísticas
           </h3>
           <p className="mt-1 text-gray-500 text-theme-sm dark:text-gray-400">
-            Target you’ve set for each month
+            Resumen de ventas e ingresos
           </p>
         </div>
-        <div className="flex items-start w-full gap-3 sm:justify-end">
-          <ChartTab />
+        <div className="flex items-center w-full gap-3 sm:justify-end flex-wrap">
+          {period !== "weekly" && (
+            <div className="w-full sm:w-32">
+              <Select
+                defaultValue={year.toString()}
+                onValueChange={(val) => setYear(Number(val))}
+              >
+                <SelectTrigger className="w-full">
+                  <SelectValue />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectGroup>
+                    {years.map((y) => (
+                      <SelectItem key={y.value} value={y.value}>
+                        {y.label}
+                      </SelectItem>
+                    ))}
+                  </SelectGroup>
+                </SelectContent>
+              </Select>
+            </div>
+          )}
+          {period === "monthly" && (
+            <div className="w-full sm:w-40">
+              <Select
+                defaultValue={month.toString()}
+                onValueChange={(val) => setMonth(Number(val))}
+              >
+                <SelectTrigger className="w-full">
+                  <SelectValue />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectGroup>
+                    {months.map((m) => (
+                      <SelectItem key={m.value} value={m.value}>
+                        {m.label}
+                      </SelectItem>
+                    ))}
+                  </SelectGroup>
+                </SelectContent>
+              </Select>
+            </div>
+          )}
+          <ChartTab selected={period} onChange={setPeriod} />
         </div>
       </div>
 
       <div className="max-w-full overflow-x-auto custom-scrollbar">
-        <div className="min-w-[1000px] xl:min-w-full">
+        <div className="min-w-full">
           <ReactApexChart
             options={options}
             series={series}
             type="area"
+
             height={310}
           />
         </div>

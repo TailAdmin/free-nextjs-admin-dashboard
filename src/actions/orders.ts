@@ -11,60 +11,78 @@ export type Order = {
     categoria: string;
     precio: number;
     status: string;
-    image: string;
+    fecha: Date;
+    images: {
+        id: number;
+        url: string;
+        orden: number;
+    }[];
 };
 
-export async function getOrders() {
+export async function getOrders({
+  page = 1,
+  pageSize = 5,
+}: {
+  page?: number;
+  pageSize?: number;
+} = {}) {
   const session = await getServerSession(authOptions);
 
   if (!session?.user?.id) {
-    return [];
+    return { orders: [], totalPages: 0 };
   }
 
   const userId = Number(session.user.id);
 
-  const orders = await prisma.pedido.findMany({
-    where: {
-      productos: {
-        some: {
-          producto: {
-            sellerId: userId,
-          },
-        },
-      },
+  const where = {
+    producto: {
+      sellerId: userId,
     },
-    include: {
-      productos: {
-        where: {
-          producto: {
-            sellerId: userId,
-          },
-        },
-        include: {
-          producto: {
-            include: {
-              images: {
-                where: {
-                  orden: 0,
-                },
-                take: 1,
-              },
-              category: true,
-            },
-          },
-        },
-      },
-    },
+  };
+
+  const totalCount = await prisma.pedidoProducto.count({
+    where,
   });
 
-  return orders.flatMap((order) =>
-    order.productos.map((p) => ({
-      id: p.id,
-      producto: p.producto.nombre,
-      categoria: p.producto.category?.name ?? "N/A",
-      precio: order.total.toNumber(),
-      status: order.status,
-      image: p.producto.images[0]?.url || "",
-    }))
-  );
+  const soldItems = await prisma.pedidoProducto.findMany({
+    where,
+    include: {
+      producto: {
+        include: {
+          images: {
+            select: {
+              id: true,
+              url: true,
+              orden: true,
+          },},
+          category: true,
+          
+        },
+        
+      },
+      pedido: true,
+    },
+    orderBy: {
+      pedido: {
+        fecha: "desc",
+      },
+    },
+    skip: (page - 1) * pageSize,
+    take: pageSize,
+  });
+
+  const orders = soldItems.map((item) => ({
+    id: item.id,
+    producto: item.producto.nombre,
+    categoria: item.producto.category?.name ?? "N/A",
+    precio: item.pedido.total.toNumber(), // Keeping original behavior of showing order total
+    status: item.pedido.status,
+    images: item.producto.images,
+    fecha: item.pedido.fecha,
+  }));
+
+  return {
+    orders,
+    totalPages: Math.ceil(totalCount / pageSize),
+  };
 }

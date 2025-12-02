@@ -1,3 +1,4 @@
+"use client";
 import {
   Table,
   TableBody,
@@ -7,31 +8,50 @@ import {
 } from "../ui/table";
 import Badge from "../ui/badge/Badge";
 import Image from "next/image";
-import { Order } from "@/actions/orders";
+import { getOrders } from "@/actions/orders";
+import { useQuery, keepPreviousData } from "@tanstack/react-query";
+import { useState } from "react";
+import GeneralCardLoading from "../ui/general/GeneralCardLoading";
+import { GeneralErrorContent } from "../ui/general/GeneralErrorContent";
+import Pagination from "../tables/Pagination";
+import { PaginationSkeleton } from "../ui/general/PaginationSkeleton";
 
-// Define the TypeScript interface for the table rows
-interface Product {
-  id: number; // Unique identifier for each product
-  name: string; // Product name
-  variants: string; // Number of variants (e.g., "1 Variant", "2 Variants")
-  category: string; // Category of the product
-  price: string; // Price of the product (as a string with currency symbol)
-  // status: string; // Status of the product
-  image: string; // URL or path to the product image
-  status: "Delivered" | "Pending" | "Canceled"; // Status of the product
-}
+export default function RecentOrders() {
+  const [page, setPage] = useState(1);
 
-export default function RecentOrders({ orders }: { orders: Order[] }) {
+  const { data, error, isPending } = useQuery({
+    queryKey: ["orders", page],
+    queryFn: () => getOrders({ page }),
+    placeholderData: keepPreviousData,
+  });
+
+  if (isPending) {
+    return (
+      <GeneralCardLoading title={true} className={`h-[570px] relative`}>
+        <section className="flex flex-col h-full justify-between gap-4">
+          <div className="animate-pulse bg-foreground/10 flex-1 min-h-[120px] w-full rounded-md" />
+          <div className="flex justify-center md:justify-end w-full pt-2">
+            <PaginationSkeleton />
+          </div>
+        </section>
+      </GeneralCardLoading>
+    );
+  }
+
+  if (error) {
+    return <GeneralErrorContent className={`h-[570px]`} />;
+  }
+
   return (
-    <div className="overflow-hidden rounded-2xl border border-gray-200 bg-white px-4 pb-3 pt-4 dark:border-gray-800 dark:bg-white/[0.03] sm:px-6">
+    <div className="overflow-hidden shadow-lg  rounded-2xl border border-gray-200 bg-white px-4 pb-3 pt-4 dark:border-gray-800 dark:bg-white/[0.03] sm:px-6 h-[570px] flex flex-col">
       <div className="flex flex-col gap-2 mb-4 sm:flex-row sm:items-center sm:justify-between">
         <div>
           <h3 className="text-lg font-semibold text-gray-800 dark:text-white/90">
-            Recent Orders
+            Pedidos Recientes
           </h3>
         </div>
 
-        <div className="flex items-center gap-3">
+        {/* <div className="flex items-center gap-3">
           <button className="inline-flex items-center gap-2 rounded-lg border border-gray-300 bg-white px-4 py-2.5 text-theme-sm font-medium text-gray-700 shadow-theme-xs hover:bg-gray-50 hover:text-gray-800 dark:border-gray-700 dark:bg-gray-800 dark:text-gray-400 dark:hover:bg-white/[0.03] dark:hover:text-gray-200">
             <svg
               className="stroke-current fill-white dark:fill-gray-800"
@@ -73,9 +93,9 @@ export default function RecentOrders({ orders }: { orders: Order[] }) {
           <button className="inline-flex items-center gap-2 rounded-lg border border-gray-300 bg-white px-4 py-2.5 text-theme-sm font-medium text-gray-700 shadow-theme-xs hover:bg-gray-50 hover:text-gray-800 dark:border-gray-700 dark:bg-gray-800 dark:text-gray-400 dark:hover:bg-white/[0.03] dark:hover:text-gray-200">
             See all
           </button>
-        </div>
+        </div> */}
       </div>
-      <div className="max-w-full overflow-x-auto">
+      <div className="max-w-full overflow-x-auto flex-1">
         <Table>
           {/* Table Header */}
           <TableHeader className="border-gray-100 dark:border-gray-800 border-y">
@@ -84,25 +104,28 @@ export default function RecentOrders({ orders }: { orders: Order[] }) {
                 
                 className="py-3 font-medium text-gray-500 text-start text-theme-xs dark:text-gray-400"
               >
-                Products
+                Productos
               </TableCell>
               <TableCell
                 
                 className="py-3 font-medium text-gray-500 text-start text-theme-xs dark:text-gray-400"
               >
-                Category
+                Categoria
               </TableCell>
               <TableCell
                 
                 className="py-3 font-medium text-gray-500 text-start text-theme-xs dark:text-gray-400"
               >
-                Price
+                Precio
               </TableCell>
               <TableCell
                 
                 className="py-3 font-medium text-gray-500 text-start text-theme-xs dark:text-gray-400"
               >
-                Status
+                Estado
+              </TableCell>
+              <TableCell className="py-3 font-medium text-gray-500 text-end text-theme-xs dark:text-gray-400">
+                Fecha
               </TableCell>
             </TableRow>
           </TableHeader>
@@ -110,19 +133,33 @@ export default function RecentOrders({ orders }: { orders: Order[] }) {
           {/* Table Body */}
 
           <TableBody className="divide-y divide-gray-100 dark:divide-gray-800">
-            {orders.map((product) => (
+            {data?.orders.map((product) => (
               <TableRow key={product.id} className="">
                 <TableCell className="py-3">
                   <div className="flex items-center gap-3">
                     <div className="h-[50px] w-[50px] overflow-hidden rounded-md">
-                    
+{/*                     
                         <Image
                         width={50}
                         height={50}
                           src={product.image}
                           className="h-[50px] w-[50px] object-cover"
                           alt={product.producto}
+                        /> */}
+
+                        {product.images && product.images.length > 0 ? (
+                        <Image
+                          src={product.images && product.images.length > 0 ? product.images[0].url : '/placeholder-image.png'}
+                          alt={product.producto}
+                          width={50}
+                          height={50}
+                          className="h-[50px] w-[50px] overflow-hidden rounded-md bg-gray-200 flex items-center justify-center text-gray-500"
                         />
+                        ) : (
+                        <div className="h-[50px] w-[50px] overflow-hidden rounded-md bg-gray-200 flex items-center justify-center text-gray-500">
+                            Img
+                        </div>
+                        )}
 
                     </div>
                     <div>
@@ -138,7 +175,7 @@ export default function RecentOrders({ orders }: { orders: Order[] }) {
                 <TableCell className="py-3 text-gray-500 text-theme-sm dark:text-gray-400">
                   ${product.precio} 
                 </TableCell>
-                {/* <TableCell className="py-3 text-gray-500 text-theme-sm dark:text-gray-400">
+                <TableCell className="py-3 text-gray-500 text-theme-sm dark:text-gray-400">
                   <Badge
                     size="sm"
                     color={
@@ -151,12 +188,31 @@ export default function RecentOrders({ orders }: { orders: Order[] }) {
                   >
                     {product.status}
                   </Badge>
-                </TableCell> */}
+                </TableCell>
+                <TableCell className="py-3 text-gray-500 text-end text-theme-sm dark:text-gray-400">
+                  {product.fecha.toLocaleDateString()}
+                </TableCell>
               </TableRow>
             ))}
+            {data?.orders.length === 0 && (
+                <TableRow>
+                  <TableCell colSpan={4} className="py-8 text-center text-gray-500 text-theme-sm dark:text-gray-400">
+                    No recent orders found.
+                  </TableCell>
+                </TableRow>
+            )}
           </TableBody>
         </Table>
       </div>
+      <div className="flex-none pt-4 pb-2 flex justify-center md:justify-end px-4">
+            <Pagination
+              currentPage={page}
+              totalPages={data ? data.totalPages : 1}
+              onPageChange={(newPage) => {  
+                setPage(newPage);
+              }}
+            />
+        </div>
     </div>
   );
 }
