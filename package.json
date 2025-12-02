@@ -9,7 +9,8 @@
     "lint": "next lint",
     "prisma:generate": "prisma generate",
     "prisma:migrate-dev": "prisma migrate dev",
-    "prisma:migrate-deploy": "prisma migrate deploy"
+    "prisma:migrate-deploy": "prisma migrate deploy",
+    "postinstall": "prisma generate"
   },
   "dependencies": {
     "@aws-sdk/client-s3": "3.226.0",
