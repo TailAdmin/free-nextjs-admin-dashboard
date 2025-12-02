@@ -126,6 +126,8 @@ export async function createProduct(formData: FormData) {
   const marca = formData.get("marca") as string;
   const color = formData.get("color") as string;
   const sku = formData.get("sku") as string;
+  const idCategoryStr = formData.get("id_category") as string;
+  const idCategory = idCategoryStr ? parseInt(idCategoryStr) : null;
   
   const slug = nombre.toLowerCase().replace(/ /g, "-") + "-" + Date.now();
 
@@ -142,7 +144,32 @@ export async function createProduct(formData: FormData) {
       vendedor: session.user.name || "Unknown",
       sellerId: Number(session.user.id),
       estado: true,
+      id_category: idCategory,
     },
   });
 
+}
+
+export async function getCustomersCount(): Promise<number> {
+  const session = await getServerSession(authOptions);
+  if (!session?.user?.id) {
+    return 0;
+  }
+
+const clientesUnicos = await prisma.profile.count({
+  where: {
+    pedidos: {
+      some: { // Que tenga al menos un pedido...
+        productos: {
+          some: { // ...que contenga productos...
+            producto: {
+              sellerId: Number(session.user.id) // ...pertenecientes a este vendedor
+            }
+          }
+        }
+      }
+    }
+  }
+});
+  return clientesUnicos;
 }

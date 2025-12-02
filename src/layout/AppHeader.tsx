@@ -118,7 +118,7 @@ const AppHeader: React.FC = () => {
               />
             </svg>
           </button>
-
+{/* 
           <div className="hidden lg:block">
             <form>
               <div className="relative">
@@ -152,7 +152,7 @@ const AppHeader: React.FC = () => {
                 </button>
               </div>
             </form>
-          </div>
+          </div> */}
         </div>
         <div
           className={`${
