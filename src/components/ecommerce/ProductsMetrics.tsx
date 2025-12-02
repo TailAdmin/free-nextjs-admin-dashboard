@@ -1,9 +1,6 @@
 "use client";
 
 import React, { useMemo, useState } from "react";
-
-
-
 import {
   CheckCircleIcon,
   TimeIcon,
@@ -14,9 +11,6 @@ import {
 import { getProducts } from "@/actions/product";
 import { keepPreviousData, useQuery } from "@tanstack/react-query";
 
-// ---------------------------------------------------
-// Types
-// ---------------------------------------------------
 interface Product {
   id: number;
   estado: boolean;
@@ -37,7 +31,6 @@ type MetricConfig = {
   subtitle: string;
 };
 
-// MISMO ESTILO QUE TU EJEMPLO
 const metricsConfig = {
   activos: {
     icon: CheckCircleIcon,
@@ -88,44 +81,56 @@ export const ProductsMetrics = () => {
     ];
   }, [products]);
 
-  if (isPending) return <p className="text-gray-500">Cargando métricas...</p>;
+  if (isPending) return <p className="text-gray-500 dark:text-gray-400">Cargando métricas...</p>;
   if (error) return <p className="text-red-500">Error al cargar productos.</p>;
 
   return (
     <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-      {metrics.map((item, index) => {
+      {metrics.map((item) => {
         const conf = metricsConfig[item.key];
         const Icon = conf.icon;
 
         return (
-          <
+          <div
+            key={item.id}
+            className="
+              relative rounded-2xl p-6 shadow-xl hover:shadow-2xl
+              transition-all duration-300 overflow-hidden border 
+              bg-white border-slate-200
+              dark:bg-white/3 dark:border-gray-800
+            "
           >
-            {/* CARD BLANCA */}
-            <div className="relative bg-white rounded-2xl p-6 shadow-xl hover:shadow-2xl transition-all duration-300 overflow-hidden border border-slate-200">
-              
-              <div className="relative z-10">
-                {/* HEADER */}
-                <div className="flex items-start justify-between mb-4">
-                  
-                  <div className="flex-1">
-                    <p className="text-slate-600 text-sm mb-1">{item.label}</p>
-                    <p className="text-slate-900 text-4xl">{item.value}</p>
-                  </div>
-
-                  {/* ICONO con fondo GRADIENTE (igual al ejemplo) */}
-                  <div className={`bg-linear-to-br ${conf.gradient} p-3 rounded-xl shadow-lg`}>
-                    <Icon className="w-8 h-8 text-white" />
-                  </div>
+            <div className="relative z-10">
+              <div className="flex items-start justify-between mb-4">
+                <div className="flex-1">
+                  <p className="text-slate-600 dark:text-gray-400 text-sm mb-1">
+                    {item.label}
+                  </p>
+                  <p className="text-slate-900 dark:text-white/90 text-4xl font-semibold">
+                    {item.value}
+                  </p>
                 </div>
-
-                {/* SUBTITLE + LINEA GRADIENT */}
-                <div className="flex items-center justify-between">
-                  <p className="text-slate-500 text-xs">{conf.subtitle}</p>
-                  <div className={`w-12 h-1 bg-linear-to-r ${conf.gradient} rounded-full`} />
+                <div
+                  className={`
+                    bg-linear-to-br ${conf.gradient}
+                    rounded-2xl shadow-lg
+                    flex items-center justify-center w-14 h-14
+                  `}
+                >
+                  <Icon className="w-7 h-7 text-white" />
                 </div>
               </div>
+              <div className="flex items-center justify-between">
+                <p className="text-slate-500 dark:text-gray-500 text-xs">
+                  {conf.subtitle}
+                </p>
+
+                <div
+                  className={`w-12 h-1 bg-linear-to-r ${conf.gradient} rounded-full`}
+                />
+              </div>
             </div>
-          </>
+          </div>
         );
       })}
     </div>
