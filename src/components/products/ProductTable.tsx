@@ -56,8 +56,8 @@ export default function ProductTable() {
   if(isPending){
     return <GeneralCardLoading title={true} className={`h-[570px] relative`} >
       <section className="flex flex-col h-full justify-between gap-4">
-        <div className="animate-pulse bg-foreground/10 h-[100cqh] min-h-[120px] !aspect-autow-full rounded-md"/>        
-        <div className="absolute left-1/2 bottom-8 md:bottom-0 transform md:relative -translate-x-1/2 md:self-end md:flex md:justify-end md:w-full">
+        <div className="animate-pulse bg-foreground/10 flex-1 min-h-[120px] w-full rounded-md"/>        
+        <div className="flex justify-center md:justify-end w-full pt-2">
           <PaginationSkeleton />
         </div>
       </section>
@@ -207,8 +207,8 @@ export default function ProductTable() {
         </div>
      
       </div>
-      <div className="max-w-full flex-1  flex flex-col justify-between overflow-x-auto ">
-        
+      <div className="max-w-full flex-1 flex flex-col overflow-hidden">
+        <div className="flex-1 overflow-auto">
         <Table className="h-full">
           {/* Table Header */}
           <TableHeader className="border-gray-100 dark:border-gray-800 border-y">
@@ -313,7 +313,8 @@ export default function ProductTable() {
             }
           </TableBody>
         </Table>
-        <div className="absolute left-1/2 bottom-8 md:bottom-4 transform -translate-x-1/2 md:self-end md:flex md:justify-end md:w-full md:pr-6">
+        </div>
+        <div className="flex-none pt-4 pb-2 flex justify-center md:justify-end px-4">
             <Pagination
               currentPage={page}
               totalPages={data ? data.totalPages : 10}

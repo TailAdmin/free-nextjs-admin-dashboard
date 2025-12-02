@@ -1,6 +1,5 @@
-import { ChevronLeftIcon, ChevronRightIcon } from "lucide-react";
-
-
+import { ChevronLeftIcon, ChevronRightIcon, ChevronsLeft, ChevronsRight } from "lucide-react";
+import { useEffect, useState } from "react";
 
 type PaginationProps = {
   currentPage: number;
@@ -13,45 +12,85 @@ const Pagination: React.FC<PaginationProps> = ({
   totalPages,
   onPageChange,
 }) => {
-  const pagesAroundCurrent = Array.from(
-    { length: Math.min(3, totalPages) },
-    (_, i) => i + Math.max(currentPage - 1, 1)
-  );
+  const [inputPage, setInputPage] = useState(currentPage.toString());
+
+  useEffect(() => {
+    setInputPage(currentPage.toString());
+  }, [currentPage]);
+
+  const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    setInputPage(e.target.value);
+  };
+
+  const handleInputKeyDown = (e: React.KeyboardEvent<HTMLInputElement>) => {
+    if (e.key === "Enter") {
+      const page = parseInt(inputPage);
+      if (!isNaN(page) && page >= 1 && page <= totalPages) {
+        onPageChange(page);
+      }
+    }
+  };
+  
+  const handleInputBlur = () => {
+      const page = parseInt(inputPage);
+      if (!isNaN(page) && page >= 1 && page <= totalPages) {
+        onPageChange(page);
+      } else {
+        setInputPage(currentPage.toString());
+      }
+  }
 
   return (
-    <div className="flex items-center ">
-      <button
-        onClick={() => onPageChange(currentPage - 1)}
-        disabled={currentPage === 1}
-        className="mr-2.5 flex items-center w-10 h-10 justify-center rounded-lg border border-gray-300 bg-white px-3 py-2.5 text-gray-700 shadow-theme-xs hover:bg-gray-50 disabled:opacity-50 dark:border-gray-700 dark:bg-gray-800 dark:text-gray-400 dark:hover:bg-white/[0.03] text-sm"
-      >
-        <ChevronLeftIcon className="size-4" />
-      </button>
-      <div className="flex items-center gap-2">
-        {currentPage > 3 && <span className="px-2">...</span>}
-        {pagesAroundCurrent.map((page) => (
-          <button
-            key={page}
-            disabled={page > totalPages}
-            onClick={() => onPageChange(page)}
-            className={`px-4 py-2 rounded ${
-              currentPage === page
-                ? "bg-brand-500 text-white"
-                : "text-gray-700 dark:text-gray-400"
-            } flex w-10 items-center justify-center h-10 rounded-lg text-sm font-medium hover:bg-blue-500/[0.08] hover:text-brand-500 dark:hover:text-brand-500`}
-          >
-            {page > totalPages ? "..." : page}
-          </button>
-        ))}
-        {currentPage < totalPages - 2 && <span className="px-2">...</span>}
+    <div className="flex items-center gap-2 flex-wrap justify-center md:justify-end">
+      <div className="flex items-center gap-1">
+        <button
+            onClick={() => onPageChange(1)}
+            disabled={currentPage === 1}
+            className="flex items-center justify-center w-8 h-8 rounded-lg border border-gray-300 bg-white text-gray-700 shadow-theme-xs hover:bg-gray-50 disabled:opacity-50 dark:border-gray-700 dark:bg-gray-800 dark:text-gray-400 dark:hover:bg-white/[0.03]"
+        >
+            <ChevronsLeft className="size-4" />
+        </button>
+        <button
+            onClick={() => onPageChange(currentPage - 1)}
+            disabled={currentPage === 1}
+            className="flex items-center justify-center w-8 h-8 rounded-lg border border-gray-300 bg-white text-gray-700 shadow-theme-xs hover:bg-gray-50 disabled:opacity-50 dark:border-gray-700 dark:bg-gray-800 dark:text-gray-400 dark:hover:bg-white/[0.03]"
+        >
+            <ChevronLeftIcon className="size-4" />
+        </button>
       </div>
-      <button
-        onClick={() => onPageChange(currentPage + 1)}
-        disabled={currentPage === totalPages}
-        className="ml-2.5 flex items-center justify-center rounded-lg border border-gray-300 bg-white px-2.5 w-10 py-2.5 text-gray-700 shadow-theme-xs text-sm hover:bg-gray-50 h-10 disabled:opacity-50 dark:border-gray-700 dark:bg-gray-800 dark:text-gray-400 dark:hover:bg-white/[0.03]"
-      >
-        <ChevronRightIcon className="size-4" />
-      </button>
+
+      <div className="flex items-center gap-2">
+          <div className="flex items-center gap-1 mx-2">
+            <input
+                type="number"
+                min={1}
+                max={totalPages}
+                value={inputPage}
+                onChange={handleInputChange}
+                onKeyDown={handleInputKeyDown}
+                onBlur={handleInputBlur}
+                className="w-12 h-8 text-center rounded-lg border border-gray-300 bg-white text-gray-700 shadow-theme-xs focus:outline-none focus:ring-2 focus:ring-brand-500 dark:border-gray-700 dark:bg-gray-800 dark:text-gray-400 text-sm"
+            />
+            <span className="text-sm text-gray-500 dark:text-gray-400">/ {totalPages}</span>
+          </div>
+
+          <div className="flex items-center gap-1">
+            <button
+                onClick={() => onPageChange(currentPage + 1)}
+                disabled={currentPage === totalPages}
+                className="flex items-center justify-center w-8 h-8 rounded-lg border border-gray-300 bg-white text-gray-700 shadow-theme-xs hover:bg-gray-50 disabled:opacity-50 dark:border-gray-700 dark:bg-gray-800 dark:text-gray-400 dark:hover:bg-white/[0.03]"
+            >
+                <ChevronRightIcon className="size-4" />
+            </button>
+            <button
+                onClick={() => onPageChange(totalPages)}
+                disabled={currentPage === totalPages}
+                className="flex items-center justify-center w-8 h-8 rounded-lg border border-gray-300 bg-white text-gray-700 shadow-theme-xs hover:bg-gray-50 disabled:opacity-50 dark:border-gray-700 dark:bg-gray-800 dark:text-gray-400 dark:hover:bg-white/[0.03]"
+            >
+                <ChevronsRight className="size-4" />
+            </button>
+          </div>
+      </div>
     </div>
   );
 };
