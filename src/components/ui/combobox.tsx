@@ -27,7 +27,7 @@ export function Combobox({
           variant="outline"
           role="combobox"
           aria-expanded="false"
-          className="w-full justify-between"
+          className="w-full justify-between text-muted-foreground font-normal"
         >
           {selectedOption ? selectedOption.name : placeholder}
           <ChevronsUpDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />

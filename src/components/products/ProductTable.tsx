@@ -23,6 +23,7 @@ import { Input } from "../ui/input";
 import { Popover, PopoverContent, PopoverTrigger } from "../ui/popover";
 import { Button } from "../ui/button";
 import { FilterIcon } from "lucide-react";
+import Image from "next/image";
 
 const statusOptions = [
   { value: "all", label: "Todos los estados" },
@@ -256,10 +257,19 @@ export default function ProductTable() {
               <TableRow key={product.id} className="">
                 <TableCell className="py-3">
                   <div className="flex items-center gap-3">
-                    {/* Placeholder image since we don't have images yet */}
+                    {product.images && product.images.length > 0 ? (
+                    <Image
+                      src={product.images && product.images.length > 0 ? product.images[0].url : '/placeholder-image.png'}
+                      alt={product.nombre}
+                      width={50}
+                      height={50}
+                      className="h-[50px] w-[50px] overflow-hidden rounded-md bg-gray-200 flex items-center justify-center text-gray-500"
+                    />
+                    ) : (
                     <div className="h-[50px] w-[50px] overflow-hidden rounded-md bg-gray-200 flex items-center justify-center text-gray-500">
                        Img
                     </div>
+                    )}
                     <div>
                       <p className="font-medium text-gray-800 text-theme-sm dark:text-white/90">
                         {product.nombre}

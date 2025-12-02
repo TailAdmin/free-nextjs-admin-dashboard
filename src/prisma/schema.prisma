@@ -5,7 +5,6 @@ generator client {
 datasource db {
   provider = "postgresql"
 }
-
 model User {
   id         Int    @id @default(autoincrement())
   nombre     String
@@ -17,21 +16,19 @@ model User {
 }
 
 model Usuarios {
-  id             Int       @id @default(autoincrement())
-  nombre         String?
-  apellido       String?
-  correo         String    @unique
-  password       String    @map("contrasena")
-  confirmado     Boolean   @default(false)
-  token          String?
-  tokenCreatedAt DateTime? @default(now()) @map("token_created_at")
-  rol            String    @default("usuario")
-  
-
+  id                 Int                 @id @default(autoincrement())
+  nombre             String?
+  apellido           String?
+  correo             String              @unique
+  password           String              @map("contrasena")
+  confirmado         Boolean             @default(false)
+  token              String?
+  tokenCreatedAt     DateTime?           @default(now()) @map("token_created_at")
+  rol                String              @default("usuario")
   profile            Profile?
   giftedCoupons      GiftedCoupon[]
   solicitudVendedors SolicitudVendedor[]
-  products          Product[]
+  products           Product[]
 
   @@map("usuarios")
 }
@@ -54,23 +51,24 @@ model categories {
 }
 
 model Profile {
-  id               Int     @id @default(autoincrement())
-  nombre           String  @db.VarChar(30)
-  apellido         String  @db.VarChar(30)
-  numero           String? @db.VarChar(10)
-  estado           String
-  ciudad           String
-  fraccionamiento  String
-  calle            String
-  codigoPostal     String  @db.VarChar(5)
-  imagen           String  @default("https://res.cloudinary.com/dgpd2ljyh/image/upload/v1748920792/default_nlbjlp.jpg")
-  stripeCustomerId String?
-  RFC           String?
+  id                 Int       @id @default(autoincrement())
+  nombre             String    @db.VarChar(30)
+  apellido           String    @db.VarChar(30)
+  numero             String?   @db.VarChar(10)
+  estado             String
+  ciudad             String
+  fraccionamiento    String
+  calle              String
+  codigoPostal       String    @db.VarChar(5)
+  imagen             String    @default("https://res.cloudinary.com/dgpd2ljyh/image/upload/v1748920792/default_nlbjlp.jpg")
+  stripeCustomerId   String?
+  RFC                String?
   usuarioId          Int?      @unique @map("usuario_id")
   Usuarios           Usuarios? @relation(fields: [usuarioId], references: [id], onDelete: Cascade)
   productosFavoritos Product[] @relation("Favoritos")
 
   facturas        Factura[]
+  guias           Guia[]
   transactions    Transaction[]
   favoritos       Favorito[]
   complaints      Complaint[]
@@ -82,29 +80,37 @@ model Profile {
   deletionReasons deletion_reason[]
 }
 
+enum ProductEstadoEnum {
+  activo
+  inactivo
+  agotado
+  pausado
+}
+
 model Product {
-  id                  Int                  @id @default(autoincrement())
-  nombre              String               @db.VarChar(60)
-  descripcion         String               @db.VarChar(120)
-  categoria           String?
-  altura              Float?               @db.Real
-  largo               Float?               @db.Real
-  ancho               Float?               @db.Real
-  peso                Float?               @db.Real
-  precio              Decimal              @db.Decimal(10, 2)
-  inventario          Int                  @default(0)
-  color               String               @db.VarChar(40)
-  marca               String               @db.VarChar(60)
-  slug                String               @db.VarChar(120)
-  vendedor            String               @db.VarChar(80)
-  estado              Boolean              @default(true)
-  vendidos            Int                  @default(0)
-  sku                 String               @db.VarChar(60)
-  idPerfil            Int?
-  id_category         Int?
-  category            categories?          @relation(fields: [id_category], references: [id])
-  sellerId     Int?
-  seller    Usuarios? @relation(fields: [sellerId], references: [id])
+  id          Int                @id @default(autoincrement())
+  nombre      String             @db.VarChar(60)
+  descripcion String             @db.VarChar(120)
+  categoria   String?
+  altura      Float?             @db.Real
+  largo       Float?             @db.Real
+  ancho       Float?             @db.Real
+  peso        Float?             @db.Real
+  precio      Decimal            @db.Decimal(10, 2)
+  inventario  Int                @default(0)
+  color       String             @db.VarChar(40)
+  marca       String             @db.VarChar(60)
+  slug        String             @db.VarChar(120)
+  vendedor    String             @db.VarChar(80)
+  real_status ProductEstadoEnum? @default(activo) @map("real_status")
+  estado      Boolean            @default(true)
+  vendidos    Int                @default(0)
+  sku         String             @db.VarChar(60)
+  idPerfil    Int?
+  id_category Int?
+  category    categories?        @relation(fields: [id_category], references: [id])
+  sellerId    Int?
+  seller      Usuarios?          @relation(fields: [sellerId], references: [id])
 
   favoritoDe          Profile[]            @relation("Favoritos")
   images              ProductImage[]
@@ -184,6 +190,7 @@ model Pedido {
   productos            PedidoProducto[]
   complaints           Complaint[]
   historialAsignacions HistorialAsignacion[]
+  factura              Factura?
 
   @@map("pedido")
 }
@@ -311,6 +318,9 @@ model Factura {
 
   profileId Int?
   profile   Profile? @relation(fields: [profileId], references: [id])
+
+  pedidoId Int?    @unique @map("pedido_id") // @unique para relación 1:1
+  pedido   Pedido? @relation(fields: [pedidoId], references: [id])
 
   @@map("facturas")
 }
@@ -514,6 +524,8 @@ model Guia {
   id_destinatario String?
   destinatario    ContactoGuia? @relation("Destinatario", fields: [id_destinatario], references: [id_contacto])
 
+  profile_id  Int?
+  profile     Profile?         @relation(fields: [profile_id], references: [id])
   envios      Envio[]
   movimientos MovimientoGuia[]
   incidencias IncidenciaGuia[]

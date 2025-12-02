@@ -22,8 +22,10 @@
     "@prisma/adapter-pg": "^7.0.1",
     "@prisma/client": "^7.0.1",
     "@radix-ui/react-dialog": "^1.1.15",
+    "@radix-ui/react-dropdown-menu": "^2.1.16",
     "@radix-ui/react-popover": "^1.1.15",
     "@radix-ui/react-select": "^2.2.6",
+    "@radix-ui/react-separator": "^1.1.8",
     "@radix-ui/react-slot": "^1.2.4",
     "@react-jvectormap/core": "^1.0.4",
     "@react-jvectormap/world": "^1.1.2",
@@ -31,6 +33,9 @@
     "@tailwindcss/postcss": "^4.1.17",
     "@tanstack/react-query": "^5.90.11",
     "@tanstack/react-query-devtools": "^5.91.1",
+    "@uiw/color-convert": "^2.9.2",
+    "@uiw/react-color-hue": "^2.9.2",
+    "@uiw/react-color-saturation": "^2.9.2",
     "apexcharts": "^4.7.0",
     "autoprefixer": "^10.4.22",
     "bcryptjs": "^3.0.3",
@@ -52,7 +57,8 @@
     "react-dropzone": "^14.3.8",
     "sonner": "^2.0.7",
     "swiper": "^11.2.10",
-    "tailwind-merge": "^2.6.0"
+    "tailwind-merge": "^2.6.0",
+    "vaul": "^1.1.2"
   },
   "devDependencies": {
     "@eslint/eslintrc": "^3.3.1",

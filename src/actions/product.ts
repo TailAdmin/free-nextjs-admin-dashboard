@@ -3,6 +3,8 @@
 import prisma from "@/prisma/prisma";
 import { getServerSession } from "next-auth";
 import { authOptions } from "@/auth";
+import { s3Client, AWS_S3_BUCKET } from "@/lib/s3";
+import { PutObjectCommand } from "@aws-sdk/client-s3";
 
 export type Product = {
    id: number;
@@ -16,6 +18,7 @@ export type Product = {
     inventario: number;
     color: string;
     marca: string;
+    real_status:   "activo" | "inactivo" | "agotado" | "pausado" | null;
     slug: string;
     vendedor: string;
     estado: boolean;
@@ -25,6 +28,11 @@ export type Product = {
     id_category: number | null;
     sellerId: number | null;
     pedidoProductosCount?: number;
+    images: {
+        id: number;
+        url: string;
+        orden: number;
+    }[];
 };
 
 export async function getUniqueBrands() {
@@ -99,7 +107,15 @@ export async function getProducts({
           pedidoProductos: true,
         },
       },
+      images: {
+        select:{
+          url: true,
+          orden: true,  
+          id: true,
+        }
+      }
     },
+
     orderBy: {
       id: "asc",
     },
@@ -131,7 +147,7 @@ export async function createProduct(formData: FormData) {
   
   const slug = nombre.toLowerCase().replace(/ /g, "-") + "-" + Date.now();
 
-  await prisma.product.create({
+  const product = await prisma.product.create({
     data: {
       nombre,
       descripcion,
@@ -148,6 +164,44 @@ export async function createProduct(formData: FormData) {
     },
   });
 
+  const images = formData.getAll("images") as File[];
+
+  if (images && images.length > 0) {
+    const imageData = [];
+
+    for (let index = 0; index < images.length; index++) {
+      const file = images[index];
+      if (file.size === 0) continue;
+
+      const buffer = Buffer.from(await file.arrayBuffer());
+      const fileName = `${product.slug}-${Date.now()}-${index}-${file.name.replace(/[^a-zA-Z0-9.-]/g, "")}`;
+      
+      await s3Client.send(
+        new PutObjectCommand({
+          Bucket: AWS_S3_BUCKET,
+          Key: fileName,
+          Body: buffer,
+          ContentType: file.type,
+        })
+      );
+
+      const url = process.env.NEXT_PUBLIC_R2_DOMAIN 
+        ? `${process.env.NEXT_PUBLIC_R2_DOMAIN}/${fileName}`
+        : `${process.env.AWS_S3_ENDPOINT}/${AWS_S3_BUCKET}/${fileName}`;
+
+      imageData.push({
+        url: url,
+        orden: index,
+        productId: product.id,
+      });
+    }
+
+    if (imageData.length > 0) {
+      await prisma.productImage.createMany({
+        data: imageData,
+      });
+    }
+  }
 }
 
 export async function getCustomersCount(): Promise<number> {

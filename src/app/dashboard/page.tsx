@@ -2,14 +2,13 @@ import type { Metadata } from "next";
 import { EcommerceMetrics } from "@/components/ecommerce/EcommerceMetrics";
 import StatisticsChart from "@/components/ecommerce/StatisticsChart";
 import RecentOrders from "@/components/ecommerce/RecentOrders";
-import { getProducts } from "@/actions/product";
 import { getOrders } from "@/actions/orders";
 import ProductTable from "@/components/products/ProductTable";
 
 export const metadata: Metadata = {
   title:
-    "Next.js E-commerce Dashboard | TailAdmin - Next.js Dashboard Template",
-  description: "This is Next.js Home for TailAdmin Dashboard Template",
+    "Dashboard",
+  description: "Dashboard",
 };
 
 export default async function Ecommerce() {
