@@ -8,9 +8,10 @@ import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { toast } from "sonner";
 import { Dialog, DialogClose, DialogContent, DialogTrigger, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from "../ui/dialog";
 import { useState } from "react";
+import { PlusIcon } from "lucide-react";
 
 
-export default function AddProductDialog() {
+export default function AddProductDialog({className}: {className?: string}) {
   const [isModalOpen, setIsModalOpen] = useState(false);
   const queryClient = useQueryClient();
  function handleSubmit(formData: FormData) {
@@ -33,7 +34,7 @@ export default function AddProductDialog() {
   return (
      <Dialog onOpenChange={setIsModalOpen} open={isModalOpen}>
             <DialogTrigger asChild>
-              <Button size="sm" onClick={() => setIsModalOpen(true)}>Agregar Produto</Button>
+              <Button className={className} size="icon" onClick={() => setIsModalOpen(true)}><PlusIcon className="size-4"/></Button>
             </DialogTrigger>
             <DialogContent>
               <DialogHeader className="sr-only">
@@ -42,7 +43,7 @@ export default function AddProductDialog() {
               </DialogHeader>
               <form action={handleSubmit} className="space-y-4">
       <h2 className="text-xl font-semibold mb-4 text-gray-800 dark:text-white">Agregar producto</h2>
-      
+  
       <div>
         <Label htmlFor="nombre">Nombre</Label>
         <Input type="text" name="nombre" id="nombre" placeholder="Nombre del producto" />
@@ -89,7 +90,6 @@ export default function AddProductDialog() {
         </Button>
       </div>
               </form>
-  
               <DialogFooter>
                 <DialogClose asChild>
                   Cerrar
