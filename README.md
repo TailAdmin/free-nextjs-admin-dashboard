@@ -32,9 +32,11 @@ TailAdmin provides essential UI components and layouts for building feature-rich
 
 ### Other Versions
 
-* [HTML Version](https://github.com/TailAdmin/tailadmin-free-tailwind-dashboard-template)
-* [React Version](https://github.com/TailAdmin/free-react-tailwind-admin-dashboard)
-* [Vue.js Version](https://github.com/TailAdmin/vue-tailwind-admin-dashboard)
+- [Next.js Version](https://github.com/TailAdmin/free-nextjs-admin-dashboard)
+- [React.js Version](https://github.com/TailAdmin/free-react-tailwind-admin-dashboard)
+- [Vue.js Version](https://github.com/TailAdmin/vue-tailwind-admin-dashboard)
+- [Angular Version](https://github.com/TailAdmin/free-angular-tailwind-dashboard)
+- [Laravel Version](https://github.com/TailAdmin/tailadmin-laravel)
 
 ## Installation
 
