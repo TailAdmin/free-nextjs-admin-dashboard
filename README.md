@@ -109,6 +109,11 @@ To learn more about pro version features and pricing, visit our [pricing page](h
 
 ## Changelog
 
+### Version 2.2.2 - [December 30, 2025]
+
+* Fixed date picker positioning and functionality in Statistics Chart.
+
+
 ### Version 2.1.0 - [November 15, 2025]
 
 * Updated to Next.js 16.x

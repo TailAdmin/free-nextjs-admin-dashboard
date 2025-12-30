@@ -361,6 +361,18 @@
   @apply h-auto mt-6 mb-4 !bg-transparent;
 }
 
+.flatpickr-calendar {
+  @apply mt-2 !bg-white !rounded-xl !p-5 !shadow-none !border !border-gray-200 dark:!border-white/5 !text-gray-500 dark:!bg-gray-dark dark:!text-gray-400 dark:!shadow-theme-xl 2xsm:!w-auto;
+}
+
+@media (max-width: 525px) {
+  .flatpickr-calendar.static {
+    left: auto !important;
+    right: 0 !important;
+    margin-right: -30px;
+  }
+}
+
 .flatpickr-weekday {
   @apply !text-theme-sm !font-medium !text-gray-500 dark:!text-gray-400 !bg-transparent;
 }
