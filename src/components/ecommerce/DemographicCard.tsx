@@ -3,7 +3,7 @@ import Image from "next/image";
 
 import CountryMap from "./CountryMap";
 import { useState } from "react";
-import { MoreDotIcon } from "@/icons";
+import { EllipsisVerticalIcon } from "@/components/ui/ellipsis-vertical-icon/EllipsisVerticalIcon";
 import { Dropdown } from "../ui/dropdown/Dropdown";
 import { DropdownItem } from "../ui/dropdown/DropdownItem";
 
@@ -32,7 +32,7 @@ export default function DemographicCard() {
 
         <div className="relative inline-block">
           <button onClick={toggleDropdown} className="dropdown-toggle">
-            <MoreDotIcon className="text-gray-400 hover:text-gray-700 dark:hover:text-gray-300" />
+            <EllipsisVerticalIcon className="text-gray-400 hover:text-gray-700 dark:hover:text-gray-300" />
           </button>
           <Dropdown
             isOpen={isOpen}
