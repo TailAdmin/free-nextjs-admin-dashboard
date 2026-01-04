@@ -1,7 +1,7 @@
 "use client";
 import { ApexOptions } from "apexcharts";
 import dynamic from "next/dynamic";
-import { MoreDotIcon } from "@/icons";
+import { EllipsisVerticalIcon } from "@/components/ui/ellipsis-vertical-icon/EllipsisVerticalIcon";
 import { DropdownItem } from "../ui/dropdown/DropdownItem";
 import { useState } from "react";
 import { Dropdown } from "../ui/dropdown/Dropdown";
@@ -116,7 +116,7 @@ export default function MonthlySalesChart() {
 
         <div className="relative inline-block">
           <button onClick={toggleDropdown} className="dropdown-toggle">
-            <MoreDotIcon className="text-gray-400 hover:text-gray-700 dark:hover:text-gray-300" />
+            <EllipsisVerticalIcon className="text-gray-400 hover:text-gray-700 dark:hover:text-gray-300" />
           </button>
           <Dropdown
             isOpen={isOpen}

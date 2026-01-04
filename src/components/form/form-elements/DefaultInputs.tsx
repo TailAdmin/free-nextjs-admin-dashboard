@@ -4,7 +4,8 @@ import ComponentCard from '../../common/ComponentCard';
 import Label from '../Label';
 import Input from '../input/InputField';
 import Select from '../Select';
-import { ChevronDownIcon, EyeCloseIcon, EyeIcon, TimeIcon } from '../../../icons';
+import { EyeCloseIcon, EyeIcon, TimeIcon } from '../../../icons';
+import { ChevronDownIcon } from "@/components/ui/chevron-down-icon/ChevronDownIcon";
 import DatePicker from '@/components/form/date-picker';
 
 export default function DefaultInputs() {
@@ -32,13 +33,13 @@ export default function DefaultInputs() {
           <Label>Select Input</Label>
           <div className="relative">
             <Select
-            options={options}
-            placeholder="Select an option"
-            onChange={handleSelectChange}
-            className="dark:bg-dark-900"
-          />
-             <span className="absolute text-gray-500 -translate-y-1/2 pointer-events-none right-3 top-1/2 dark:text-gray-400">
-              <ChevronDownIcon/>
+              options={options}
+              placeholder="Select an option"
+              onChange={handleSelectChange}
+              className="dark:bg-dark-900"
+            />
+            <span className="absolute text-gray-500 -translate-y-1/2 pointer-events-none right-3 top-1/2 dark:text-gray-400">
+              <ChevronDownIcon />
             </span>
           </div>
         </div>
