@@ -1,3 +1,5 @@
+// user management ui page (mock example)
+
 import React from "react";
 import UserTable from "@/components/users/UserTable";
 import { users } from "@/data/users";
