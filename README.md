@@ -109,6 +109,10 @@ To learn more about pro version features and pricing, visit our [pricing page](h
 
 ## Changelog
 
+### Version 2.2.3 - [March 15, 2026]
+
+* update ESLint configuration and dependencies; upgrade Next.js to version 16.1.6
+
 ### Version 2.2.2 - [December 30, 2025]
 
 * Fixed date picker positioning and functionality in Statistics Chart.
