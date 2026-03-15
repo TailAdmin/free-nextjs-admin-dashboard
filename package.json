@@ -1,6 +1,6 @@
 {
   "name": "free-nextjs-admin-dashboard",
-  "version": "2.2.2",
+  "version": "2.2.3",
   "private": true,
   "scripts": {
     "dev": "next dev",
@@ -22,7 +22,7 @@
     "apexcharts": "^4.7.0",
     "autoprefixer": "^10.4.22",
     "flatpickr": "^4.6.13",
-    "next": "16.0.10",
+    "next": "^16.1.6",
     "react": "^19.2.0",
     "react-apexcharts": "^1.8.0",
     "react-dnd": "^16.0.1",
