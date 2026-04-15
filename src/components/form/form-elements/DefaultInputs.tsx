@@ -18,11 +18,11 @@ export default function DefaultInputs() {
     console.log("Selected value:", value);
   };
   return (
-    <ComponentCard title="Default Inputs">
+    <ComponentCard title="Basic Inputs">
       <div className="space-y-6">
         <div>
           <Label>Input</Label>
-          <Input type="text" placeholder="Enter here" />
+          <Input type="text" />
         </div>
         <div>
           <Label>Input with Placeholder</Label>
