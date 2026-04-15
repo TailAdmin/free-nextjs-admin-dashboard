@@ -23,6 +23,7 @@ interface Order {
   };
   status: string;
   budget: string;
+  deadline: string;
 }
 
 // Define the table data using the interface
@@ -44,6 +45,7 @@ const tableData: Order[] = [
     },
     budget: "3.9K",
     status: "Active",
+    deadline: "25 Aug 2024",
   },
   {
     id: 2,
@@ -58,6 +60,7 @@ const tableData: Order[] = [
     },
     budget: "24.9K",
     status: "Pending",
+    deadline: "12 Sep 2024",
   },
   {
     id: 3,
@@ -72,6 +75,7 @@ const tableData: Order[] = [
     },
     budget: "12.7K",
     status: "Active",
+    deadline: "05 Oct 2024",
   },
   {
     id: 4,
@@ -90,6 +94,7 @@ const tableData: Order[] = [
     },
     budget: "2.8K",
     status: "Cancel",
+    deadline: "18 Nov 2024",
   },
   {
     id: 5,
@@ -108,6 +113,7 @@ const tableData: Order[] = [
     },
     budget: "4.5K",
     status: "Active",
+    deadline: "30 Dec 2024",
   },
 ];
 
@@ -149,6 +155,12 @@ export default function BasicTableOne() {
                   className="px-5 py-3 font-medium text-gray-500 text-start text-theme-xs dark:text-gray-400"
                 >
                   Budget
+                </TableCell>
+                <TableCell
+                  isHeader
+                  className="px-5 py-3 font-medium text-gray-500 text-start text-theme-xs dark:text-gray-400"
+                >
+                  Deadline
                 </TableCell>
               </TableRow>
             </TableHeader>
@@ -205,8 +217,8 @@ export default function BasicTableOne() {
                         order.status === "Active"
                           ? "success"
                           : order.status === "Pending"
-                          ? "warning"
-                          : "error"
+                            ? "warning"
+                            : "error"
                       }
                     >
                       {order.status}
@@ -214,6 +226,9 @@ export default function BasicTableOne() {
                   </TableCell>
                   <TableCell className="px-4 py-3 text-gray-500 text-theme-sm dark:text-gray-400">
                     {order.budget}
+                  </TableCell>
+                  <TableCell className="px-4 py-3 text-gray-500 text-theme-sm dark:text-gray-400">
+                    {order.deadline}
                   </TableCell>
                 </TableRow>
               ))}
