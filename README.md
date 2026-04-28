@@ -109,6 +109,14 @@ To learn more about pro version features and pricing, visit our [pricing page](h
 
 ## Changelog
 
+### Version 2.3.0 - [April 28, 2026]
+
+- **New Feature**: Added **AI Dashboard** with token usage and revenue tracking.
+- **New Feature**: Added **Sales Dashboard** with retention and multi-channel analytics.
+- **New Feature**: Added **Finance Dashboard** with cashflow and balance management.
+- **New Feature**: Introduced **6 New Layout variations** for improved UI flexibility.
+- **Enhancement**: Integrated **Advanced Data Visualization** with 7+ new chart types.
+
 ### Version 2.2.3 - [March 15, 2026]
 
 * update ESLint configuration and dependencies; upgrade Next.js to version 16.1.6
