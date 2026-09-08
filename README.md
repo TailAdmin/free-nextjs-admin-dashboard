@@ -12,23 +12,23 @@ TailAdmin utilizes the powerful features of **Next.js 16** and common features o
 
 TailAdmin provides essential UI components and layouts for building feature-rich, data-driven admin dashboards and control panels. It's built on:
 
-* Next.js 16.x
-* React 19
-* TypeScript
-* Tailwind CSS V4
+- Next.js 16.x
+- React 19
+- TypeScript
+- Tailwind CSS V4
 
 ### Quick Links
 
-* [✨ Visit Website](https://tailadmin.com)
-* [📄 Documentation](https://tailadmin.com/docs)
-* [⬇️ Download](https://tailadmin.com/download)
-* [🖌️ Figma Design File (Community Edition)](https://www.figma.com/community/file/1463141366275764364)
-* [⚡ Get PRO Version](https://tailadmin.com/pricing)
+- [✨ Visit Website](https://tailadmin.com)
+- [📄 Documentation](https://tailadmin.com/docs)
+- [⬇️ Download](https://tailadmin.com/download)
+- [🖌️ Figma Design File (Community Edition)](https://www.figma.com/community/file/1463141366275764364)
+- [⚡ Get PRO Version](https://tailadmin.com/pricing)
 
 ### Demos
 
-* [Free Version](https://nextjs-free-demo.tailadmin.com)
-* [Pro Version](https://nextjs-demo.tailadmin.com)
+- [Free Version](https://nextjs-free-demo.tailadmin.com)
+- [Pro Version](https://nextjs-demo.tailadmin.com)
 
 ### Other Versions
 
@@ -44,7 +44,7 @@ TailAdmin provides essential UI components and layouts for building feature-rich
 
 To get started with TailAdmin, ensure you have the following prerequisites installed and set up:
 
-* Node.js 18.x or later (recommended to use Node.js 20.x or later)
+- Node.js 20.x or later
 
 ### Cloning the Repository
 
@@ -78,13 +78,13 @@ git clone https://github.com/TailAdmin/free-nextjs-admin-dashboard.git
 
 TailAdmin is a pre-designed starting point for building a web-based dashboard using Next.js and Tailwind CSS. The template includes:
 
-* Sophisticated and accessible sidebar
-* Data visualization components
-* Profile management and custom 404 page
-* Tables and Charts(Line and Bar)
-* Authentication forms and input elements
-* Alerts, Dropdowns, Modals, Buttons and more
-* Can't forget Dark Mode 🕶️
+- Sophisticated and accessible sidebar
+- Data visualization components
+- Profile management and custom 404 page
+- Tables and Charts(Line and Bar)
+- Authentication forms and input elements
+- Alerts, Dropdowns, Modals, Buttons and more
+- Can't forget Dark Mode 🕶️
 
 All components are built with React and styled using Tailwind CSS for easy customization.
 
@@ -92,22 +92,42 @@ All components are built with React and styled using Tailwind CSS for easy custo
 
 ### Free Version
 
-* 1 Unique Dashboard
-* 30+ dashboard components
-* 50+ UI elements
-* Basic Figma design files
-* Community support
+- 1 Unique Dashboard
+- 30+ dashboard components
+- 50+ UI elements
+- Basic Figma design files
+- Community support
 
 ### Pro Version
 
-* 7 Unique Dashboards: Analytics, Ecommerce, Marketing, CRM, SaaS, Stocks, Logistics (more coming soon)
-* 500+ dashboard components and UI elements
-* Complete Figma design file
-* Email support
+- 7 Unique Dashboards: Ecommerce, Analytics, Marketing, CRM, Stocks, SaaS, Logistics, AI, Sales, Finance (more coming soon)
+- 500+ dashboard components and UI elements
+- Complete Figma design file
+- Email support
 
 To learn more about pro version features and pricing, visit our [pricing page](https://tailadmin.com/pricing).
 
 ## Changelog
+
+### Version 2.4.0 - [September 13, 2026]
+
+- Added Internationalization (Multi Language) support.
+- Updated complete template styles to support RTL.
+- Added Yearly View into calendar page.
+- Updated `maplibre-gl` implementation with `react-map-gl`.
+- Added new requested components and fixed noted accessibility issues.
+- Updated project structure and component compositions for easy adaption.
+- Added AGENTS.md to easily work with AI Agents.
+- Updated all the packages and libraries to the latest versions. Also removed unused packages.
+
+### Version 2.3.1 - [May 23, 2026]
+
+- Added AI Settings page to configure models, keys, and token limits.
+- Added Maps page with MapLibre GL, Leaflet, and iframe styles.
+- Added Vector Maps page powered by AmCharts 5 geodata (World & USA).
+- Added Radar Charts page with 3 unique formats.
+- Added Radial Progress Charts page featuring 4 custom layout templates.
+- Introduced new Bar Charts Five & Six and Pie Charts Four & Five.
 
 ### Version 2.3.0 - [April 28, 2026]
 
@@ -119,38 +139,37 @@ To learn more about pro version features and pricing, visit our [pricing page](h
 
 ### Version 2.2.3 - [March 15, 2026]
 
-* update ESLint configuration and dependencies; upgrade Next.js to version 16.1.6
+- update ESLint configuration and dependencies; upgrade Next.js to version 16.1.6
 
 ### Version 2.2.2 - [December 30, 2025]
 
-* Fixed date picker positioning and functionality in Statistics Chart.
-
+- Fixed date picker positioning and functionality in Statistics Chart.
 
 ### Version 2.1.0 - [November 15, 2025]
 
-* Updated to Next.js 16.x
-* Fixed all reported minor bugs
+- Updated to Next.js 16.x
+- Fixed all reported minor bugs
 
 ### Version 2.0.2 - [March 25, 2025]
 
-* Upgraded to Next.js 16.x for [CVE-2025-29927](https://nextjs.org/blog/cve-2025-29927) concerns
-* Included overrides vectormap for packages to prevent peer dependency errors during installation.
-* Migrated from react-flatpickr to flatpickr package for React 19 support
+- Upgraded to Next.js 16.x for [CVE-2025-29927](https://nextjs.org/blog/cve-2025-29927) concerns
+- Included overrides vectormap for packages to prevent peer dependency errors during installation.
+- Migrated from react-flatpickr to flatpickr package for React 19 support
 
 ### Version 2.0.1 - [February 27, 2025]
 
 #### Update Overview
 
-* Upgraded to Tailwind CSS v4 for better performance and efficiency.
-* Updated class usage to match the latest syntax and features.
-* Replaced deprecated class and optimized styles.
+- Upgraded to Tailwind CSS v4 for better performance and efficiency.
+- Updated class usage to match the latest syntax and features.
+- Replaced deprecated class and optimized styles.
 
 #### Next Steps
 
-* Run npm install or yarn install to update dependencies.
-* Check for any style changes or compatibility issues.
-* Refer to the Tailwind CSS v4 [Migration Guide](https://tailwindcss.com/docs/upgrade-guide) on this release. if needed.
-* This update keeps the project up to date with the latest Tailwind improvements. 🚀
+- Run npm install or yarn install to update dependencies.
+- Check for any style changes or compatibility issues.
+- Refer to the Tailwind CSS v4 [Migration Guide](https://tailwindcss.com/docs/upgrade-guide) on this release. if needed.
+- This update keeps the project up to date with the latest Tailwind improvements. 🚀
 
 ### v2.0.0 (February 2025)
 
@@ -158,51 +177,52 @@ A major update focused on Next.js 16 implementation and comprehensive redesign.
 
 #### Major Improvements
 
-* Complete redesign using Next.js 16 App Router and React Server Components
-* Enhanced user interface with Next.js-optimized components
-* Improved responsiveness and accessibility
-* New features including collapsible sidebar, chat screens, and calendar
-* Redesigned authentication using Next.js App Router and server actions
-* Updated data visualization using ApexCharts for React
+- Complete redesign using Next.js 16 App Router and React Server Components
+- Enhanced user interface with Next.js-optimized components
+- Improved responsiveness and accessibility
+- New features including collapsible sidebar, chat screens, and calendar
+- Redesigned authentication using Next.js App Router and server actions
+- Updated data visualization using ApexCharts for React
 
 #### Breaking Changes
 
-* Migrated from Next.js 14 to Next.js 16
-* Chart components now use ApexCharts for React
-* Authentication flow updated to use Server Actions and middleware
+- Migrated from Next.js 14 to Next.js 16
+- Chart components now use ApexCharts for React
+- Authentication flow updated to use Server Actions and middleware
 
 [Read more](https://tailadmin.com/docs/update-logs/nextjs) on this release.
 
 ### v1.3.4 (July 01, 2024)
 
-* Fixed JSvectormap rendering issues
+- Fixed JSvectormap rendering issues
 
 ### v1.3.3 (June 20, 2024)
 
-* Fixed build error related to Loader component
+- Fixed build error related to Loader component
 
 ### v1.3.2 (June 19, 2024)
 
-* Added ClickOutside component for dropdown menus
-* Refactored sidebar components
-* Updated Jsvectormap package
+- Added ClickOutside component for dropdown menus
+- Refactored sidebar components
+- Updated Jsvectormap package
 
 ### v1.3.1 (Feb 12, 2024)
 
-* Fixed layout naming consistency
-* Updated styles
+- Fixed layout naming consistency
+- Updated styles
 
 ### v1.3.0 (Feb 05, 2024)
 
-* Upgraded to Next.js 14
-* Added Flatpickr integration
-* Improved form elements
-* Enhanced multiselect functionality
-* Added default layout component
+- Upgraded to Next.js 14
+- Added Flatpickr integration
+- Improved form elements
+- Enhanced multiselect functionality
+- Added default layout component
 
 ## License
 
 TailAdmin Next.js Free Version is released under the MIT License.
 
 ## Support
+
 If you find this project helpful, please consider giving it a star on GitHub. Your support helps us continue developing and maintaining this template.
