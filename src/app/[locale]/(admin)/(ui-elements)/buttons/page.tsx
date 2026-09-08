@@ -3,7 +3,6 @@ import PageBreadcrumb from "@/components/common/PageBreadCrumb";
 import Button from "@/components/ui/button/Button";
 import { BoxIcon } from "@/icons";
 import { Metadata } from "next";
-import React from "react";
 
 export const metadata: Metadata = {
   title: "Next.js Buttons | TailAdmin - Next.js Dashboard Template",
