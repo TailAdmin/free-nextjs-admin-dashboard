@@ -1,109 +1,57 @@
-import PlusIcon from "./plus.svg";
-import CloseIcon from "./close.svg";
-import BoxIcon from "./box.svg";
-import CheckCircleIcon from "./check-circle.svg";
-import AlertIcon from "./alert.svg";
-import InfoIcon from "./info.svg";
-import ErrorIcon from "./info-hexa.svg";
-import BoltIcon from "./bolt.svg";
-import ArrowUpIcon from "./arrow-up.svg";
-import ArrowDownIcon from "./arrow-down.svg";
-import FolderIcon from "./folder.svg";
-import VideoIcon from "./videos.svg";
-import AudioIcon from "./audio.svg";
-import GridIcon from "./grid.svg";
-import FileIcon from "./file.svg";
-import DownloadIcon from "./download.svg";
-import ArrowRightIcon from "./arrow-right.svg";
-import GroupIcon from "./group.svg";
-import BoxIconLine from "./box-line.svg";
-import ShootingStarIcon from "./shooting-star.svg";
-import DollarLineIcon from "./dollar-line.svg";
-import TrashBinIcon from "./trash.svg";
-import AngleUpIcon from "./angle-up.svg";
-import AngleDownIcon from "./angle-down.svg";
-import PencilIcon from "./pencil.svg";
-import CheckLineIcon from "./check-line.svg";
-import CloseLineIcon from "./close-line.svg";
-import ChevronDownIcon from "./chevron-down.svg";
-import ChevronUpIcon from "./chevron-up.svg";
-import PaperPlaneIcon from "./paper-plane.svg";
-import LockIcon from "./lock.svg";
-import EnvelopeIcon from "./envelope.svg";
-import UserIcon from "./user-line.svg";
-import CalenderIcon from "./calender-line.svg";
-import EyeIcon from "./eye.svg";
-import EyeCloseIcon from "./eye-close.svg";
-import TimeIcon from "./time.svg";
-import CopyIcon from "./copy.svg";
-import ChevronLeftIcon from "./chevron-left.svg";
-import UserCircleIcon from "./user-circle.svg";
-import TaskIcon from "./task-icon.svg";
-import ListIcon from "./list.svg";
-import TableIcon from "./table.svg";
-import PageIcon from "./page.svg";
-import PieChartIcon from "./pie-chart.svg";
-import BoxCubeIcon from "./box-cube.svg";
-import PlugInIcon from "./plug-in.svg";
-import DocsIcon from "./docs.svg";
-import MailIcon from "./mail-line.svg";
-import HorizontaLDots from "./horizontal-dots.svg";
-import ChatIcon from "./chat.svg";
-import MoreDotIcon from "./more-dot.svg";
-import BellIcon from "./bell.svg";
-
-export {
-  DownloadIcon,
-  BellIcon,
-  MoreDotIcon,
-  FileIcon,
-  GridIcon,
-  AudioIcon,
-  VideoIcon,
-  BoltIcon,
-  PlusIcon,
-  BoxIcon,
-  CloseIcon,
-  CheckCircleIcon,
-  AlertIcon,
-  InfoIcon,
-  ErrorIcon,
-  ArrowUpIcon,
-  FolderIcon,
-  ArrowDownIcon,
-  ArrowRightIcon,
-  GroupIcon,
-  BoxIconLine,
-  ShootingStarIcon,
-  DollarLineIcon,
-  TrashBinIcon,
-  AngleUpIcon,
-  AngleDownIcon,
-  PencilIcon,
-  CheckLineIcon,
-  CloseLineIcon,
-  ChevronDownIcon,
-  PaperPlaneIcon,
-  EnvelopeIcon,
-  LockIcon,
-  UserIcon,
-  CalenderIcon,
-  EyeIcon,
-  EyeCloseIcon,
-  TimeIcon,
-  CopyIcon,
-  ChevronLeftIcon,
-  UserCircleIcon,
-  ListIcon,
-  TableIcon,
-  PageIcon,
-  TaskIcon,
-  PieChartIcon,
-  BoxCubeIcon,
-  PlugInIcon,
-  DocsIcon,
-  MailIcon,
-  HorizontaLDots,
-  ChevronUpIcon,
-  ChatIcon,
-};
+export { default as AlertIcon } from "./alert.svg";
+export { default as AngleDownIcon } from "./angle-down.svg";
+export { default as AngleUpIcon } from "./angle-up.svg";
+export { default as ArrowDownIcon } from "./arrow-down.svg";
+export { default as ArrowRightIcon } from "./arrow-right.svg";
+export { default as ArrowUpIcon } from "./arrow-up.svg";
+export { default as AudioIcon } from "./audio.svg";
+export { default as BoltIcon } from "./bolt.svg";
+export { default as BoxCubeIcon } from "./box-cube.svg";
+export { default as BoxIconLine } from "./box-line.svg";
+export { default as BoxIcon, default as BoxTapped } from "./box.svg";
+export { default as CalenderIcon } from "./calender-line.svg";
+export { default as ChatIcon } from "./chat.svg";
+export { default as CheckCircleIcon } from "./check-circle.svg";
+export { default as CheckLineIcon } from "./check-line.svg";
+export { default as ChevronDownIcon } from "./chevron-down.svg";
+export { default as ChevronLeftIcon } from "./chevron-left.svg";
+export { default as ChevronUpIcon } from "./chevron-up.svg";
+export { default as CloseLineIcon } from "./close-line.svg";
+export { default as CloseIcon } from "./close.svg";
+export { default as CopyIcon } from "./copy.svg";
+export { default as DocsIcon } from "./docs.svg";
+export { default as DollarLineIcon } from "./dollar-line.svg";
+export { default as DownloadIcon } from "./download.svg";
+export { default as EnvelopeIcon } from "./envelope.svg";
+export { default as EyeCloseIcon } from "./eye-close.svg";
+export { default as EyeIcon } from "./eye.svg";
+export { default as FileIcon } from "./file.svg";
+export { default as DeFlagIcon } from "./flag-de.svg";
+export { default as EsFlagIcon } from "./flag-es.svg";
+export { default as SaFlagIcon } from "./flag-sa.svg";
+export { default as UsFlagIcon } from "./flag-us.svg";
+export { default as FolderIcon } from "./folder.svg";
+export { default as GridIcon } from "./grid.svg";
+export { default as GroupIcon } from "./group.svg";
+export { default as HorizontaLDots } from "./horizontal-dots.svg";
+export { default as ErrorIcon } from "./info-hexa.svg";
+export { default as InfoIcon } from "./info.svg";
+export { default as ListIcon } from "./list.svg";
+export { default as LockIcon } from "./lock.svg";
+export { default as MailIcon } from "./mail-line.svg";
+export { default as MoreDotIcon } from "./more-dot.svg";
+export { default as PageIcon } from "./page.svg";
+export { default as PaperPlaneIcon } from "./paper-plane.svg";
+export { default as PencilIcon } from "./pencil.svg";
+export { default as PieChartIcon } from "./pie-chart.svg";
+export { default as PlugInIcon } from "./plug-in.svg";
+export { default as PlusIcon } from "./plus.svg";
+export { default as ShootingStarIcon } from "./shooting-star.svg";
+export { default as TableIcon } from "./table.svg";
+export { default as TaskIcon } from "./task-icon.svg";
+export { default as TimeIcon } from "./time.svg";
+export { default as TrashBinIcon } from "./trash.svg";
+export { default as UploadIcon } from "./upload.svg";
+export { default as UserCircleIcon } from "./user-circle.svg";
+export { default as UserIcon } from "./user-line.svg";
+export { default as VideoIcon } from "./videos.svg";

@@ -1,281 +1,436 @@
 "use client";
-import React, { useState, useRef, useEffect } from "react";
-import FullCalendar from "@fullcalendar/react";
-import dayGridPlugin from "@fullcalendar/daygrid";
-import timeGridPlugin from "@fullcalendar/timegrid";
-import interactionPlugin from "@fullcalendar/interaction";
-import {
-  EventInput,
-  DateSelectArg,
-  EventClickArg,
-  EventContentArg,
-} from "@fullcalendar/core";
-import { useModal } from "@/hooks/useModal";
-import { Modal } from "@/components/ui/modal";
 
-interface CalendarEvent extends EventInput {
-  extendedProps: {
-    calendar: string;
-  };
-}
+import { useModal } from "@/hooks/useModal";
+import { isRtl } from "@/i18n/languages";
+import type { Locale } from "@/i18n/routing";
+import type {
+  DateSelectInfo,
+  EventClickInfo,
+  EventDisplayInfo,
+} from "@fullcalendar/react";
+import FullCalendar, { CalendarRef } from "@fullcalendar/react";
+import dayGridPlugin from "@fullcalendar/react/daygrid";
+import interactionPlugin from "@fullcalendar/react/interaction";
+import multiMonthPlugin from "@fullcalendar/react/multimonth";
+import themePlugin from "@fullcalendar/react/themes/classic";
+import timeGridPlugin from "@fullcalendar/react/timegrid";
+import { useLocale } from "next-intl";
+import React, { useEffect, useRef, useState } from "react";
+import CalendarEventItem from "./CalendarEventItem";
+import CalendarEventModal from "./CalendarEventModal";
+import CalendarViewSelect from "./CalendarViewSelect";
+import {
+  BookmarkIcon,
+  ChevronLeftIcon,
+  ChevronRightIcon,
+  CloseIcon,
+} from "./icons";
+import type { CalendarEvent, EventFormData } from "./types";
+
+const INITIAL_EVENTS: CalendarEvent[] = [
+  {
+    id: "1",
+    title: "Event Conf.",
+    start: new Date().toISOString().split("T")[0],
+    extendedProps: { calendar: "Danger" },
+  },
+  {
+    id: "2",
+    title: "Meeting",
+    start: new Date(Date.now() + 86400000).toISOString().split("T")[0],
+    extendedProps: { calendar: "Success" },
+  },
+  {
+    id: "3",
+    title: "Workshop",
+    start: new Date(Date.now() + 172800000).toISOString().split("T")[0],
+    end: new Date(Date.now() + 259200000).toISOString().split("T")[0],
+    extendedProps: { calendar: "Primary" },
+  },
+];
 
 const Calendar: React.FC = () => {
+  const locale = useLocale();
+  const isRtlLayout = isRtl(locale as Locale);
+
+  const [events, setEvents] = useState<CalendarEvent[]>(INITIAL_EVENTS);
   const [selectedEvent, setSelectedEvent] = useState<CalendarEvent | null>(
-    null
+    null,
   );
-  const [eventTitle, setEventTitle] = useState("");
-  const [eventStartDate, setEventStartDate] = useState("");
-  const [eventEndDate, setEventEndDate] = useState("");
-  const [eventLevel, setEventLevel] = useState("");
-  const [events, setEvents] = useState<CalendarEvent[]>([]);
-  const calendarRef = useRef<FullCalendar>(null);
+  const [selectedStartDate, setSelectedStartDate] = useState("");
+  const [selectedEndDate, setSelectedEndDate] = useState("");
+  const [currentView, setCurrentView] = useState("dayGridMonth");
+  const [portalNode, setPortalNode] = useState<Element | null>(null);
+
+  const calendarRef = useRef<CalendarRef>(null);
+  const calendarContainerRef = useRef<HTMLDivElement>(null);
   const { isOpen, openModal, closeModal } = useModal();
 
-  const calendarsEvents = {
-    Danger: "danger",
-    Success: "success",
-    Primary: "primary",
-    Warning: "warning",
+  const handleViewChange = (viewKey: string) => {
+    setCurrentView(viewKey);
+    calendarRef.current?.getApi()?.changeView(viewKey);
   };
 
-  useEffect(() => {
-    // Initialize with some events
-    setEvents([
-      {
-        id: "1",
-        title: "Event Conf.",
-        start: new Date().toISOString().split("T")[0],
-        extendedProps: { calendar: "Danger" },
-      },
-      {
-        id: "2",
-        title: "Meeting",
-        start: new Date(Date.now() + 86400000).toISOString().split("T")[0],
-        extendedProps: { calendar: "Success" },
-      },
-      {
-        id: "3",
-        title: "Workshop",
-        start: new Date(Date.now() + 172800000).toISOString().split("T")[0],
-        end: new Date(Date.now() + 259200000).toISOString().split("T")[0],
-        extendedProps: { calendar: "Primary" },
-      },
-    ]);
-  }, []);
+  const handleOpenAddModal = () => {
+    const currentDate = new Date();
+    const yyyy = currentDate.getFullYear();
+    const mm = String(currentDate.getMonth() + 1).padStart(2, "0");
+    const dd = String(currentDate.getDate()).padStart(2, "0");
+    const combineDate = `${yyyy}-${mm}-${dd}`;
 
-  const handleDateSelect = (selectInfo: DateSelectArg) => {
-    resetModalFields();
-    setEventStartDate(selectInfo.startStr);
-    setEventEndDate(selectInfo.endStr || selectInfo.startStr);
+    setSelectedEvent(null);
+    setSelectedStartDate(combineDate);
+    setSelectedEndDate(combineDate);
     openModal();
   };
 
-  const handleEventClick = (clickInfo: EventClickArg) => {
+  const handleDateSelect = (selectInfo: DateSelectInfo) => {
+    const startStr = selectInfo.startStr
+      ? selectInfo.startStr.split("T")[0]
+      : "";
+    const endStr = selectInfo.endStr
+      ? selectInfo.endStr.split("T")[0]
+      : startStr;
+
+    setSelectedEvent(null);
+    setSelectedStartDate(startStr);
+    setSelectedEndDate(endStr);
+    openModal();
+  };
+
+  const handleEventClick = (clickInfo: EventClickInfo) => {
     const event = clickInfo.event;
-    setSelectedEvent(event as unknown as CalendarEvent);
-    setEventTitle(event.title);
-    setEventStartDate(event.start?.toISOString().split("T")[0] || "");
-    setEventEndDate(event.end?.toISOString().split("T")[0] || "");
-    setEventLevel(event.extendedProps.calendar);
+    if (event.url) {
+      window.open(event.url);
+      clickInfo.jsEvent?.preventDefault();
+      return;
+    }
+
+    const startStr = event.startStr ? event.startStr.split("T")[0] : "";
+    const endStr = event.endStr ? event.endStr.split("T")[0] : startStr;
+
+    setSelectedEvent({
+      id: event.id,
+      title: event.title,
+      start: event.startStr,
+      end: event.endStr,
+      extendedProps: { calendar: event.extendedProps?.calendar || "Primary" },
+    });
+    setSelectedStartDate(startStr);
+    setSelectedEndDate(endStr);
     openModal();
   };
 
-  const handleAddOrUpdateEvent = () => {
+  const handleSaveEvent = (formData: EventFormData) => {
+    const titleVal =
+      formData.title.trim() || (selectedEvent ? "Event" : "New Event");
+    const startDateVal = formData.start;
+    const endDateVal = formData.end || startDateVal;
+    const levelVal = formData.level || "Primary";
+
     if (selectedEvent) {
-      // Update existing event
       setEvents((prevEvents) =>
-        prevEvents.map((event) =>
-          event.id === selectedEvent.id
+        prevEvents.map((ev) =>
+          String(ev.id) === String(selectedEvent.id)
             ? {
-                ...event,
-                title: eventTitle,
-                start: eventStartDate,
-                end: eventEndDate,
-                extendedProps: { calendar: eventLevel },
+                ...ev,
+                title: titleVal,
+                start: startDateVal,
+                end: endDateVal || startDateVal,
+                extendedProps: { calendar: levelVal },
               }
-            : event
-        )
+            : ev,
+        ),
       );
     } else {
-      // Add new event
       const newEvent: CalendarEvent = {
         id: Date.now().toString(),
-        title: eventTitle,
-        start: eventStartDate,
-        end: eventEndDate,
+        title: titleVal,
+        start: startDateVal,
+        end: endDateVal || startDateVal,
         allDay: true,
-        extendedProps: { calendar: eventLevel },
+        extendedProps: { calendar: levelVal },
       };
       setEvents((prevEvents) => [...prevEvents, newEvent]);
     }
     closeModal();
-    resetModalFields();
   };
 
-  const resetModalFields = () => {
-    setEventTitle("");
-    setEventStartDate("");
-    setEventEndDate("");
-    setEventLevel("");
-    setSelectedEvent(null);
-  };
+  useEffect(() => {
+    const frameId = requestAnimationFrame(() => {
+      const el = calendarContainerRef.current?.querySelector(
+        ".ta-toolbar-section:last-child",
+      );
+      if (el) {
+        setPortalNode(el);
+      }
+    });
+    return () => cancelAnimationFrame(frameId);
+  }, [isRtlLayout]);
 
   return (
-    <div className="rounded-2xl border  border-gray-200 bg-white dark:border-gray-800 dark:bg-white/[0.03]">
-      <div className="custom-calendar">
+    <div className="overflow-hidden rounded-2xl border border-gray-200 bg-white dark:border-gray-800 dark:bg-white/3">
+      <div className="custom-calendar relative" ref={calendarContainerRef}>
         <FullCalendar
+          key={isRtlLayout ? "rtl" : "ltr"}
           ref={calendarRef}
-          plugins={[dayGridPlugin, timeGridPlugin, interactionPlugin]}
+          plugins={[
+            themePlugin,
+            dayGridPlugin,
+            timeGridPlugin,
+            interactionPlugin,
+            multiMonthPlugin,
+          ]}
           initialView="dayGridMonth"
+          direction={isRtlLayout ? "rtl" : "ltr"}
+          // Toolbar Header configuration
           headerToolbar={{
-            left: "prev,next addEventButton",
+            start: "prev,next addEventButton",
             center: "title",
-            right: "dayGridMonth,timeGridWeek,timeGridDay",
+            end: "",
           }}
-          events={events}
-          selectable={true}
-          select={handleDateSelect}
-          eventClick={handleEventClick}
-          eventContent={renderEventContent}
-          customButtons={{
+          headerToolbarClass="sticky top-0! flex-col gap-4 z-20! [padding-inline:24px]! pt-6 sm:flex-row"
+          toolbarTitleClass="text-lg! font-medium! text-gray-800 dark:text-white/90"
+          toolbarSectionClass="ta-toolbar-section"
+          buttonGroupClass="gap-2"
+          buttons={{
+            prev: {
+              iconContent: () => (
+                <ChevronLeftIcon className="size-6 bg-transparent text-gray-700 rtl:rotate-180 dark:text-gray-400" />
+              ),
+              className:
+                "flex size-10! p-0! items-center justify-center! rounded-lg! border! bg-transparent! border-gray-200! text-gray-700 hover:border-gray-200 hover:bg-gray-50! focus:shadow-none active:border-gray-200! active:bg-transparent! active:shadow-none! dark:border-gray-800! dark:text-gray-400 dark:hover:border-gray-800 dark:hover:bg-gray-900! dark:active:border-gray-800!",
+            },
+            next: {
+              iconContent: () => (
+                <ChevronRightIcon className="size-6 bg-transparent text-gray-700 rtl:rotate-180 dark:text-gray-400" />
+              ),
+              className:
+                "flex size-10! p-0! items-center justify-center! rounded-lg! border! bg-transparent! border-gray-200! text-gray-700 hover:border-gray-200 hover:bg-gray-50! focus:shadow-none active:border-gray-200! active:bg-transparent! active:shadow-none! dark:border-gray-800! dark:text-gray-400 dark:hover:border-gray-800 dark:hover:bg-gray-900! dark:active:border-gray-800!",
+            },
             addEventButton: {
               text: "Add Event +",
-              click: openModal,
+              click: () => handleOpenAddModal(),
+              className:
+                "rounded-lg! border-0! bg-brand-500! px-4! py-2.5! text-sm! font-medium! text-white hover:bg-brand-600! focus:shadow-none! w-auto!",
             },
           }}
+          // View configurations
+          views={{
+            multiMonthYear: {
+              aspectRatio: 1.2,
+              contentHeight: "auto",
+              height: "auto",
+              multiMonthMaxColumns: 3,
+              tableClass: "overflow-hidden! rounded-lg!",
+              singleMonthMinWidth: 320,
+              showNonCurrentDates: true,
+              singleMonthHeaderInnerClass:
+                "text-sm font-medium! text-gray-800 dark:text-white/90",
+              dayHeaderClass: (data: any) =>
+                data.inPopover
+                  ? "relative! border-b! border-gray-200! bg-gray-50/70! px-4! py-3! text-start! dark:border-gray-800! dark:bg-gray-800/50!"
+                  : "border-0! bg-gray-50 py-2! dark:bg-gray-900",
+              dayHeaderInnerClass: (data: any) =>
+                data.inPopover
+                  ? "text-sm! font-semibold! text-gray-800! dark:text-white/90!"
+                  : "py-1 text-xs font-medium text-gray-400 uppercase",
+              dayCellClass: (data: any) => {
+                if (data.inPopover) return "bg-transparent! p-3!";
+                let cls = "relative! p-0.5 sm:p-1!";
+                if (data.isToday)
+                  cls += " isolate bg-gray-100! font-semibold text-brand-500";
+                if (data.isOther) cls += " bg-transparent!";
+                return cls;
+              },
+              dayCellInnerClass: (data: any) =>
+                data.inPopover
+                  ? "flex custom-scrollbar max-h-60 flex-col gap-1.5 overflow-y-auto"
+                  : "",
+              dayCellTopInnerClass: "text-sm!",
+              dayMaxEvents: 0,
+              rowMoreLinkClass:
+                "absolute! -top-1! -start-0.5! z-10! border-0! bg-transparent! p-0!",
+              rowMoreLinkInnerClass: "overflow-visible!",
+              moreLinkContent() {
+                return (
+                  <span>
+                    <BookmarkIcon className="size-5.5 text-brand-500" />
+                  </span>
+                );
+              },
+            },
+            dayGridMonth: {
+              dayMaxEvents: 2,
+              dayHeaderAlign: (data: any) =>
+                data.inPopover ? "start" : "center",
+              dayHeaderClass: (data: any) =>
+                data.inPopover
+                  ? "relative! border-b! border-gray-200! bg-gray-50/70! px-4! py-3! text-start! dark:border-gray-800! dark:bg-gray-800/50!"
+                  : "border-x-0! border-t border-gray-200! bg-gray-50 dark:border-gray-800! dark:bg-gray-900",
+              dayHeaderInnerClass: (data: any) =>
+                data.inPopover
+                  ? "text-sm! font-semibold! text-gray-800! dark:text-white/90!"
+                  : "px-5! py-4! text-sm font-medium text-gray-400 uppercase",
+              dayCellClass: (data: any) => {
+                if (data.inPopover) return "bg-transparent! p-3!";
+                return `bg-transparent! p-2! ${
+                  data.isToday ? "bg-gray-100! dark:bg-gray-800/40!" : ""
+                }`;
+              },
+              dayCellInnerClass: (data: any) => {
+                if (data.inPopover)
+                  return "flex custom-scrollbar max-h-60 flex-col gap-1.5 overflow-y-auto";
+                return data.isToday ? "rounded-sm!" : "";
+              },
+              moreLinkClass:
+                "border-0! bg-transparent! p-0! hover:bg-transparent! focus:outline-none",
+              moreLinkContent(args: any) {
+                return (
+                  <span className="fc-more-link-badge inline-flex items-center rounded-sm bg-brand-50 px-1.5 py-0.5 text-xs font-medium text-brand-600 transition-colors hover:bg-brand-100 dark:bg-brand-500/15 dark:text-brand-400 dark:hover:bg-brand-500/25">
+                    +{args.num} more
+                  </span>
+                );
+              },
+            },
+            timeGridWeek: {
+              slotDuration: "01:00:00",
+              slotMinHeight: 56,
+              allDaySlot: true,
+              dayHeaderContent: (arg: any) => {
+                const weekday = new Intl.DateTimeFormat(locale, {
+                  weekday: "short",
+                })
+                  .format(arg.date)
+                  .toUpperCase();
+                const day = new Intl.DateTimeFormat(locale, {
+                  day: "numeric",
+                }).format(arg.date);
+                return `${weekday} - ${day}`;
+              },
+              dayHeaderClass: (data: any) =>
+                `border-0! bg-gray-50! dark:bg-gray-900! ${
+                  data.isToday ? "bg-gray-100/70! dark:bg-gray-800/60!" : ""
+                }`,
+              dayHeaderInnerClass: (data: any) =>
+                `px-3! py-3.5! text-center! text-xs! font-medium! text-gray-500! uppercase! dark:text-gray-400! ${
+                  data.isToday
+                    ? "font-semibold! text-brand-500! dark:text-brand-400!"
+                    : ""
+                }`,
+              slotHeaderDividerClass:
+                "border-e! border-s-0! border-y-0! border-gray-200! dark:border-gray-800!",
+              slotHeaderClass:
+                "px-3! py-2! text-start! text-xs! font-medium! text-gray-400! dark:text-gray-500!",
+              slotLaneClass: "border-gray-100! dark:border-gray-800/60!",
+              dayLaneClass: (data: any) =>
+                `border-gray-200! dark:border-gray-800! ${
+                  data.isToday
+                    ? "bg-brand-50/15! dark:bg-brand-500/[0.03]!"
+                    : ""
+                }`,
+              allDayDividerClass:
+                "border-b! border-t-0! border-x-0! border-gray-200! p-0! bg-transparent! dark:border-gray-800!",
+              allDayHeaderClass:
+                "border-0! bg-gray-50! text-xs! font-medium! text-gray-500! dark:border-0! dark:bg-gray-900! dark:text-gray-400!",
+            },
+            timeGridDay: {
+              slotDuration: "00:30:00",
+              slotMinHeight: 48,
+              allDaySlot: true,
+              dayHeaderContent: (arg: any) => {
+                const weekday = new Intl.DateTimeFormat(locale, {
+                  weekday: "short",
+                })
+                  .format(arg.date)
+                  .toUpperCase();
+                const day = new Intl.DateTimeFormat(locale, {
+                  day: "numeric",
+                }).format(arg.date);
+                return `${weekday} - ${day}`;
+              },
+              dayHeaderClass: (data: any) =>
+                `border-0! bg-gray-50! dark:bg-gray-900! ${
+                  data.isToday ? "bg-gray-100/70! dark:bg-gray-800/60!" : ""
+                }`,
+              dayHeaderInnerClass: (data: any) =>
+                `px-4! py-3.5! text-center! text-xs! font-medium! text-gray-500! uppercase! dark:text-gray-400! ${
+                  data.isToday
+                    ? "font-semibold! text-brand-500! dark:text-brand-400!"
+                    : ""
+                }`,
+              slotHeaderDividerClass:
+                "border-e! border-s-0! border-y-0! border-gray-200! dark:border-gray-800!",
+              slotHeaderClass:
+                "px-3! py-2! text-start! text-xs! font-medium! text-gray-400! dark:text-gray-500!",
+              slotLaneClass: "border-gray-100! dark:border-gray-800/60!",
+              dayLaneClass: (data: any) =>
+                `border-gray-200! dark:border-gray-800! ${
+                  data.isToday
+                    ? "bg-brand-50/15! dark:bg-brand-500/[0.03]!"
+                    : ""
+                }`,
+              allDayDividerClass:
+                "border-b! border-t-0! border-x-0! border-gray-200! p-0! bg-transparent! dark:border-gray-800!",
+              allDayHeaderClass:
+                "border-0! bg-gray-50! text-xs! font-medium! text-gray-500! dark:border-0! dark:bg-gray-900! dark:text-gray-400!",
+            },
+          }}
+          // Body configuration
+          height="auto"
+          borderless={true}
+          viewClass="border-t! border-b-0! border-x-0! border-gray-200! dark:border-gray-800!"
+          dayHeaderDividerClass="border-b! border-t-0! border-x-0! border-gray-200! p-0! bg-transparent! dark:border-gray-800!"
+          slotMinHeight={56}
+          slotHeaderDividerClass="border-e! border-s-0! border-y-0! border-gray-200! dark:border-gray-800!"
+          allDayDividerClass="border-b! border-t-0! border-x-0! border-gray-200! p-0! bg-transparent! dark:border-gray-800!"
+          eventClass="focus:shadow-none"
+          nowIndicator={false}
+          columnEventClass="bg-transparent! border-0! p-1! shadow-none! hover:shadow-none! focus:outline-none"
+          columnEventInnerClass="p-0! border-0! bg-transparent! h-full"
+          tableHeaderSticky={true}
+          tableClass="overflow-hidden"
+          rowEventClass="bg-transparent! border-0! px-1! py-0.5! shadow-none! hover:shadow-none! focus:outline-none"
+          rowEventInnerClass="p-0! border-0! bg-transparent!"
+          popoverFormat={{ month: "short", day: "numeric", year: "numeric" }}
+          popoverClass="z-99999! w-72 max-w-[calc(100vw-32px)] overflow-hidden rounded-2xl border border-gray-200 bg-white shadow-theme-lg dark:border-gray-800 dark:bg-gray-900"
+          popoverCloseClass="absolute end-3 top-2.5 flex size-7 cursor-pointer items-center justify-center rounded-lg text-gray-400 transition-colors hover:bg-gray-100 hover:text-gray-600 focus:outline-none dark:text-gray-400 dark:hover:bg-white/5 dark:hover:text-white"
+          popoverCloseContent={() => <CloseIcon className="size-4" />}
+          datesSet={(arg) => {
+            setCurrentView(arg.view.type);
+            requestAnimationFrame(() => {
+              const chunk = calendarContainerRef.current?.querySelector(
+                ".ta-toolbar-section:last-child",
+              );
+              if (chunk) {
+                setPortalNode(chunk);
+              }
+            });
+          }}
+          selectable={true}
+          events={events}
+          select={handleDateSelect}
+          eventClick={handleEventClick}
+          eventContent={(eventInfo: EventDisplayInfo) => (
+            <CalendarEventItem eventInfo={eventInfo} />
+          )}
+        />
+
+        <CalendarViewSelect
+          currentView={currentView}
+          onViewChange={handleViewChange}
+          portalNode={portalNode}
         />
       </div>
-      <Modal
+
+      <CalendarEventModal
         isOpen={isOpen}
         onClose={closeModal}
-        className="max-w-[700px] p-6 lg:p-10"
-      >
-        <div className="flex flex-col px-2 overflow-y-auto custom-scrollbar">
-          <div>
-            <h5 className="mb-2 font-semibold text-gray-800 modal-title text-theme-xl dark:text-white/90 lg:text-2xl">
-              {selectedEvent ? "Edit Event" : "Add Event"}
-            </h5>
-            <p className="text-sm text-gray-500 dark:text-gray-400">
-              Plan your next big moment: schedule or edit an event to stay on
-              track
-            </p>
-          </div>
-          <div className="mt-8">
-            <div>
-              <div>
-                <label className="mb-1.5 block text-sm font-medium text-gray-700 dark:text-gray-400">
-                  Event Title
-                </label>
-                <input
-                  id="event-title"
-                  type="text"
-                  value={eventTitle}
-                  onChange={(e) => setEventTitle(e.target.value)}
-                  className="dark:bg-dark-900 h-11 w-full rounded-lg border border-gray-300 bg-transparent px-4 py-2.5 text-sm text-gray-800 shadow-theme-xs placeholder:text-gray-400 focus:border-brand-300 focus:outline-hidden focus:ring-3 focus:ring-brand-500/10 dark:border-gray-700 dark:bg-gray-900 dark:text-white/90 dark:placeholder:text-white/30 dark:focus:border-brand-800"
-                />
-              </div>
-            </div>
-            <div className="mt-6">
-              <label className="block mb-4 text-sm font-medium text-gray-700 dark:text-gray-400">
-                Event Color
-              </label>
-              <div className="flex flex-wrap items-center gap-4 sm:gap-5">
-                {Object.entries(calendarsEvents).map(([key, value]) => (
-                  <div key={key} className="n-chk">
-                    <div
-                      className={`form-check form-check-${value} form-check-inline`}
-                    >
-                      <label
-                        className="flex items-center text-sm text-gray-700 form-check-label dark:text-gray-400"
-                        htmlFor={`modal${key}`}
-                      >
-                        <span className="relative">
-                          <input
-                            className="sr-only form-check-input"
-                            type="radio"
-                            name="event-level"
-                            value={key}
-                            id={`modal${key}`}
-                            checked={eventLevel === key}
-                            onChange={() => setEventLevel(key)}
-                          />
-                          <span className="flex items-center justify-center w-5 h-5 mr-2 border border-gray-300 rounded-full box dark:border-gray-700">
-                            <span
-                              className={`h-2 w-2 rounded-full bg-white ${
-                                eventLevel === key ? "block" : "hidden"
-                              }`}  
-                            ></span>
-                          </span>
-                        </span>
-                        {key}
-                      </label>
-                    </div>
-                  </div>
-                ))}
-              </div>
-            </div>
-
-            <div className="mt-6">
-              <label className="mb-1.5 block text-sm font-medium text-gray-700 dark:text-gray-400">
-                Enter Start Date
-              </label>
-              <div className="relative">
-                <input
-                  id="event-start-date"
-                  type="date"
-                  value={eventStartDate}
-                  onChange={(e) => setEventStartDate(e.target.value)}
-                  className="dark:bg-dark-900 h-11 w-full appearance-none rounded-lg border border-gray-300 bg-transparent bg-none px-4 py-2.5 pl-4 pr-11 text-sm text-gray-800 shadow-theme-xs placeholder:text-gray-400 focus:border-brand-300 focus:outline-hidden focus:ring-3 focus:ring-brand-500/10 dark:border-gray-700 dark:bg-gray-900 dark:text-white/90 dark:placeholder:text-white/30 dark:focus:border-brand-800"
-                />
-              </div>
-            </div>
-
-            <div className="mt-6">
-              <label className="mb-1.5 block text-sm font-medium text-gray-700 dark:text-gray-400">
-                Enter End Date
-              </label>
-              <div className="relative">
-                <input
-                  id="event-end-date"
-                  type="date"
-                  value={eventEndDate}
-                  onChange={(e) => setEventEndDate(e.target.value)}
-                  className="dark:bg-dark-900 h-11 w-full appearance-none rounded-lg border border-gray-300 bg-transparent bg-none px-4 py-2.5 pl-4 pr-11 text-sm text-gray-800 shadow-theme-xs placeholder:text-gray-400 focus:border-brand-300 focus:outline-hidden focus:ring-3 focus:ring-brand-500/10 dark:border-gray-700 dark:bg-gray-900 dark:text-white/90 dark:placeholder:text-white/30 dark:focus:border-brand-800"
-                />
-              </div>
-            </div>
-          </div>
-          <div className="flex items-center gap-3 mt-6 modal-footer sm:justify-end">
-            <button
-              onClick={closeModal}
-              type="button"
-              className="flex w-full justify-center rounded-lg border border-gray-300 bg-white px-4 py-2.5 text-sm font-medium text-gray-700 hover:bg-gray-50 dark:border-gray-700 dark:bg-gray-800 dark:text-gray-400 dark:hover:bg-white/[0.03] sm:w-auto"
-            >
-              Close
-            </button>
-            <button
-              onClick={handleAddOrUpdateEvent}
-              type="button"
-              className="btn btn-success btn-update-event flex w-full justify-center rounded-lg bg-brand-500 px-4 py-2.5 text-sm font-medium text-white hover:bg-brand-600 sm:w-auto"
-            >
-              {selectedEvent ? "Update Changes" : "Add Event"}
-            </button>
-          </div>
-        </div>
-      </Modal>
-    </div>
-  );
-};
-
-const renderEventContent = (eventInfo: EventContentArg) => {
-  const colorClass = `fc-bg-${eventInfo.event.extendedProps.calendar.toLowerCase()}`;
-  return (
-    <div
-      className={`event-fc-color flex fc-event-main ${colorClass} p-1 rounded-sm`}
-    >
-      <div className="fc-daygrid-event-dot"></div>
-      <div className="fc-event-time">{eventInfo.timeText}</div>
-      <div className="fc-event-title">{eventInfo.event.title}</div>
+        selectedEvent={selectedEvent}
+        initialStartDate={selectedStartDate}
+        initialEndDate={selectedEndDate}
+        onSave={handleSaveEvent}
+      />
     </div>
   );
 };

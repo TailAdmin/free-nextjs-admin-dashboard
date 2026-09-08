@@ -1,5 +1,5 @@
+import { Link } from "@/i18n/navigation";
 import type React from "react";
-import Link from "next/link";
 
 interface DropdownItemProps {
   tag?: "a" | "button";
@@ -16,7 +16,7 @@ export const DropdownItem: React.FC<DropdownItemProps> = ({
   href,
   onClick,
   onItemClick,
-  baseClassName = "block w-full text-left px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 hover:text-gray-900",
+  baseClassName = "block w-full text-start px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 hover:text-gray-900",
   className = "",
   children,
 }) => {

@@ -1,77 +1,262 @@
 "use client";
-import React from "react";
-import ComponentCard from "../../common/ComponentCard";
-import { useDropzone } from "react-dropzone";
 
-const DropzoneComponent: React.FC = () => {
-  const onDrop = (acceptedFiles: File[]) => {
-    console.log("Files dropped:", acceptedFiles);
-    // Handle file uploads here
+import { useState, useEffect, useRef, useCallback } from "react";
+import { useDropzone } from "react-dropzone";
+import Image from "next/image";
+import ComponentCard from "../../common/ComponentCard";
+import { Modal } from "@/components/ui/modal";
+import { useModal } from "@/hooks/useModal";
+import { UploadIcon, TrashBinIcon, EyeIcon } from "@/icons";
+
+interface FileWithPreview extends File {
+  preview?: string;
+}
+
+export default function DropzoneComponent() {
+  const [files, setFiles] = useState<FileWithPreview[]>([]);
+  const [previewImage, setPreviewImage] = useState<FileWithPreview | null>(null);
+  const { isOpen, openModal, closeModal } = useModal();
+
+  // Keep a ref always pointing at the latest files so the unmount cleanup
+  // can revoke all object URLs without needing `files` as a dependency.
+  const filesRef = useRef<FileWithPreview[]>(files);
+  useEffect(() => {
+    filesRef.current = files;
+  }, [files]);
+
+  const onDrop = useCallback((acceptedFiles: File[]) => {
+    setFiles((prevFiles) => [
+      ...prevFiles,
+      ...acceptedFiles.map((file) =>
+        Object.assign(file, {
+          preview: file.type.startsWith("image/")
+            ? URL.createObjectURL(file)
+            : undefined,
+        })
+      ),
+    ]);
+  }, []);
+
+  const removeFile = (fileName: string) => {
+    setFiles((prevFiles) => {
+      const target = prevFiles.find((f) => f.name === fileName);
+      if (target?.preview) {
+        URL.revokeObjectURL(target.preview);
+      }
+      return prevFiles.filter((f) => f.name !== fileName);
+    });
   };
 
-  const { getRootProps, getInputProps, isDragActive } = useDropzone({
+  const handleOpenPreview = (file: FileWithPreview) => {
+    setPreviewImage(file);
+    openModal();
+  };
+
+  const handleClosePreview = () => {
+    closeModal();
+    setPreviewImage(null);
+  };
+
+  // Revoke all object URLs only when the component unmounts to prevent memory leaks.
+  // Using an empty dependency array ensures cleanup does NOT run after every drop,
+  // which would revoke URLs immediately and break the preview images.
+  useEffect(() => {
+    return () => {
+      filesRef.current.forEach((file) => {
+        if (file.preview) URL.revokeObjectURL(file.preview);
+      });
+    };
+  }, []);
+
+  const {
+    getRootProps,
+    getInputProps,
+    isDragActive,
+    isDragAccept,
+    isDragReject,
+    isFocused,
+  } = useDropzone({
     onDrop,
     accept: {
-      "image/png": [],
-      "image/jpeg": [],
-      "image/webp": [],
-      "image/svg+xml": [],
+      "image/png": [".png"],
+      "image/jpeg": [".jpg", ".jpeg"],
+      "image/webp": [".webp"],
+      "image/svg+xml": [".svg"],
     },
+    maxSize: 5 * 1024 * 1024,
   });
+
+  const getBorderColor = () => {
+    if (isDragReject) return "border-error-500 bg-error-50/60 dark:bg-error-950/20";
+    if (isDragAccept) return "border-brand-500 bg-brand-50/60 dark:bg-brand-950/20";
+    if (isFocused) return "border-brand-500 ring-2 ring-brand-500/20 bg-gray-50 dark:bg-gray-900";
+    return "border-gray-300 bg-gray-50 hover:border-brand-500 dark:border-gray-700 dark:bg-gray-900 dark:hover:border-brand-500";
+  };
+
+  const formatFileSize = (bytes: number) => {
+    if (bytes < 1024) return `${bytes} B`;
+    if (bytes < 1024 * 1024) return `${(bytes / 1024).toFixed(1)} KB`;
+    return `${(bytes / (1024 * 1024)).toFixed(1)} MB`;
+  };
+
   return (
     <ComponentCard title="Dropzone">
-      <div className="transition border border-gray-300 border-dashed cursor-pointer dark:hover:border-brand-500 dark:border-gray-700 rounded-xl hover:border-brand-500">
-        <form
+      <div>
+        <div
           {...getRootProps()}
-          className={`dropzone rounded-xl   border-dashed border-gray-300 p-7 lg:p-10
-        ${
-          isDragActive
-            ? "border-brand-500 bg-gray-100 dark:bg-gray-800"
-            : "border-gray-300 bg-gray-50 dark:border-gray-700 dark:bg-gray-900"
-        }
-      `}
-          id="demo-upload"
+          className={`relative flex cursor-pointer flex-col items-center justify-center rounded-xl border border-dashed p-7 text-center transition-all duration-200 outline-hidden lg:p-10 ${getBorderColor()}`}
         >
-          {/* Hidden Input */}
+          {/* Hidden file input handled by react-dropzone */}
           <input {...getInputProps()} />
 
-          <div className="dz-message flex flex-col items-center m-0!">
+          <div className="flex flex-col items-center">
             {/* Icon Container */}
-            <div className="mb-[22px] flex justify-center">
-              <div className="flex h-[68px] w-[68px]  items-center justify-center rounded-full bg-gray-200 text-gray-700 dark:bg-gray-800 dark:text-gray-400">
-                <svg
-                  className="fill-current"
-                  width="29"
-                  height="28"
-                  viewBox="0 0 29 28"
-                  xmlns="http://www.w3.org/2000/svg"
-                >
-                  <path
-                    fillRule="evenodd"
-                    clipRule="evenodd"
-                    d="M14.5019 3.91699C14.2852 3.91699 14.0899 4.00891 13.953 4.15589L8.57363 9.53186C8.28065 9.82466 8.2805 10.2995 8.5733 10.5925C8.8661 10.8855 9.34097 10.8857 9.63396 10.5929L13.7519 6.47752V18.667C13.7519 19.0812 14.0877 19.417 14.5019 19.417C14.9161 19.417 15.2519 19.0812 15.2519 18.667V6.48234L19.3653 10.5929C19.6583 10.8857 20.1332 10.8855 20.426 10.5925C20.7188 10.2995 20.7186 9.82463 20.4256 9.53184L15.0838 4.19378C14.9463 4.02488 14.7367 3.91699 14.5019 3.91699ZM5.91626 18.667C5.91626 18.2528 5.58047 17.917 5.16626 17.917C4.75205 17.917 4.41626 18.2528 4.41626 18.667V21.8337C4.41626 23.0763 5.42362 24.0837 6.66626 24.0837H22.3339C23.5766 24.0837 24.5839 23.0763 24.5839 21.8337V18.667C24.5839 18.2528 24.2482 17.917 23.8339 17.917C23.4197 17.917 23.0839 18.2528 23.0839 18.667V21.8337C23.0839 22.2479 22.7482 22.5837 22.3339 22.5837H6.66626C6.25205 22.5837 5.91626 22.2479 5.91626 21.8337V18.667Z"
-                  />
-                </svg>
-              </div>
+            <div className="mb-4 flex size-15 items-center justify-center rounded-full bg-gray-200 text-gray-700 dark:bg-gray-800 dark:text-gray-300">
+              <UploadIcon className="size-6 text-current" />
             </div>
 
-            {/* Text Content */}
-            <h4 className="mb-3 font-semibold text-gray-800 text-theme-xl dark:text-white/90">
-              {isDragActive ? "Drop Files Here" : "Drag & Drop Files Here"}
+            {/* Title / Status Message */}
+            <h4 className="mb-2 text-theme-xl font-semibold text-gray-800 dark:text-white/90">
+              {isDragReject
+                ? "File type not supported"
+                : isDragAccept
+                ? "Drop images here"
+                : isDragActive
+                ? "Drop files here"
+                : "Drag & Drop Files Here"}
             </h4>
 
-            <span className=" text-center mb-5 block w-full max-w-[290px] text-sm text-gray-700 dark:text-gray-400">
-              Drag and drop your PNG, JPG, WebP, SVG images here or browse
-            </span>
+            {/* Helper Text */}
+            <p className="mb-4 max-w-72.5 text-sm text-gray-600 dark:text-gray-400">
+              {isDragReject
+                ? "Only PNG, JPG, WebP, and SVG images up to 5MB are allowed"
+                : "Drag and drop your PNG, JPG, WebP, SVG images here or browse"}
+            </p>
 
-            <span className="font-medium underline text-theme-sm text-brand-500">
+            {/* Action Prompt */}
+            <span className="text-theme-sm font-medium text-brand-500 underline hover:text-brand-600">
               Browse File
             </span>
           </div>
-        </form>
+        </div>
+
+        {/* Uploaded Images Preview Gallery */}
+        {files.length > 0 && (
+          <div className="mt-6 space-y-4">
+            <div className="flex items-center justify-between">
+              <h5 className="text-theme-sm font-medium text-gray-700 dark:text-gray-300">
+                Uploaded Images ({files.length})
+              </h5>
+              <button
+                type="button"
+                onClick={() => {
+                  files.forEach((f) => {
+                    if (f.preview) URL.revokeObjectURL(f.preview);
+                  });
+                  setFiles([]);
+                }}
+                className="text-theme-xs font-medium text-error-500 hover:text-error-600 dark:text-error-400"
+              >
+                Clear all
+              </button>
+            </div>
+
+            <div className="grid grid-cols-2 gap-4 sm:grid-cols-3">
+              {files.map((file) => (
+                <div
+                  key={`${file.name}-${file.lastModified}`}
+                  className="group relative overflow-hidden rounded-xl border border-gray-200 bg-white shadow-theme-xs transition hover:shadow-theme-sm dark:border-gray-800 dark:bg-gray-900"
+                >
+                  {/* Image Preview Container */}
+                  <div className="relative aspect-4/3 w-full overflow-hidden bg-gray-100 dark:bg-gray-800">
+                    {file.preview ? (
+                      <Image
+                        src={file.preview}
+                        alt={file.name}
+                        fill
+                        unoptimized
+                        className="object-cover transition-transform duration-300 group-hover:scale-105"
+                      />
+                    ) : (
+                      <div className="flex h-full w-full items-center justify-center text-gray-400">
+                        <UploadIcon className="size-8" />
+                      </div>
+                    )}
+
+                    {/* Hover Action Overlay */}
+                    <div className="absolute inset-0 flex items-center justify-center gap-2 bg-gray-900/60 opacity-0 transition-opacity duration-200 group-hover:opacity-100">
+                      {file.preview && (
+                        <button
+                          type="button"
+                          onClick={() => handleOpenPreview(file)}
+                          className="flex size-8 items-center justify-center rounded-full bg-white/90 text-gray-800 backdrop-blur-xs transition hover:bg-white dark:bg-gray-800/90 dark:text-white dark:hover:bg-gray-800"
+                          title="Preview image"
+                          aria-label={`Preview ${file.name}`}
+                        >
+                          <EyeIcon className="size-4" />
+                        </button>
+                      )}
+                      <button
+                        type="button"
+                        onClick={() => removeFile(file.name)}
+                        className="flex size-8 items-center justify-center rounded-full bg-white/90 text-error-500 backdrop-blur-xs transition hover:bg-white dark:bg-gray-800/90 dark:text-error-400 dark:hover:bg-gray-800"
+                        title="Remove image"
+                        aria-label={`Remove ${file.name}`}
+                      >
+                        <TrashBinIcon className="size-4" />
+                      </button>
+                    </div>
+                  </div>
+
+                  {/* File Metadata */}
+                  <div className="p-3">
+                    <p className="truncate text-theme-xs font-medium text-gray-800 dark:text-white/90" title={file.name}>
+                      {file.name}
+                    </p>
+                    <p className="mt-0.5 text-[11px] text-gray-500 dark:text-gray-400">
+                      {formatFileSize(file.size)}
+                    </p>
+                  </div>
+                </div>
+              ))}
+            </div>
+          </div>
+        )}
+
+        {/* Full Image Preview Modal */}
+        <Modal
+          isOpen={isOpen}
+          onClose={handleClosePreview}
+          className="max-w-2xl p-6 sm:p-8"
+        >
+          {previewImage && (
+            <div>
+              <div className="mb-4">
+                <h4 className="text-theme-lg font-semibold text-gray-800 dark:text-white/90">
+                  Image Preview
+                </h4>
+                <p className="text-theme-xs text-gray-500 dark:text-gray-400">
+                  {previewImage.name} • {formatFileSize(previewImage.size)}
+                </p>
+              </div>
+
+              <div className="relative aspect-video w-full overflow-hidden rounded-xl border border-gray-200 bg-gray-100 dark:border-gray-800 dark:bg-gray-800">
+                {previewImage.preview && (
+                  <Image
+                    src={previewImage.preview}
+                    alt={previewImage.name}
+                    fill
+                    unoptimized
+                    className="object-contain"
+                  />
+                )}
+              </div>
+            </div>
+          )}
+        </Modal>
       </div>
     </ComponentCard>
   );
-};
+}
 
-export default DropzoneComponent;
+

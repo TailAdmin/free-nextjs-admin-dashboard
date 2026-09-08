@@ -1,5 +1,4 @@
-import Link from "next/link";
-import React from "react";
+import { Link } from "@/i18n/navigation";
 
 interface AlertProps {
   variant: "success" | "error" | "warning" | "info"; // Alert type
@@ -131,7 +130,7 @@ const Alert: React.FC<AlertProps> = ({
           {showLink && (
             <Link
               href={linkHref}
-              className="inline-block mt-3 text-sm font-medium text-gray-500 underline dark:text-gray-400"
+              className="mt-3 inline-block text-sm font-medium text-gray-500 underline dark:text-gray-400"
             >
               {linkText}
             </Link>

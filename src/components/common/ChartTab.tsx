@@ -1,6 +1,9 @@
-import React, { useState } from "react";
+import { cn } from "@/utils";
+import { useTranslations } from "next-intl";
+import { useState } from "react";
 
 const ChartTab: React.FC = () => {
+  const t = useTranslations("ecommerce.statistics");
   const [selected, setSelected] = useState<
     "optionOne" | "optionTwo" | "optionThree"
   >("optionOne");
@@ -11,32 +14,33 @@ const ChartTab: React.FC = () => {
       : "text-gray-500 dark:text-gray-400";
 
   return (
-    <div className="flex items-center gap-0.5 rounded-lg bg-gray-100 p-0.5 dark:bg-gray-900">
+    <div className="flex max-h-10 items-center gap-0.5 rounded-lg bg-gray-100 p-0.5 dark:bg-gray-900">
       <button
         onClick={() => setSelected("optionOne")}
-        className={`px-3 py-2 font-medium w-full rounded-md text-theme-sm hover:text-gray-900   dark:hover:text-white ${getButtonClass(
-          "optionOne"
+        className={`w-full rounded-md px-3 py-2 text-theme-sm font-medium hover:text-gray-900 dark:hover:text-white ${getButtonClass(
+          "optionOne",
         )}`}
       >
-        Monthly
+        {t("monthly")}
       </button>
 
       <button
         onClick={() => setSelected("optionTwo")}
-        className={`px-3 py-2 font-medium w-full rounded-md text-theme-sm hover:text-gray-900   dark:hover:text-white ${getButtonClass(
-          "optionTwo"
-        )}`}
+        className={cn(
+          "w-full rounded-md px-3 py-1.5 text-theme-sm font-medium hover:text-gray-900 rtl:min-w-20 dark:hover:text-white",
+          getButtonClass("optionTwo"),
+        )}
       >
-        Quarterly
+        {t("quarterly")}
       </button>
 
       <button
         onClick={() => setSelected("optionThree")}
-        className={`px-3 py-2 font-medium w-full rounded-md text-theme-sm hover:text-gray-900   dark:hover:text-white ${getButtonClass(
-          "optionThree"
+        className={`w-full rounded-md px-3 py-2 text-theme-sm font-medium hover:text-gray-900 dark:hover:text-white ${getButtonClass(
+          "optionThree",
         )}`}
       >
-        Annually
+        {t("annually")}
       </button>
     </div>
   );

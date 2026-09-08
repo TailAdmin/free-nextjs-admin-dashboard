@@ -1,5 +1,3 @@
-import React from "react";
-
 interface AvatarTextProps {
   name: string;
   className?: string;
@@ -36,7 +34,7 @@ const AvatarText: React.FC<AvatarTextProps> = ({ name, className = "" }) => {
   return (
     <div
       className={`flex h-10 w-10 ${className} items-center justify-center rounded-full ${getColorClass(
-        name
+        name,
       )}`}
     >
       <span className="text-sm font-medium">{initials}</span>

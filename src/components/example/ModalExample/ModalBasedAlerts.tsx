@@ -1,39 +1,39 @@
 "use client";
-import React from "react";
 import ComponentCard from "../../common/ComponentCard";
 
-import { Modal } from "../../ui/modal";
 import { useModal } from "@/hooks/useModal";
+import { Modal } from "../../ui/modal";
 
 export default function ModalBasedAlerts() {
   const successModal = useModal();
   const infoModal = useModal();
   const warningModal = useModal();
   const errorModal = useModal();
+
   return (
     <ComponentCard title="Modal Based Alerts">
       <div className="flex flex-wrap items-center gap-3">
         <button
           onClick={successModal.openModal}
-          className="px-4 py-3 text-sm font-medium text-white rounded-lg bg-success-500 shadow-theme-xs hover:bg-success-600"
+          className="rounded-lg bg-success-500 px-4 py-3 text-sm font-medium text-white shadow-theme-xs hover:bg-success-600"
         >
           Success Alert
         </button>
         <button
           onClick={infoModal.openModal}
-          className="px-4 py-3 text-sm font-medium text-white rounded-lg bg-blue-light-500 shadow-theme-xs hover:bg-blue-light-600"
+          className="rounded-lg bg-blue-light-500 px-4 py-3 text-sm font-medium text-white shadow-theme-xs hover:bg-blue-light-600"
         >
           Info Alert
         </button>
         <button
           onClick={warningModal.openModal}
-          className="px-4 py-3 text-sm font-medium text-white rounded-lg bg-warning-500 shadow-theme-xs hover:bg-warning-600"
+          className="rounded-lg bg-warning-500 px-4 py-3 text-sm font-medium text-white shadow-theme-xs hover:bg-warning-600"
         >
           Warning Alert
         </button>
         <button
           onClick={errorModal.openModal}
-          className="px-4 py-3 text-sm font-medium text-white rounded-lg bg-error-500 shadow-theme-xs hover:bg-error-600"
+          className="rounded-lg bg-error-500 px-4 py-3 text-sm font-medium text-white shadow-theme-xs hover:bg-error-600"
         >
           Danger Alert
         </button>
@@ -42,10 +42,10 @@ export default function ModalBasedAlerts() {
       <Modal
         isOpen={successModal.isOpen}
         onClose={successModal.closeModal}
-        className="max-w-[600px] p-5 lg:p-10"
+        className="max-w-150 p-5 lg:p-10"
       >
         <div className="text-center">
-          <div className="relative flex items-center justify-center z-1 mb-7">
+          <div className="relative z-1 mb-7 flex items-center justify-center">
             <svg
               className="fill-success-50 dark:fill-success-500/15"
               width="90"
@@ -61,7 +61,7 @@ export default function ModalBasedAlerts() {
               />
             </svg>
 
-            <span className="absolute -translate-x-1/2 -translate-y-1/2 left-1/2 top-1/2">
+            <span className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2">
               <svg
                 className="fill-success-600 dark:fill-success-500"
                 width="38"
@@ -79,7 +79,7 @@ export default function ModalBasedAlerts() {
               </svg>
             </span>
           </div>
-          <h4 className="mb-2 text-2xl font-semibold text-gray-800 dark:text-white/90 sm:text-title-sm">
+          <h4 className="mb-2 text-2xl font-semibold text-gray-800 sm:text-title-sm dark:text-white/90">
             Well Done!
           </h4>
           <p className="text-sm leading-6 text-gray-500 dark:text-gray-400">
@@ -87,10 +87,10 @@ export default function ModalBasedAlerts() {
             felis risus nisi non. Quisque eu ut tempor curabitur.
           </p>
 
-          <div className="flex items-center justify-center w-full gap-3 mt-7">
+          <div className="mt-7 flex w-full items-center justify-center gap-3">
             <button
               type="button"
-              className="flex justify-center w-full px-4 py-3 text-sm font-medium text-white rounded-lg bg-success-500 shadow-theme-xs hover:bg-success-600 sm:w-auto"
+              className="flex w-full justify-center rounded-lg bg-success-500 px-4 py-3 text-sm font-medium text-white shadow-theme-xs hover:bg-success-600 sm:w-auto"
             >
               Okay, Got It
             </button>
@@ -101,10 +101,10 @@ export default function ModalBasedAlerts() {
       <Modal
         isOpen={infoModal.isOpen}
         onClose={infoModal.closeModal}
-        className="max-w-[600px] p-5 lg:p-10"
+        className="max-w-150 p-5 lg:p-10"
       >
         <div className="text-center">
-          <div className="relative flex items-center justify-center z-1 mb-7">
+          <div className="relative z-1 mb-7 flex items-center justify-center">
             <svg
               className="fill-blue-light-50 dark:fill-blue-light-500/15"
               width="90"
@@ -120,7 +120,7 @@ export default function ModalBasedAlerts() {
               />
             </svg>
 
-            <span className="absolute -translate-x-1/2 -translate-y-1/2 left-1/2 top-1/2">
+            <span className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2">
               <svg
                 className="fill-blue-light-500 dark:fill-blue-light-500"
                 width="38"
@@ -139,7 +139,7 @@ export default function ModalBasedAlerts() {
             </span>
           </div>
 
-          <h4 className="mb-2 text-2xl font-semibold text-gray-800 dark:text-white/90 sm:text-title-sm">
+          <h4 className="mb-2 text-2xl font-semibold text-gray-800 sm:text-title-sm dark:text-white/90">
             Information Alert!
           </h4>
           <p className="text-sm leading-6 text-gray-500 dark:text-gray-400">
@@ -147,10 +147,10 @@ export default function ModalBasedAlerts() {
             felis risus nisi non. Quisque eu ut tempor curabitur.
           </p>
 
-          <div className="flex items-center justify-center w-full gap-3 mt-7">
+          <div className="mt-7 flex w-full items-center justify-center gap-3">
             <button
               type="button"
-              className="flex justify-center w-full px-4 py-3 text-sm font-medium text-white rounded-lg bg-blue-light-500 shadow-theme-xs hover:bg-blue-light-600 sm:w-auto"
+              className="flex w-full justify-center rounded-lg bg-blue-light-500 px-4 py-3 text-sm font-medium text-white shadow-theme-xs hover:bg-blue-light-600 sm:w-auto"
             >
               Okay, Got It
             </button>
@@ -161,10 +161,10 @@ export default function ModalBasedAlerts() {
       <Modal
         isOpen={warningModal.isOpen}
         onClose={warningModal.closeModal}
-        className="max-w-[600px] p-5 lg:p-10"
+        className="max-w-150 p-5 lg:p-10"
       >
         <div className="text-center">
-          <div className="relative flex items-center justify-center z-1 mb-7">
+          <div className="relative z-1 mb-7 flex items-center justify-center">
             <svg
               className="fill-warning-50 dark:fill-warning-500/15"
               width="90"
@@ -180,7 +180,7 @@ export default function ModalBasedAlerts() {
               />
             </svg>
 
-            <span className="absolute -translate-x-1/2 -translate-y-1/2 left-1/2 top-1/2">
+            <span className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2">
               <svg
                 className="fill-warning-600 dark:fill-orange-400"
                 width="38"
@@ -199,7 +199,7 @@ export default function ModalBasedAlerts() {
             </span>
           </div>
 
-          <h4 className="mb-2 text-2xl font-semibold text-gray-800 dark:text-white/90 sm:text-title-sm">
+          <h4 className="mb-2 text-2xl font-semibold text-gray-800 sm:text-title-sm dark:text-white/90">
             Warning Alert!
           </h4>
           <p className="text-sm leading-6 text-gray-500 dark:text-gray-400">
@@ -207,10 +207,10 @@ export default function ModalBasedAlerts() {
             felis risus nisi non. Quisque eu ut tempor curabitur.
           </p>
 
-          <div className="flex items-center justify-center w-full gap-3 mt-7">
+          <div className="mt-7 flex w-full items-center justify-center gap-3">
             <button
               type="button"
-              className="flex justify-center w-full px-4 py-3 text-sm font-medium text-white rounded-lg bg-warning-500 shadow-theme-xs hover:bg-warning-600 sm:w-auto"
+              className="flex w-full justify-center rounded-lg bg-warning-500 px-4 py-3 text-sm font-medium text-white shadow-theme-xs hover:bg-warning-600 sm:w-auto"
             >
               Okay, Got It
             </button>
@@ -221,10 +221,10 @@ export default function ModalBasedAlerts() {
       <Modal
         isOpen={errorModal.isOpen}
         onClose={errorModal.closeModal}
-        className="max-w-[600px] p-5 lg:p-10"
+        className="max-w-150 p-5 lg:p-10"
       >
         <div className="text-center">
-          <div className="relative flex items-center justify-center z-1 mb-7">
+          <div className="relative z-1 mb-7 flex items-center justify-center">
             <svg
               className="fill-error-50 dark:fill-error-500/15"
               width="90"
@@ -240,7 +240,7 @@ export default function ModalBasedAlerts() {
               />
             </svg>
 
-            <span className="absolute -translate-x-1/2 -translate-y-1/2 left-1/2 top-1/2">
+            <span className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2">
               <svg
                 className="fill-error-600 dark:fill-error-500"
                 width="38"
@@ -259,7 +259,7 @@ export default function ModalBasedAlerts() {
             </span>
           </div>
 
-          <h4 className="mb-2 text-2xl font-semibold text-gray-800 dark:text-white/90 sm:text-title-sm">
+          <h4 className="mb-2 text-2xl font-semibold text-gray-800 sm:text-title-sm dark:text-white/90">
             Danger Alert!
           </h4>
           <p className="text-sm leading-6 text-gray-500 dark:text-gray-400">
@@ -267,10 +267,10 @@ export default function ModalBasedAlerts() {
             felis risus nisi non. Quisque eu ut tempor curabitur.
           </p>
 
-          <div className="flex items-center justify-center w-full gap-3 mt-7">
+          <div className="mt-7 flex w-full items-center justify-center gap-3">
             <button
               type="button"
-              className="flex justify-center w-full px-4 py-3 text-sm font-medium text-white rounded-lg bg-error-500 shadow-theme-xs hover:bg-error-600 sm:w-auto"
+              className="flex w-full justify-center rounded-lg bg-error-500 px-4 py-3 text-sm font-medium text-white shadow-theme-xs hover:bg-error-600 sm:w-auto"
             >
               Okay, Got It
             </button>
