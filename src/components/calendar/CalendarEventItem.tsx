@@ -53,15 +53,17 @@ const CalendarEventItem: React.FC<CalendarEventItemProps> = ({ eventInfo }) => {
       <div
         dir="ltr"
         className={cn(
-          "event-fc-color flex h-full w-full flex-col justify-start overflow-hidden rounded-lg p-1.5 transition-colors",
+          "event-fc-color flex h-full w-full flex-col justify-start overflow-hidden rounded-md p-1 transition-colors sm:rounded-lg sm:p-1.5",
           colors.bg,
         )}
       >
-        <div className="flex items-center gap-1.5">
-          <div className={cn("size-2 shrink-0 rounded-full", colors.dot)} />
+        <div className="flex items-center gap-1 sm:gap-1.5">
+          <div
+            className={cn("size-1.5 shrink-0 rounded-full sm:size-2", colors.dot)}
+          />
           <div
             className={cn(
-              "truncate text-xs leading-tight font-semibold",
+              "truncate text-[11px] font-semibold leading-tight sm:text-xs",
               colors.title,
             )}
           >
@@ -71,7 +73,7 @@ const CalendarEventItem: React.FC<CalendarEventItemProps> = ({ eventInfo }) => {
         {eventInfo.timeText && (
           <div
             className={cn(
-              "mt-0.5 truncate ps-3.5 text-[11px] leading-tight font-medium",
+              "mt-0.5 truncate ps-2.5 text-[10px] font-medium leading-tight sm:ps-3.5 sm:text-[11px]",
               colors.time,
             )}
           >
@@ -86,22 +88,22 @@ const CalendarEventItem: React.FC<CalendarEventItemProps> = ({ eventInfo }) => {
     <div
       dir="ltr"
       className={cn(
-        "event-fc-color flex items-center rounded-lg py-1.5 ps-2.5 pe-3 transition-colors",
+        "event-fc-color flex items-center rounded-md py-1 ps-1.5 pe-2 transition-colors sm:rounded-lg sm:py-1.5 sm:ps-2.5 sm:pe-3",
         colors.bg,
       )}
     >
       <div
         className={cn(
-          "fc-daygrid-event-dot ms-0 me-2 h-3.5 w-1 shrink-0 rounded-full border-none",
+          "fc-daygrid-event-dot ms-0 me-1 h-2.5 w-1 shrink-0 rounded-full border-none sm:me-2 sm:h-3.5",
           colors.dot,
         )}
       />
       {eventInfo.timeText && (
-        <div className="fc-event-time me-1.5 p-0 text-xs font-normal text-gray-500 dark:text-gray-400">
+        <div className="fc-event-time me-1 p-0 text-[10px] font-normal text-gray-500 sm:me-1.5 sm:text-xs dark:text-gray-400">
           {eventInfo.timeText}
         </div>
       )}
-      <div className="fc-event-title truncate p-0 text-xs font-medium text-gray-700 dark:text-white">
+      <div className="fc-event-title truncate p-0 text-[11px] font-medium text-gray-700 sm:text-xs dark:text-white">
         {eventInfo.event.title || ""}
       </div>
     </div>

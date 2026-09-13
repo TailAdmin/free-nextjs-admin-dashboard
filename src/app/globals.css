@@ -958,3 +958,181 @@ pre[class*="language-"].line-numbers {
   cursor: pointer;
   box-shadow: 0 1px 3px rgba(0, 0, 0, 0.15);
 }
+
+/* FullCalendar Style Overrides */
+:root {
+  --fc-classic-border: var(--color-gray-200);
+}
+
+.custom-calendar .fc-scroller {
+  -webkit-overflow-scrolling: touch;
+  scrollbar-width: thin;
+}
+
+.custom-calendar .fc-classic-yth {
+  @apply gap-0!;
+}
+
+.dark .event-fc-color .fc-event-title,
+.dark .fc-event-title {
+  @apply text-white!;
+}
+
+/* Update year view to show bookmark trigger */
+.custom-calendar.fc-multimonth [role="gridcell"] > .fc-g2,
+.custom-calendar .fc-multimonth [role="gridcell"] > .fc-g2,
+.custom-calendar.fc-multimonth [role="gridcell"] > .fc-GV,
+.custom-calendar .fc-multimonth [role="gridcell"] > .fc-GV,
+.custom-calendar.fc-multimonth [role="gridcell"] > div:nth-child(2),
+.custom-calendar .fc-multimonth [role="gridcell"] > div:nth-child(2) {
+  max-height: 0 !important;
+  min-height: 0 !important;
+  flex-grow: 0 !important;
+  flex-basis: 0 !important;
+}
+
+/* Ensure FullCalendar offscreen measurement probe is strictly kept offscreen and invisible */
+.custom-calendar .fc-rZ,
+.custom-calendar [inert].fc-rZ,
+.custom-calendar [inert] {
+  inset-inline-start: -10000px !important;
+  left: -10000px !important;
+  top: -10000px !important;
+  visibility: hidden !important;
+  pointer-events: none !important;
+}
+
+@media (max-width: 639px) {
+  .custom-calendar:has(.fc-multimonth) .fc-toolbar,
+  .custom-calendar.fc-multimonth .fc-toolbar {
+    position: relative !important;
+    top: auto !important;
+  }
+
+  /* Month Title sticks below the dashboard AppHeader (56px) */
+  .custom-calendar:has(.fc-multimonth) [role="grid"] [id*="month-"],
+  .custom-calendar .fc-multimonth [role="grid"] [id*="month-"],
+  .custom-calendar.fc-multimonth [role="grid"] [id*="month-"],
+  .custom-calendar [role="grid"].fc-multimonth [id*="month-"] {
+    position: sticky !important;
+    top: 56px !important;
+    z-index: 10 !important;
+    background-color: #ffffff !important;
+    margin-bottom: 0 !important;
+    padding-top: 8px !important;
+    padding-bottom: 8px !important;
+  }
+  .dark .custom-calendar:has(.fc-multimonth) [role="grid"] [id*="month-"],
+  .dark .custom-calendar .fc-multimonth [role="grid"] [id*="month-"],
+  .dark .custom-calendar.fc-multimonth [role="grid"] [id*="month-"],
+  .dark .custom-calendar [role="grid"].fc-multimonth [id*="month-"] {
+    background-color: #111827 !important;
+  }
+
+  /* Day Header (SUN MON TUE...) sticks directly below the Month Title */
+  .custom-calendar:has(.fc-multimonth)
+    [role="grid"]
+    [role="row"]:has([role="columnheader"]),
+  .custom-calendar:has(.fc-multimonth)
+    [role="grid"]
+    .fc-multimonth-day-header-row,
+  .custom-calendar:has(.fc-multimonth) [role="grid"] .fc-daygrid-header,
+  .custom-calendar
+    .fc-multimonth
+    [role="grid"]
+    [role="row"]:has([role="columnheader"]),
+  .custom-calendar .fc-multimonth [role="grid"] .fc-multimonth-day-header-row,
+  .custom-calendar .fc-multimonth [role="grid"] .fc-daygrid-header,
+  .custom-calendar.fc-multimonth
+    [role="grid"]
+    [role="row"]:has([role="columnheader"]),
+  .custom-calendar.fc-multimonth [role="grid"] .fc-multimonth-day-header-row,
+  .custom-calendar.fc-multimonth [role="grid"] .fc-daygrid-header,
+  .custom-calendar
+    [role="grid"].fc-multimonth
+    [role="row"]:has([role="columnheader"]),
+  .custom-calendar [role="grid"].fc-multimonth .fc-multimonth-day-header-row,
+  .custom-calendar [role="grid"].fc-multimonth .fc-daygrid-header {
+    position: sticky !important;
+    top: 92px !important;
+    z-index: 9 !important;
+    background-color: #f9fafb !important;
+  }
+  .dark
+    .custom-calendar:has(.fc-multimonth)
+    [role="grid"]
+    [role="row"]:has([role="columnheader"]),
+  .dark
+    .custom-calendar:has(.fc-multimonth)
+    [role="grid"]
+    .fc-multimonth-day-header-row,
+  .dark .custom-calendar:has(.fc-multimonth) [role="grid"] .fc-daygrid-header,
+  .dark
+    .custom-calendar
+    .fc-multimonth
+    [role="grid"]
+    [role="row"]:has([role="columnheader"]),
+  .dark
+    .custom-calendar
+    .fc-multimonth
+    [role="grid"]
+    .fc-multimonth-day-header-row,
+  .dark .custom-calendar .fc-multimonth [role="grid"] .fc-daygrid-header,
+  .dark
+    .custom-calendar.fc-multimonth
+    [role="grid"]
+    [role="row"]:has([role="columnheader"]),
+  .dark
+    .custom-calendar.fc-multimonth
+    [role="grid"]
+    .fc-multimonth-day-header-row,
+  .dark .custom-calendar.fc-multimonth [role="grid"] .fc-daygrid-header,
+  .dark
+    .custom-calendar
+    [role="grid"].fc-multimonth
+    [role="row"]:has([role="columnheader"]),
+  .dark
+    .custom-calendar
+    [role="grid"].fc-multimonth
+    .fc-multimonth-day-header-row,
+  .dark .custom-calendar [role="grid"].fc-multimonth .fc-daygrid-header {
+    background-color: #111827 !important;
+  }
+
+  /* Reset FullCalendar margin math to avoid whitespace gaps */
+  .custom-calendar:has(.fc-multimonth) [role="grid"] > div,
+  .custom-calendar .fc-multimonth [role="grid"] > div,
+  .custom-calendar.fc-multimonth [role="grid"] > div,
+  .custom-calendar [role="grid"].fc-multimonth > div {
+    margin-top: 0 !important;
+    margin-bottom: 0 !important;
+  }
+  .custom-calendar:has(.fc-multimonth) [role="grid"] > div > div,
+  .custom-calendar .fc-multimonth [role="grid"] > div > div,
+  .custom-calendar.fc-multimonth [role="grid"] > div > div,
+  .custom-calendar [role="grid"].fc-multimonth > div > div {
+    margin-top: 0 !important;
+    margin-bottom: 0 !important;
+  }
+
+  /* Remove inner month border and border radius on small devices */
+  .custom-calendar:has(.fc-multimonth) [role="grid"] > div:last-child,
+  .custom-calendar .fc-multimonth [role="grid"] > div:last-child,
+  .custom-calendar.fc-multimonth [role="grid"] > div:last-child,
+  .custom-calendar [role="grid"].fc-multimonth > div:last-child {
+    border: 0 !important;
+    border-radius: 0 !important;
+  }
+  .custom-calendar:has(.fc-multimonth) [role="grid"] [role="columnheader"],
+  .custom-calendar .fc-multimonth [role="grid"] [role="columnheader"],
+  .custom-calendar.fc-multimonth [role="grid"] [role="columnheader"],
+  .custom-calendar [role="grid"].fc-multimonth [role="columnheader"] {
+    border-radius: 0 !important;
+  }
+}
+
+@media (max-width: 640px) {
+  .custom-calendar .fc-timegrid {
+    min-width: 580px;
+  }
+}

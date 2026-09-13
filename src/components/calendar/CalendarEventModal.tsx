@@ -74,10 +74,14 @@ const CalendarEventModal: React.FC<CalendarEventModalProps> = ({
   };
 
   return (
-    <Modal isOpen={isOpen} onClose={onClose} className="max-w-175 p-6 lg:p-10">
+    <Modal
+      isOpen={isOpen}
+      onClose={onClose}
+      className="max-w-175 p-4 sm:p-6 lg:p-10"
+    >
       <form
         onSubmit={handleSubmit}
-        className="flex custom-scrollbar flex-col overflow-y-auto px-2"
+        className="flex custom-scrollbar flex-col overflow-y-auto px-1 sm:px-2"
       >
         <div>
           <h5 className="modal-title mb-2 text-theme-xl font-semibold text-gray-800 lg:text-2xl dark:text-white/90">
@@ -110,7 +114,7 @@ const CalendarEventModal: React.FC<CalendarEventModalProps> = ({
             <label className="mb-4 block text-sm font-medium text-gray-700 dark:text-gray-400">
               Event Color
             </label>
-            <div className="flex flex-wrap items-center gap-4 sm:gap-5">
+            <div className="flex flex-wrap items-center gap-3 sm:gap-4">
               {Object.entries(CALENDAR_EVENT_LEVELS).map(([key, value]) => (
                 <div key={key} className="n-chk">
                   <div
