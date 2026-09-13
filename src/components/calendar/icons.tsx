@@ -1,6 +1,6 @@
 import { SVGProps } from "react";
 
-interface IconType extends SVGProps<SVGSVGElement> {}
+type IconType = SVGProps<SVGSVGElement>;
 
 export function ChevronLeftIcon(props: IconType) {
   return (

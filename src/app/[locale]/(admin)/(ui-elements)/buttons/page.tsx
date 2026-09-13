@@ -27,7 +27,7 @@ export default function Buttons() {
           </div>
         </ComponentCard>
         {/* Primary Button with Start Icon */}
-        <ComponentCard title="Primary Button with Left Icon">
+        <ComponentCard title="Primary Button with Leading Icon">
           <div className="flex items-center gap-5">
             <Button size="sm" variant="primary" startIcon={<BoxIcon />}>
               Button Text
@@ -38,7 +38,7 @@ export default function Buttons() {
           </div>
         </ComponentCard>{" "}
         {/* Primary Button with Start Icon */}
-        <ComponentCard title="Primary Button with Right Icon">
+        <ComponentCard title="Primary Button with Trailing Icon">
           <div className="flex items-center gap-5">
             <Button size="sm" variant="primary" endIcon={<BoxIcon />}>
               Button Text
@@ -61,7 +61,7 @@ export default function Buttons() {
           </div>
         </ComponentCard>
         {/* Outline Button with Start Icon */}
-        <ComponentCard title="Outline Button with Left Icon">
+        <ComponentCard title="Outline Button with Leading Icon">
           <div className="flex items-center gap-5">
             <Button size="sm" variant="outline" startIcon={<BoxIcon />}>
               Button Text
@@ -72,7 +72,7 @@ export default function Buttons() {
           </div>
         </ComponentCard>{" "}
         {/* Outline Button with Start Icon */}
-        <ComponentCard title="Outline Button with Right Icon">
+        <ComponentCard title="Outline Button with Trailing Icon">
           <div className="flex items-center gap-5">
             <Button size="sm" variant="outline" endIcon={<BoxIcon />}>
               Button Text

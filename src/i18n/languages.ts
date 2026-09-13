@@ -19,7 +19,7 @@ export const languages: Language[] = [
     dir: "ltr",
     FlagIcon: UsFlagIcon,
   },
-  // TODO: Add languages according to requirement
+  // Add languages according to requirement
   // {
   //   id: "ar",
   //   name: "Arabic (Saudi)",

@@ -1,11 +1,10 @@
-import React from "react";
-// import { VectorMap } from "@react-jvectormap/core";
 import { worldMill } from "@react-jvectormap/world";
 import dynamic from "next/dynamic";
+import React from "react";
 
 const VectorMap = dynamic(
   () => import("@react-jvectormap/core").then((mod) => mod.VectorMap),
-  { ssr: false }
+  { ssr: false },
 );
 
 // Define the component props
