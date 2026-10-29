@@ -109,6 +109,17 @@ To learn more about pro version features and pricing, visit our [pricing page](h
 
 ## Changelog
 
+### Version 2.5.0 - [October 29, 2026]
+
+- Migrated UI primitives to `@base-ui/react` for fully accessible components.
+- Integrated `@tanstack/react-table` v9 for robust table interaction and filtering.
+- Replaced legacy `@react-jvectormap` and overrides with lightweight `jsvectormap`.
+- Integrated `react-hook-form` with `zod` schema validation across form elements.
+- Decreased custom CSS variables and streamlined Tailwind CSS color tokens.
+- Added micro-animations using `tw-animate-css`.
+- Converted all raw SVG icons to tree-shakeable TSX React components in `src/icons/`.
+- Modernized layout architecture with accessible `SidebarProvider` and `SidebarInset`.
+
 ### Version 2.4.0 - [September 13, 2026]
 
 - Added Internationalization (Multi Language) support.
