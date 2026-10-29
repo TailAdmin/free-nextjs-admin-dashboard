@@ -1,8 +1,7 @@
-import BarChartOne from "@/components/charts/bar/BarChartOne";
-import ComponentCard from "@/components/common/ComponentCard";
-import PageBreadcrumb from "@/components/common/PageBreadCrumb";
+import ComponentCard from "@/components/common/component-card";
+import PageBreadcrumb from "@/components/common/page-breadcrumb";
+import BarChartOne from "@/components/others/charts/bar/one";
 import { Metadata } from "next";
-import React from "react";
 
 export const metadata: Metadata = {
   title: "Next.js Bar Chart | TailAdmin - Next.js Dashboard Template",
@@ -10,7 +9,7 @@ export const metadata: Metadata = {
     "This is Next.js Bar Chart page for TailAdmin - Next.js Tailwind CSS Admin Dashboard Template",
 };
 
-export default function page() {
+export default function BarChartPage() {
   return (
     <div>
       <PageBreadcrumb pageTitle="Bar Chart" />

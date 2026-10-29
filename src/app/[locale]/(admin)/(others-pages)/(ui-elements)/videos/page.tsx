@@ -1,7 +1,6 @@
-import PageBreadcrumb from "@/components/common/PageBreadCrumb";
-import VideosExample from "@/components/ui/video/VideosExample";
+import PageBreadcrumb from "@/components/common/page-breadcrumb";
+import VideoAspectRatioPreviews from "@/components/others/ui-elements/videos/aspect-ratio";
 import { Metadata } from "next";
-import React from "react";
 
 export const metadata: Metadata = {
   title: "Next.js Videos | TailAdmin - Next.js Dashboard Template",
@@ -14,7 +13,7 @@ export default function VideoPage() {
     <div>
       <PageBreadcrumb pageTitle="Videos" />
 
-      <VideosExample />
+      <VideoAspectRatioPreviews />
     </div>
   );
 }

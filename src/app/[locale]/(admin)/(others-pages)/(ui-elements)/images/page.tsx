@@ -1,10 +1,9 @@
-import ComponentCard from "@/components/common/ComponentCard";
-import PageBreadcrumb from "@/components/common/PageBreadCrumb";
-import ResponsiveImage from "@/components/ui/images/ResponsiveImage";
-import ThreeColumnImageGrid from "@/components/ui/images/ThreeColumnImageGrid";
-import TwoColumnImageGrid from "@/components/ui/images/TwoColumnImageGrid";
+import ComponentCard from "@/components/common/component-card";
+import PageBreadcrumb from "@/components/common/page-breadcrumb";
+import ResponsiveImage from "@/components/others/ui-elements/images/responsive";
+import ThreeColumnImageGrid from "@/components/others/ui-elements/images/three-column-greed";
+import TwoColumnImageGrid from "@/components/others/ui-elements/images/two-column-grid";
 import { Metadata } from "next";
-import React from "react";
 
 export const metadata: Metadata = {
   title: "Next.js Images | TailAdmin - Next.js Dashboard Template",

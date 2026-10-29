@@ -1,9 +1,9 @@
-import DemographicCard from "@/components/ecommerce/DemographicCard";
-import { EcommerceMetrics } from "@/components/ecommerce/EcommerceMetrics";
-import MonthlySalesChart from "@/components/ecommerce/MonthlySalesChart";
-import MonthlyTarget from "@/components/ecommerce/MonthlyTarget";
-import RecentOrders from "@/components/ecommerce/RecentOrders";
-import StatisticsChart from "@/components/ecommerce/StatisticsChart";
+import DemographicCard from "@/components/main/dashboard/ecommerce/demographic-card";
+import EcommerceMetrics from "@/components/main/dashboard/ecommerce/metrics";
+import MonthlySalesChart from "@/components/main/dashboard/ecommerce/monthly-sales-chart";
+import MonthlyTarget from "@/components/main/dashboard/ecommerce/monthly-target";
+import RecentOrders from "@/components/main/dashboard/ecommerce/recent-orders";
+import StatisticsChart from "@/components/main/dashboard/ecommerce/statistics-chart";
 import type { Metadata } from "next";
 
 export const metadata: Metadata = {
