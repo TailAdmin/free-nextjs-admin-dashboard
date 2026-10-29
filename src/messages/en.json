@@ -7,7 +7,9 @@
     "viewMore": "View More",
     "delete": "Delete",
     "filter": "Filter",
-    "seeAll": "See all"
+    "seeAll": "See all",
+    "confirm": "Confirm",
+    "cancel": "Cancel"
   },
   "sidebar": {
     "groups": {
@@ -182,6 +184,7 @@
     "statistics": {
       "title": "Statistics",
       "subtitle": "Target you've set for each month",
+      "overview": "Overview",
       "sales": "Sales",
       "revenue": "Revenue",
       "monthly": "Monthly",
@@ -214,7 +217,9 @@
       "subtitle": "Number of customer based on country",
       "customers": "{count} Customers",
       "usa": "USA",
-      "france": "France"
+      "france": "France",
+      "yemen": "Yemen",
+      "uk": "United Kingdom"
     }
   },
   "analytics": {
@@ -862,5 +867,3 @@
     }
   }
 }
-
-

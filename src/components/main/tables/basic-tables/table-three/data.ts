@@ -1,0 +1,68 @@
+import { Transaction } from "./types";
+
+export const latestTransactionsData: Transaction[] = [
+  {
+    id: 1,
+    name: "Bought PYPL",
+    brand: "paypal",
+    date: "Nov 23, 01:00 PM",
+    price: "$2,567.88",
+    category: "Finance",
+    status: "Success",
+  },
+  {
+    id: 2,
+    name: "Bought AAPL",
+    brand: "apple",
+    date: "Nov 22, 09:00 PM",
+    price: "$3,987.45",
+    category: "Technology",
+    status: "Pending",
+  },
+  {
+    id: 3,
+    name: "Netflix",
+    brand: "netflix",
+    date: "Oct 12, 03:54 PM",
+    price: "$6,754.99",
+    category: "Finance",
+    status: "Success",
+  },
+  {
+    id: 4,
+    name: "Bought TSLA",
+    brand: "tesla",
+    date: "Sep 09, 02:00 AM",
+    price: "$1,445.41",
+    category: "Technology",
+    status: "Success",
+  },
+  {
+    id: 5,
+    name: "Sell AMZN",
+    brand: "amazon",
+    date: "Feb 25, 08:00 PM",
+    price: "$5,698.55",
+    category: "Ecommerce",
+    status: "Failed",
+  },
+  {
+    id: 6,
+    name: "Bought SPOT",
+    brand: "spotify",
+    date: "Jan 18, 11:20 AM",
+    price: "$1,280.00",
+    category: "Media",
+    status: "Success",
+  },
+  {
+    id: 7,
+    name: "Sell ENVT",
+    brand: "envato",
+    date: "Jan 15, 04:30 PM",
+    price: "$840.50",
+    category: "Technology",
+    status: "Success",
+  },
+];
+
