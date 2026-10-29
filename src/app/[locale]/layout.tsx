@@ -1,7 +1,9 @@
-import { SidebarProvider } from "@/context/SidebarContext";
-import { ThemeProvider } from "@/context/ThemeContext";
+import { TooltipProvider } from "@/components/ui/tooltip";
+import { ThemeProvider } from "@/context/theme-context";
 import { isRtl } from "@/i18n/languages";
 import { type Locale, routing } from "@/i18n/routing";
+import { cn } from "@/utils";
+import { DirectionProvider } from "@base-ui/react/direction-provider";
 import "flatpickr/dist/flatpickr.css";
 import { NextIntlClientProvider } from "next-intl";
 import { setRequestLocale } from "next-intl/server";
@@ -34,12 +36,18 @@ export default async function RootLayout({
 
   setRequestLocale(locale);
 
+  const rtl = isRtl(locale as Locale);
+
   return (
-    <html lang={locale} dir={isRtl(locale as Locale) ? "rtl" : "ltr"}>
-      <body className={`${outfit.className} dark:bg-gray-900`}>
+    <html lang={locale} dir={rtl ? "rtl" : "ltr"}>
+      <body
+        className={cn("relative isolate dark:bg-gray-900", outfit.className)}
+      >
         <NextIntlClientProvider>
           <ThemeProvider>
-            <SidebarProvider>{children}</SidebarProvider>
+            <DirectionProvider direction={rtl ? "rtl" : "ltr"}>
+              <TooltipProvider>{children}</TooltipProvider>
+            </DirectionProvider>
           </ThemeProvider>
         </NextIntlClientProvider>
       </body>

@@ -1,6 +1,6 @@
 "use client";
 
-import GridShape from "@/components/common/GridShape";
+import GridShape from "@/components/common/grid-shape";
 import { Link } from "@/i18n/navigation";
 import { useTranslations } from "next-intl";
 import Image from "next/image";
@@ -12,7 +12,7 @@ export default function NotFound() {
     <div className="relative z-1 flex min-h-screen flex-col items-center justify-center overflow-hidden p-6">
       <GridShape />
       <div className="mx-auto w-full max-w-60.5 text-center sm:max-w-118">
-        <h1 className="mb-8 text-title-md font-bold text-gray-800 xl:text-title-2xl dark:text-white/90">
+        <h1 className="text-title-md xl:text-title-2xl mb-8 font-bold text-gray-800 dark:text-white/90">
           {t("error")}
         </h1>
 
