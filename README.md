@@ -112,6 +112,7 @@ To learn more about pro version features and pricing, visit our [pricing page](h
 ### Version 2.5.1 - [November 10, 2026]
 
 - Updated `next`, `react`, and `react-dom` version addressing GHSA-xqc2-xf4c-x3h3.
+- Updated dependencies
 
 ### Version 2.5.0 - [October 29, 2026]
 
