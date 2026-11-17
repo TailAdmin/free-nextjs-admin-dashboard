@@ -52,7 +52,7 @@ function ProgressIndicator({
     <ProgressPrimitive.Indicator
       data-slot="progress-indicator"
       className={cn(
-        "h-full rounded-xs bg-linear-to-r rtl:bg-linear-to-l from-brand-300 to-brand-600 transition-all duration-300 ease-in-out",
+        "h-full rounded-xs bg-linear-to-r from-brand-300 to-brand-600 transition-all duration-300 ease-in-out rtl:bg-linear-to-l",
         className,
       )}
       {...props}
@@ -64,7 +64,7 @@ function ProgressLabel({ className, ...props }: ProgressPrimitive.Label.Props) {
   return (
     <ProgressPrimitive.Label
       className={cn(
-        "text-sm font-medium text-gray-700 dark:text-gray-300",
+        "text-start text-sm font-medium text-gray-700 dark:text-gray-300",
         className,
       )}
       data-slot="progress-label"
@@ -77,7 +77,7 @@ function ProgressValue({ className, ...props }: ProgressPrimitive.Value.Props) {
   return (
     <ProgressPrimitive.Value
       className={cn(
-        "ms-auto text-sm font-medium text-gray-500 tabular-nums dark:text-gray-400",
+        "ms-auto text-end text-sm font-medium text-gray-500 tabular-nums [unicode-bidi:isolate] dark:text-gray-400",
         className,
       )}
       data-slot="progress-value"

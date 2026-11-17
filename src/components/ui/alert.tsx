@@ -3,19 +3,19 @@ import { cva, type VariantProps } from "class-variance-authority";
 import * as React from "react";
 
 const alertVariants = cva(
-  "group/alert relative grid w-full gap-0.5 rounded-xl border px-2.5 py-2 text-start text-sm has-data-[slot=alert-action]:relative has-data-[slot=alert-action]:pe-18 has-[>svg]:grid-cols-[auto_1fr] has-[>svg]:gap-x-2 *:[svg]:row-span-2 *:[svg]:translate-y-0.5 *:[svg]:text-current *:[svg:not([class*='size-'])]:size-4",
+  "group/alert relative grid w-full gap-0.5 rounded-xl border px-2.5 py-2 text-start text-sm has-data-[slot=alert-action]:relative has-data-[slot=alert-action]:pe-18 has-[>svg]:grid-cols-[auto_1fr] has-[>svg]:gap-x-2 has-data-[slot=alert-description]:[&>svg]:row-span-2 [&>svg]:translate-y-0.5 [&>svg]:text-current [&>svg:not([class*='size-'])]:size-4",
   {
     variants: {
       variant: {
         default:
           "bg-white text-gray-700 border-gray-200 dark:border-gray-800 dark:bg-[#1E2634] dark:text-gray-300",
         success:
-          "bg-green-50 border-green-500 *:[svg]:text-green-500 dark:bg-green-500/10 dark:border-green-500/30 dark:*:[svg]:text-green-400",
+          "border-green-500 bg-green-50 dark:border-green-500/30 dark:bg-green-500/10 [&>svg]:text-green-500 dark:[&>svg]:text-green-400",
         warning:
-          "bg-amber-50 border-amber-500 *:[svg]:text-amber-500 dark:bg-amber-500/10 dark:border-amber-500/30 dark:*:[svg]:text-amber-400",
+          "border-amber-500 bg-amber-50 dark:border-amber-500/30 dark:bg-amber-500/10 [&>svg]:text-amber-500 dark:[&>svg]:text-amber-400",
         destructive:
-          "bg-red-50 border-red-500 *:[svg]:text-red-500 dark:bg-red-500/10 dark:border-red-500/30 dark:*:[svg]:text-red-400",
-        info: "bg-sky-50 border-sky-500 *:[svg]:text-sky-500 dark:bg-sky-500/10 dark:border-sky-500/30 dark:*:[svg]:text-sky-400",
+          "border-red-500 bg-red-50 dark:border-red-500/30 dark:bg-red-500/10 [&>svg]:text-red-500 dark:[&>svg]:text-red-400",
+        info: "border-sky-500 bg-sky-50 dark:border-sky-500/30 dark:bg-sky-500/10 [&>svg]:text-sky-500 dark:[&>svg]:text-sky-400",
       },
     },
     defaultVariants: {
@@ -60,7 +60,7 @@ function AlertDescription({
     <div
       data-slot="alert-description"
       className={cn(
-        "[&_a]:hover:text-foreground text-sm text-balance text-gray-500 md:text-pretty dark:text-gray-400 [&_a]:underline [&_a]:underline-offset-3 [&_p:not(:last-child)]:mb-4",
+        "[&_a]:hover:text-foreground text-sm text-balance text-gray-500 group-has-[>svg]/alert:col-start-2 md:text-pretty dark:text-gray-400 [&_a]:underline [&_a]:underline-offset-3 [&_p:not(:last-child)]:mb-4",
         className,
       )}
       {...props}

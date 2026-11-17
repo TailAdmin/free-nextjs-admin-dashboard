@@ -53,7 +53,7 @@ function Slider({
             data-slot="slider-thumb"
             key={index}
             index={index}
-            className="block size-5 shrink-0 rounded-full border-2 border-brand-500 bg-white shadow-theme-xs transition-[box-shadow,transform] duration-150 select-none after:absolute after:-inset-2 after:content-[''] hover:ring-4 hover:ring-brand-500/15 focus-visible:ring-4 focus-visible:ring-brand-500/20 focus-visible:outline-hidden active:scale-95 active:ring-4 active:ring-brand-500/20 disabled:pointer-events-none disabled:border-gray-400 disabled:opacity-50 dark:border-brand-500 dark:bg-white dark:disabled:border-gray-600"
+            className="relative block size-5 shrink-0 rounded-full border-2 border-brand-500 bg-white shadow-theme-xs transition-[box-shadow,transform] duration-150 select-none after:absolute after:-inset-2 after:content-[''] hover:ring-4 hover:ring-brand-500/15 focus-visible:ring-4 focus-visible:ring-brand-500/20 focus-visible:outline-hidden active:scale-95 active:ring-4 active:ring-brand-500/20 disabled:pointer-events-none disabled:border-gray-400 disabled:opacity-50 dark:border-brand-500 dark:bg-white dark:disabled:border-gray-600"
           />
         ))}
       </SliderPrimitive.Control>

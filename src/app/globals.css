@@ -239,6 +239,11 @@
 }
 
 /* third-party libraries CSS */
+.apexcharts-canvas,
+.apexcharts-canvas * {
+  direction: ltr !important;
+}
+
 .apexcharts-legend-text {
   @apply ps-5! text-gray-700! dark:text-gray-400!;
 }
@@ -380,6 +385,20 @@
 
 .flatpickr-calendar {
   @apply mt-2 rounded-xl! border! border-gray-200! bg-white! p-5! text-gray-500! shadow-none! 2xsm:w-auto! dark:border-white/5! dark:bg-gray-950! dark:text-gray-400! dark:shadow-theme-xl!;
+}
+
+[dir="rtl"] .flatpickr-calendar {
+  direction: rtl;
+}
+
+[dir="rtl"] .flatpickr-months .flatpickr-prev-month.flatpickr-prev-month,
+[dir="rtl"] .flatpickr-months .flatpickr-next-month.flatpickr-prev-month {
+  @apply right-7! left-auto!;
+}
+
+[dir="rtl"] .flatpickr-months .flatpickr-prev-month.flatpickr-next-month,
+[dir="rtl"] .flatpickr-months .flatpickr-next-month.flatpickr-next-month {
+  @apply right-auto! left-7!;
 }
 
 .flatpickr-months .flatpickr-prev-month:hover svg,
