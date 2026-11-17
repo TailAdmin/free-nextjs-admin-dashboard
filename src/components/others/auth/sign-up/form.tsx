@@ -108,9 +108,9 @@ export default function SignUpFormFields() {
               className="text-gray-500 dark:text-gray-400"
             >
               {showPassword ? (
-                <EyeIcon className="fill-current" />
+                <EyeIcon className="text-current" />
               ) : (
-                <EyeCloseIcon className="fill-current" />
+                <EyeCloseIcon className="text-current" />
               )}
             </InputGroupButton>
           </InputGroupAddon>
@@ -141,9 +141,9 @@ export default function SignUpFormFields() {
               className="text-gray-500 dark:text-gray-400"
             >
               {showConfirmPassword ? (
-                <EyeIcon className="fill-current" />
+                <EyeIcon className="text-current" />
               ) : (
-                <EyeCloseIcon className="fill-current" />
+                <EyeCloseIcon className="text-current" />
               )}
             </InputGroupButton>
           </InputGroupAddon>

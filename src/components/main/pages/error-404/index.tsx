@@ -21,7 +21,7 @@ export default function Error404({
     >
       <GridShape />
       <div className="mx-auto w-full max-w-60.5 text-center sm:max-w-118">
-        <h1 className="text-title-md xl:text-title-2xl mb-8 font-bold text-gray-800 dark:text-white/90">
+        <h1 className="mb-8 text-2xl font-bold text-gray-800 xl:text-[64px] dark:text-white/90">
           {title}
         </h1>
 

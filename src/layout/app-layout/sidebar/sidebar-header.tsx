@@ -13,7 +13,7 @@ export default function AppSidebarHeader({
   showContent,
 }: AppSidebarHeaderProps) {
   return (
-    <SidebarHeader className="px-5 py-8">
+    <SidebarHeader className="px-5 pt-5 pb-8">
       <Link
         href="/"
         className={cn(

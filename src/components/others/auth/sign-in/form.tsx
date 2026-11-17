@@ -77,9 +77,9 @@ export default function SignInFormFields() {
               className="text-gray-500 dark:text-gray-400"
             >
               {showPassword ? (
-                <EyeIcon className="fill-current" />
+                <EyeIcon className="text-current" />
               ) : (
-                <EyeCloseIcon className="fill-current" />
+                <EyeCloseIcon className="text-current" />
               )}
             </InputGroupButton>
           </InputGroupAddon>
