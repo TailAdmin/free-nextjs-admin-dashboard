@@ -109,6 +109,13 @@ To learn more about pro version features and pricing, visit our [pricing page](h
 
 ## Changelog
 
+### Version 2.5.2 - [November 17, 2026]
+
+- Added shared `useVectorMapTheme` hook and refactored `VectorMap` for theme-aware (light/dark) regions, markers, and tooltips.
+- Improved RTL support for sliders, progress bars, buttons, alerts, charts, and dropdowns.
+- Updated Alert, Button Group, Dropdown, and Progress Bar components.
+- Fixed noted style and responsiveness issues.
+
 ### Version 2.5.1 - [November 10, 2026]
 
 - Updated `next`, `react`, and `react-dom` version addressing GHSA-xqc2-xf4c-x3h3.
