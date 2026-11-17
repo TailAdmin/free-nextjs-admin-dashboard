@@ -3,7 +3,6 @@
 import {
   Sidebar,
   SidebarContent,
-  SidebarFooter,
   useSidebar,
 } from "@/components/ui/sidebar";
 import { usePathname } from "@/i18n/navigation";
@@ -93,13 +92,9 @@ export default function AppSidebar() {
             ))}
           </div>
         </nav>
-      </SidebarContent>
 
-      {showContent && (
-        <SidebarFooter className="p-0 px-5 pt-1 pb-4">
-          <SidebarWidget />
-        </SidebarFooter>
-      )}
+        <SidebarWidget />
+      </SidebarContent>
     </Sidebar>
   );
 }

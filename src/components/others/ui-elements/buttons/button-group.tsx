@@ -12,7 +12,7 @@ export function ButtonGroupDemo() {
       <ButtonGroup>
         <ButtonGroup>
           <Button variant="outline" size="icon" aria-label="Go Back">
-            <ArrowLeftIcon />
+            <ArrowLeftIcon className="rtl:rotate-180" />
           </Button>
         </ButtonGroup>
         <ButtonGroup>

@@ -7,12 +7,9 @@ import { demographicData } from "./data";
 export default function CountryList() {
   const t = useTranslations("ecommerce.demographic");
 
-  // Only display the top 2 countries in the list
-  const topCountries = demographicData.slice(0, 3);
-
   return (
     <div className="flex flex-col gap-5">
-      {topCountries.map((country) => (
+      {demographicData.map((country) => (
         <div key={country.id} className="flex items-center justify-between">
           <div className="flex items-center gap-3">
             <div className="relative size-8 shrink-0 overflow-hidden rounded-lg">

@@ -22,7 +22,7 @@ export default function PhoneInputEnd() {
             <select
               defaultValue="US"
               onClick={(e) => e.stopPropagation()}
-              className="h-full cursor-pointer appearance-none border-0 border-none bg-transparent py-0 ps-3.5 pe-8 text-sm font-medium text-gray-700 shadow-none outline-hidden focus:border-0 focus:border-none focus:outline-hidden focus:ring-0 dark:text-gray-300 dark:hover:text-white dark:focus:text-white"
+              className="h-full cursor-pointer appearance-none border-0 border-none bg-transparent bg-none py-0 ps-3.5 pe-8 text-sm font-medium text-gray-700 shadow-none outline-hidden focus:border-0 focus:border-none focus:ring-0 focus:outline-hidden dark:text-gray-300 dark:hover:text-white dark:focus:text-white"
             >
               <option
                 value="US"

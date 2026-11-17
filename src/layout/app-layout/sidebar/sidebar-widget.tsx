@@ -17,7 +17,7 @@ export default function SidebarWidget() {
         rel="nofollow"
         className="flex items-center justify-center rounded-lg bg-brand-500 p-3 text-sm font-medium text-white hover:bg-brand-600"
       >
-        {t("purchasePlan")}
+        {t("purchaseNow")}
       </a>
     </div>
   );
