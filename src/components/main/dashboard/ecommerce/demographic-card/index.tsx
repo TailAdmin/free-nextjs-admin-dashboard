@@ -6,6 +6,7 @@ import CountryMap, { Marker } from "./country-map";
 import { demographicData } from "./data";
 
 export default function DemographicCard() {
+  const highlightedRegions = demographicData.map((c) => c.code);
   const mapMarkers: Marker[] = demographicData.map((country) => ({
     latLng: country.latLng,
     name: country.name,
@@ -25,7 +26,10 @@ export default function DemographicCard() {
           id="mapOne"
           className="mapOne map-btn -mx-4 -my-6 h-53 w-63 2xsm:w-76.75 xsm:w-89.5 sm:-mx-6 md:w-167 lg:w-158.5 xl:w-98.25 2xl:w-138.5"
         >
-          <CountryMap markers={mapMarkers} />
+          <CountryMap
+            markers={mapMarkers}
+            highlightedRegions={highlightedRegions}
+          />
         </div>
       </div>
 
